@@ -20,6 +20,8 @@ import { formatBip21SparkAddress } from "./handleBip21SparkAddress";
 import {
   addSingleUnpaidSparkLightningTransaction,
   bulkUpdateSparkTransactions,
+  SPARK_TX_UPDATE_ENVENT_NAME,
+  sparkTransactionsEventEmitter,
 } from "./transactions";
 
 export const sparkPaymenWrapper = async ({
@@ -83,29 +85,27 @@ export const sparkPaymenWrapper = async ({
         throw new Error("Error when sending lightning payment");
       handleSupportPayment(masterInfoObject, supportFee);
 
-      console.log(lightningPayResponse, "lightning pay response");
-      let sparkQueryResponse = null;
-      let count = 0;
-      while (!sparkQueryResponse && count < 5) {
-        const sparkResponse = await getSparkLightningSendRequest(
-          lightningPayResponse.id
-        );
+      // console.log(lightningPayResponse, "lightning pay response");
+      // let sparkQueryResponse = null;
+      // let count = 0;
+      // while (!sparkQueryResponse && count < 5) {
+      //   const sparkResponse = await getSparkLightningSendRequest(
+      //     lightningPayResponse.id
+      //   );
 
-        if (sparkResponse?.transfer) {
-          sparkQueryResponse = sparkResponse;
-        } else {
-          console.log("Waiting for response...");
-          await new Promise((res) => setTimeout(res, 2000));
-        }
-        count += 1;
-      }
+      //   if (sparkResponse?.transfer) {
+      //     sparkQueryResponse = sparkResponse;
+      //   } else {
+      //     console.log("Waiting for response...");
+      //     await new Promise((res) => setTimeout(res, 2000));
+      //   }
+      //   count += 1;
+      // }
 
-      console.log(sparkQueryResponse, "AFTEWR");
+      // console.log(sparkQueryResponse, "AFTEWR");
       const tx = {
-        id: sparkQueryResponse
-          ? sparkQueryResponse.transfer.sparkId
-          : lightningPayResponse.id,
-        paymentStatus: sparkQueryResponse ? "completed" : "pending",
+        id: lightningPayResponse.id,
+        paymentStatus: "pending",
         paymentType: "lightning",
         accountId: sparkInformation.identityPubKey,
         details: {
@@ -115,9 +115,7 @@ export const sparkPaymenWrapper = async ({
           time: new Date(lightningPayResponse.updatedAt).getTime(),
           direction: "OUTGOING",
           description: memo || "",
-          preimage: sparkQueryResponse
-            ? sparkQueryResponse.paymentPreimage
-            : "",
+          preimage: "",
         },
       };
       response = tx;
@@ -182,7 +180,7 @@ export const sparkPaymenWrapper = async ({
       if (!sparkPayResponse)
         throw new Error("Error when sending spark payment");
 
-      await handleSupportPayment(masterInfoObject, supportFee);
+      handleSupportPayment(masterInfoObject, supportFee);
 
       const tx = {
         id: sparkPayResponse.id,
@@ -286,6 +284,11 @@ async function handleSupportPayment(masterInfoObject, supportFee) {
         receiverSparkAddress: import.meta.env.VITE_BLITZ_SPARK_ADDRESS,
         amountSats: supportFee,
       });
+
+      sparkTransactionsEventEmitter.emit(
+        SPARK_TX_UPDATE_ENVENT_NAME,
+        "supportTx"
+      );
     }
   } catch (err) {
     console.log("Error sending support payment", err);
