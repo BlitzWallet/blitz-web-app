@@ -13,6 +13,8 @@ import "./restoreWallet.css";
 import PageNavBar from "../../components/navBar/navBar";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
+import { validateMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 
 const NUMARRAY = Array.from({ length: 12 }, (_, i) => i + 1);
 const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
@@ -84,6 +86,8 @@ export default function RestoreWallet() {
       if (!mnemonic || mnemonic.length !== 12) {
         return;
       }
+      if (!validateMnemonic(mnemonic.join(" "), wordlist))
+        throw new Error("Not a valid seedphrase");
 
       navigate("/createPassword", {
         state: { mnemoinc: mnemonic.join(" ") },

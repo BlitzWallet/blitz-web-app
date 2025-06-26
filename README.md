@@ -60,4 +60,4 @@ To run the project locally, follow these steps:
 
 ## License
 
-Blitz is released under the terms of the Apache 2.0 license. See LICENSE for more information.
+Blitz Web App is released under the terms of the Apache 2.0 license. See LICENSE for more information.

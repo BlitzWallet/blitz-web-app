@@ -51,6 +51,9 @@ export default function LoadingScreen() {
     "Please don't leave the tab"
   );
   const [hasError, setHasError] = useState("");
+  const liquidNodeConnectionRef = useRef(null);
+  const numberOfCachedTransactionsRef = useRef(null);
+
   useEffect(() => {
     if (didInitializeMessageIntervalRef.current) return;
     didInitializeMessageIntervalRef.current = true;
@@ -78,13 +81,25 @@ export default function LoadingScreen() {
         if (!didOpen || !posTransactions || !sparkTxs)
           throw new Error("Database initialization failed");
 
-        const initWallet = await initializeUserSettings(
-          mnemoinc,
-          toggleContactsPrivateKey,
-          setMasterInfoObject,
-          toggleGlobalContactsInformation,
-          toggleGlobalAppDataInformation
-        );
+        const listener = new JsEventListener(onLiquidBreezEvent);
+        const [didConnectToLiquidNode, txs, initWallet] = await Promise.all([
+          import.meta.env.MODE === "development"
+            ? Promise.resolve(null)
+            : connectToLiquidNode(mnemoinc, listener),
+          getCachedSparkTransactions(),
+          initializeUserSettings(
+            mnemoinc,
+            toggleContactsPrivateKey,
+            setMasterInfoObject,
+            toggleGlobalContactsInformation,
+            toggleGlobalAppDataInformation
+          ),
+        ]);
+        console.log(didConnectToLiquidNode, txs, initWallet);
+
+        liquidNodeConnectionRef.current = didConnectToLiquidNode;
+        numberOfCachedTransactionsRef.current = txs;
+
         if (!initWallet) throw new Error("Error loading user profile");
       } catch (err) {
         setHasError(err.message);
@@ -105,7 +120,10 @@ export default function LoadingScreen() {
       return;
     didLoadInformation.current = true;
 
-    initWallet();
+    initWallet(
+      liquidNodeConnectionRef.current,
+      numberOfCachedTransactionsRef.current
+    );
   }, [masterInfoObject, globalContactsInformation]);
 
   return (
@@ -119,7 +137,7 @@ export default function LoadingScreen() {
       />
     </div>
   );
-  async function initWallet() {
+  async function initWallet(didConnectToLiquidNode, txs) {
     console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
 
     try {
@@ -128,12 +146,6 @@ export default function LoadingScreen() {
         navigate("/wallet", { replace: true });
         return;
       }
-
-      const listener = new JsEventListener(onLiquidBreezEvent);
-      const [didConnectToLiquidNode, txs] = await Promise.all([
-        connectToLiquidNode(mnemoinc, listener),
-        getCachedSparkTransactions(),
-      ]);
 
       console.log(txs, "CACHED TRANSACTIONS");
       setNumberOfCachedTxs(txs?.length || 0);

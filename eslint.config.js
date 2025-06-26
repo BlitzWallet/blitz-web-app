@@ -24,7 +24,6 @@ export default [
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
 
-      // From React Native config
       "react/react-in-jsx-scope": "off",
       "dot-notation": "off",
       curly: "off",

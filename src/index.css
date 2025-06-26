@@ -20,7 +20,7 @@
 }
 * {
   box-sizing: border-box;
-  font: var(--font-family);
+  font-family: var(--font-family);
   -webkit-tap-highlight-color: transparent;
 }
 input {
