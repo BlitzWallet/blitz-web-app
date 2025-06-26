@@ -22,7 +22,6 @@ export default async function processLNUrlPay(input, context) {
     }) || [];
 
   if (comingFromAccept) {
-    let invoice = "";
     let numberOfTries = 0;
     let maxRetries = 3;
     while (!invoice && numberOfTries < maxRetries) {
