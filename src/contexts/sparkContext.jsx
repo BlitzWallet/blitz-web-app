@@ -66,6 +66,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
   const depositAddressIntervalRef = useRef(null);
   const restoreOffllineStateRef = useRef(null);
   const sparkPaymentActionsRef = useRef(null);
+  const handlePaymentUpdatedDbounceTimeoutRef = useRef(null);
   const [blockedIdentityPubKeys, setBlockedIdentityPubKeys] = useState([]);
   const blockedIdentityPubKeysRef = useRef([]);
   const isFirstSparkUpdateStateInterval = useRef(true);
@@ -238,6 +239,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       },
     });
   };
+
   // Add event listeners to listen for bitcoin and lightning or spark transfers when receiving does not handle sending
   useEffect(() => {
     const handleUpdate = async (updateType) => {
@@ -252,17 +254,26 @@ const SparkWalletProvider = ({ children, navigate }) => {
             transactions: txs || prev.transactions,
           }));
         } else {
-          const balance = (await getSparkBalance()) || { balance: 0 };
+          const balance = await getSparkBalance();
 
           setSparkInformation((prev) => ({
             ...prev,
-            balance: balance.balance,
+            balance: balance?.balance || prev.balance,
             transactions: txs || prev.transactions,
           }));
         }
       } catch (err) {
         console.error("Error in handleUpdate:", err);
       }
+    };
+    const handleUpdateDebouce = (updateType) => {
+      if (handlePaymentUpdatedDbounceTimeoutRef.current) {
+        clearTimeout(handlePaymentUpdatedDbounceTimeoutRef.current);
+      }
+      // Set new timeout for debounced execution (500ms delay)
+      handlePaymentUpdatedDbounceTimeoutRef.current = setTimeout(() => {
+        handleUpdate(updateType);
+      }, 1000);
     };
 
     const transferHandler = (transferId, balance) => {
@@ -274,7 +285,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       console.log("Adding Spark listeners...");
       sparkTransactionsEventEmitter.on(
         SPARK_TX_UPDATE_ENVENT_NAME,
-        handleUpdate
+        handleUpdateDebouce
       );
       sparkWallet.on("transfer:claimed", transferHandler);
       // sparkWallet.on("deposit:confirmed", transferHandler);
