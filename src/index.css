@@ -24,7 +24,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 input {
-  font-size: 16px;
+  font-size: 1rem;
+}
+textarea {
+  font-size: 1rem;
 }
 input:focus {
   outline: none;
@@ -61,6 +64,10 @@ p {
 button {
   border: 1px solid transparent;
   color: #262626;
+  font-size: 1em;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
   /* border-radius: 8px;
 
   padding: 5px 35px;

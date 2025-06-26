@@ -10,7 +10,7 @@ export default function CustomInput({
   containerStyles = {},
   onFocus,
   onBlur,
-  multiline = false, // <-- NEW prop
+  multiline = false,
 }) {
   const commonProps = {
     value,
@@ -21,7 +21,7 @@ export default function CustomInput({
     onBlur: () => onBlur?.(false),
     style: {
       ...customInputStyles,
-      resize: "none", // <-- Prevents resize
+      resize: "none",
     },
   };
 
