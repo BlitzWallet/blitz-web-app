@@ -88,7 +88,7 @@ export default async function decodeSendAddress(props) {
         parsedInvoice = {
           type: "Spark",
           address: {
-            adress: processedAddress.address,
+            address: processedAddress.address,
             message: processedAddress.options.message,
             label: processedAddress.options.label,
             network: "Spark",
