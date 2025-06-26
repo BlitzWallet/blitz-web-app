@@ -70,36 +70,19 @@ export const updateSparkTxStatus = async () =>
     try {
       console.log("Updating Spark transaction status...");
       // let start = 0;
-
-      // Determine cutoff time
-      // Arbitraily chose one week. Should be enough back time to cover last login if last login doesnt exist
-      // let historicalTime;
-      // if (useLastLoggedInTime) {
-      //   historicalTime =
-      //     JSON.parse(
-      //       await getLocalStorageItem(LAST_LOADED_BLITZ_LOCAL_STOREAGE_KEY),
-      //     ) || Date.now() - 7 * 24 * 60 * 60 * 1000;
-      //   setLocalStorageItem(
-      //     LAST_LOADED_BLITZ_LOCAL_STOREAGE_KEY,
-      //     JSON.stringify(Date.now()),
-      //   );
-      //   console.log(
-      //     'Using last logged-in time:',
-      //     new Date(historicalTime).toISOString(),
-      //   );
-      // } else {
-      //   // go an hour back, should cover this sessions
-      //   historicalTime = Date.now() - 60 * 60 * 1000;
-      //   console.log(
-      //     'Using last hour as cutoff:',
-      //     new Date(historicalTime).toISOString(),
-      //   );
-      // }
-
       // Get all saved transactions
       const savedTxs = await getAllPendingSparkPayments();
+
+      const incluedBitcoin = savedTxs.filter(
+        (tx) => tx.paymentType !== "lightning"
+      );
+      let incomingTxs = [];
+      if (incluedBitcoin.length) {
+        incomingTxs = await getSparkTransactions(100);
+      }
+
       // const savedMap = new Map(savedTxs.map(tx => [tx.sparkID, tx])); // use sparkID as key
-      console.log(savedTxs);
+
       let updatedTxs = [];
       for (const txStateUpdate of savedTxs) {
         // no need to do spark here since it wont ever be shown as pending
@@ -134,34 +117,41 @@ export const updateSparkTxStatus = async () =>
           };
           updatedTxs.push(tx);
         } else {
-          console.log(
-            "Updating bitcoin transaction status for:",
-            txStateUpdate.sparkID
-          );
-          const details = JSON.parse(txStateUpdate.details);
-          if (details.direction !== "OUTGOING") continue;
-          const sparkResponse = await getSparkBitcoinPaymentRequest(
-            txStateUpdate.sparkID
-          );
-          console.log(
-            `Spark response for ${txStateUpdate.sparkID}:`,
-            sparkResponse
-          );
-          if (!sparkResponse?.transfer) continue;
-
-          const tx = {
-            useTempId: true,
-            tempId: txStateUpdate.sparkID,
-            id: sparkResponse.transfer.sparkId,
-            paymentStatus: "completed",
-            paymentType: "bitcoin",
-            accountId: txStateUpdate.accountId,
-            details: {
-              ...details,
-              onChainTxid: sparkResponse.coopExitTxid,
-            },
-          };
-          updatedTxs.push(tx);
+          if (details.direction === "INCOMING") {
+            const bitcoinTransfer = incomingTxs.transfers.find(
+              (tx) => tx.id === txStateUpdate.sparkID
+            );
+            console.log(bitcoinTransfer, "bitocin transfer in pending");
+            if (!bitcoinTransfer) continue;
+            const tx = {
+              id: txStateUpdate.sparkID,
+              paymentStatus: "completed",
+              paymentType: "bitcoin",
+              accountId: txStateUpdate.accountId,
+            };
+            updatedTxs.push(tx);
+          } else {
+            const sparkResponse = await getSparkBitcoinPaymentRequest(
+              txStateUpdate.sparkID
+            );
+            if (!sparkResponse?.transfer) continue;
+            const details = JSON.parse(txStateUpdate.details);
+            const tx = {
+              useTempId: true,
+              tempId: txStateUpdate.sparkID,
+              id: sparkResponse
+                ? sparkResponse.transfer.sparkId
+                : txStateUpdate.sparkID,
+              paymentStatus: "completed",
+              paymentType: "bitcoin",
+              accountId: txStateUpdate.accountId,
+              details: {
+                ...details,
+                onchainTxid: sparkResponse.coopExitTxid,
+              },
+            };
+            updatedTxs.push(tx);
+          }
         }
       }
       console.log(updatedTxs, "updated txs");

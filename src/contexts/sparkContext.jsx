@@ -553,7 +553,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
         } catch (err) {
           console.error("Error during periodic restore:", err);
         }
-      }, 100000); //one minute intervals
+      }, 10 * 1000); //ten second intervals
     };
 
     // Run restore logic once

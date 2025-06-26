@@ -49,7 +49,7 @@ export default function ConfirmPayment() {
   }, [navigate]);
   return (
     <div className="receiveQrPage">
-      <BackArrow backFunction={() => navigate("/wallet", { replace: true })} />
+      <BackArrow backFunction={handleBack} />
 
       <div className="contentContainer">
         <Lottie
@@ -129,6 +129,7 @@ export default function ConfirmPayment() {
           />
         )}
         <CustomButton
+          actionFunction={handleBack}
           textStyles={{ color: Colors.dark.text }}
           buttonClassName={"continueBTN"}
           textContent={"Continue"}

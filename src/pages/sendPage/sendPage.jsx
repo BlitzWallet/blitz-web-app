@@ -240,13 +240,26 @@ export default function SendPage() {
         return;
       }
 
-      navigate("/confirm-page", {
-        state: {
-          for: "paymentsucceed",
-          transaction: paymentResponse.response,
-        },
-        replace: true,
-      });
+      if (paymentResponse.didWork) {
+        navigate("/confirm-page", {
+          state: {
+            for: "paymentsucceed",
+            transaction: paymentResponse.response,
+          },
+          replace: true,
+        });
+      } else {
+        navigate("/confirm-page", {
+          state: {
+            for: "paymentfailed",
+            transaction: {
+              paymentStatus: "failed",
+              details: { error: paymentResponse.error },
+            },
+          },
+          replace: true,
+        });
+      }
     } catch (err) {
       console.error("Payment send error", err);
     }
