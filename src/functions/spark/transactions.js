@@ -108,7 +108,10 @@ export const updateSingleSparkTransaction = async (sparkID, updates) => {
   }
 };
 
-export const bulkUpdateSparkTransactions = async (transactions) => {
+export const bulkUpdateSparkTransactions = async (
+  transactions,
+  updateType = "transactions"
+) => {
   try {
     const db = await dbPromise;
     const tx = db.transaction([SPARK_TRANSACTIONS_TABLE_NAME], "readwrite");
@@ -159,10 +162,7 @@ export const bulkUpdateSparkTransactions = async (transactions) => {
     }
     await tx.done;
 
-    sparkTransactionsEventEmitter.emit(
-      SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
-    );
+    sparkTransactionsEventEmitter.emit(SPARK_TX_UPDATE_ENVENT_NAME, updateType);
     return true;
   } catch (err) {
     console.error("bulkUpdateSparkTransactions error:", err);

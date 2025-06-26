@@ -243,13 +243,23 @@ const SparkWalletProvider = ({ children, navigate }) => {
     const handleUpdate = async (updateType) => {
       try {
         console.log("Running update from DB changes:", updateType);
-        const balance = (await getSparkBalance()) || { balance: 0 };
+
         const txs = await getAllSparkTransactions();
-        setSparkInformation((prev) => ({
-          ...prev,
-          balance: balance.balance,
-          transactions: txs || prev.transactions,
-        }));
+
+        if (updateType === "blocked") {
+          setSparkInformation((prev) => ({
+            ...prev,
+            transactions: txs || prev.transactions,
+          }));
+        } else {
+          const balance = (await getSparkBalance()) || { balance: 0 };
+
+          setSparkInformation((prev) => ({
+            ...prev,
+            balance: balance.balance,
+            transactions: txs || prev.transactions,
+          }));
+        }
       } catch (err) {
         console.error("Error in handleUpdate:", err);
       }

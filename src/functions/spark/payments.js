@@ -120,7 +120,7 @@ export const sparkPaymenWrapper = async ({
       };
       response = tx;
 
-      await bulkUpdateSparkTransactions([tx]);
+      await bulkUpdateSparkTransactions([tx], "blocked");
     } else if (paymentType === "bitcoin") {
       // make sure to import exist speed
       const onChainPayResponse = await sendSparkBitcoinPayment({
@@ -170,7 +170,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx]);
+      await bulkUpdateSparkTransactions([tx], "blocked");
     } else {
       const sparkPayResponse = await sendSparkPayment({
         receiverSparkAddress: address,
@@ -198,7 +198,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx]);
+      await bulkUpdateSparkTransactions([tx], "blocked");
     }
     console.log(response, "resonse in send function");
     return { didWork: true, response };
@@ -280,6 +280,7 @@ export const sparkReceivePaymentWrapper = async ({
 async function handleSupportPayment(masterInfoObject, supportFee) {
   try {
     if (masterInfoObject?.enabledDeveloperSupport?.isEnabled) {
+      await new Promise((res) => setTimeout(res, 2000));
       await sendSparkPayment({
         receiverSparkAddress: import.meta.env.VITE_BLITZ_SPARK_ADDRESS,
         amountSats: supportFee,
