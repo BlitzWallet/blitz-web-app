@@ -121,6 +121,7 @@ export default function ExpandedTxPage() {
           <div className="infoGridContainer">
             <ThemeText textContent={"Time"} />
             <ThemeText
+              textStyles={{ textAlign: windowWidth > 320 ? "right" : "center" }}
               textContent={`${
                 paymentDate.getHours() <= 9
                   ? "0" + paymentDate.getHours()
@@ -133,6 +134,9 @@ export default function ExpandedTxPage() {
             />
             <ThemeText textContent={"Fee"} />
             <FormattedSatText
+              containerStyles={{
+                justifyContent: windowWidth > 320 ? "end" : "center",
+              }}
               styles={{ marginTop: 0, marginBottom: 0 }}
               neverHideBalance={true}
               balance={isFailed ? 0 : transaction.details.fee}
@@ -141,6 +145,7 @@ export default function ExpandedTxPage() {
             <ThemeText
               textStyles={{
                 textTransform: "capitalize",
+                textAlign: windowWidth > 320 ? "right" : "center",
               }}
               textContent={paymentType}
             />
