@@ -85,9 +85,9 @@ export const updateSparkTxStatus = async () =>
 
       let updatedTxs = [];
       for (const txStateUpdate of savedTxs) {
+        const details = JSON.parse(txStateUpdate.details);
         // no need to do spark here since it wont ever be shown as pending
         if (txStateUpdate.paymentType === "lightning") {
-          const details = JSON.parse(txStateUpdate.details);
           let sparkResponse;
           if (details.direction === "INCOMING") {
             sparkResponse = await getSparkLightningPaymentStatus({
