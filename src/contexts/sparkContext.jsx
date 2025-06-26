@@ -289,11 +289,10 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
     const removeListeners = () => {
       console.log("Removing Spark listeners");
-      sparkTransactionsEventEmitter.off(
-        SPARK_TX_UPDATE_ENVENT_NAME,
-        handleUpdate
+      sparkTransactionsEventEmitter.removeAllListeners(
+        SPARK_TX_UPDATE_ENVENT_NAME
       );
-      sparkWallet.off("transfer:claimed", transferHandler);
+      sparkWallet.removeAllListeners("transfer:claimed");
       // sparkWallet.off("deposit:confirmed", transferHandler);
     };
     const handleTabBlur = () => removeListeners();
