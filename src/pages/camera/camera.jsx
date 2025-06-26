@@ -11,6 +11,7 @@ import CustomButton from "../../components/customButton/customButton";
 import flashLightNoFill from "../../assets/flashlightNoFillWhite.png";
 import flashLightFill from "../../assets/flashlight.png";
 import images from "../../assets/images.png";
+import { useCameraPermission } from "../../hooks/useCameraPermission";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
@@ -24,6 +25,8 @@ export default function Camera() {
   const [pauseCamera, setPauseCamera] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isFlashlightOn, setIsFlashLightOn] = useState(false);
+  const cameraPermissions = useCameraPermission();
+  console.log(cameraPermissions, "test");
 
   useEffect(() => {
     if (pauseCamera || didScan.current || !videoRef.current) return;
@@ -38,6 +41,7 @@ export default function Camera() {
         didScan.current = true;
 
         scanner.stop();
+
         setPauseCamera(true);
         navigate("/send", { state: { btcAddress: data } });
       },
@@ -151,7 +155,13 @@ export default function Camera() {
             border: `4px solid ${Colors.light.blue}`,
           }}
         >
-          {!isCameraReady && <p>Loading camera...</p>}
+          {!isCameraReady && (
+            <p>
+              {cameraPermissions === "denied"
+                ? "To use this feature, enable camera in the browser settings."
+                : "Loading camera..."}
+            </p>
+          )}
         </div>
       </div>
       <div onClick={getDataFromFile} className="fileContainer">
