@@ -182,13 +182,13 @@ async function processInputType(input, context) {
       return await processBitcoinAddress(input, context);
 
     case LIQUID_TYPES.Bolt11.toLowerCase(): //works
-      return processBolt11Invoice(input, context);
+      return await processBolt11Invoice(input, context);
 
     case LIQUID_TYPES.LnUrlAuth.toLowerCase():
       return await processLNUrlAuth(input, context);
 
     case LIQUID_TYPES.LnUrlPay.toLowerCase(): //works
-      return processLNUrlPay(input, context);
+      return await processLNUrlPay(input, context);
 
     // case LIQUID_TYPES.LnUrlWithdraw.toLowerCase():
     //   return await processLNUrlWithdraw(input, context);
