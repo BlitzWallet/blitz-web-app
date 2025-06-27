@@ -77,7 +77,7 @@ async function initializeSparkSession({
       );
     }
     const storageObject = {
-      balance: balance.balance,
+      balance: Number(balance.balance),
       transactions: transactions,
       identityPubKey,
       sparkAddress,
