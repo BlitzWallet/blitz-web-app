@@ -51,6 +51,7 @@ export default function LoadingScreen() {
     "Please don't leave the tab"
   );
   const [hasError, setHasError] = useState("");
+  const [didOpenDatabases, setDidOpenDatabases] = useState(false);
   const liquidNodeConnectionRef = useRef(null);
   const numberOfCachedTransactionsRef = useRef(null);
 
@@ -97,10 +98,10 @@ export default function LoadingScreen() {
         ]);
         console.log(didConnectToLiquidNode, txs, initWallet);
 
+        if (!initWallet) throw new Error("Error loading user profile");
         liquidNodeConnectionRef.current = didConnectToLiquidNode;
         numberOfCachedTransactionsRef.current = txs;
-
-        if (!initWallet) throw new Error("Error loading user profile");
+        setDidOpenDatabases(true);
       } catch (err) {
         setHasError(err.message);
       }
@@ -115,7 +116,8 @@ export default function LoadingScreen() {
     if (
       Object.keys(masterInfoObject).length === 0 ||
       didLoadInformation.current ||
-      Object.keys(globalContactsInformation).length === 0
+      Object.keys(globalContactsInformation).length === 0 ||
+      !didOpenDatabases
     )
       return;
     didLoadInformation.current = true;
