@@ -4,6 +4,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  margin-top: 20px;
 }
 .viewMnemoincContainer .warning1 {
   width: 95%;
@@ -124,5 +125,11 @@
 @media screen and (max-width: 400px) {
   .viewMnemoincContainer .keyContainer {
     grid-template-columns: 1fr;
+  }
+  .viewMnemoincContainer .warning1 {
+    font-size: 1.25rem;
+  }
+  .viewMnemoincContainer .warning2 {
+    font-size: 1rem;
   }
 }
