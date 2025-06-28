@@ -50,10 +50,9 @@ async function sendDataToDB(newObject, uuid) {
     });
 
     if (Object.keys(localStorageData).length > 0) {
-      const localStoragePromises = Object.entries(localStorageData).map(
-        ([key, value]) => Storage.setItem(key, value)
+      Object.entries(localStorageData).map(([key, value]) =>
+        Storage.setItem(key, value)
       );
-      await Promise.all(localStoragePromises);
     }
 
     if (Object.keys(dbStorageData).length > 0) {
