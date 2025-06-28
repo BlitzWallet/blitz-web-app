@@ -7,7 +7,6 @@ export default function calculateProgressiveBracketFee(amount) {
   const brackets = [
     { upTo: 50, fixedFee: 1, percentage: 0 }, // 0% + 1 sat
     { upTo: 1000, fixedFee: 2, percentage: 0.004 }, // 0.4% + 2 sats
-    { upTo: 3000, fixedFee: 3, percentage: 0.004 }, // 0.4% + 3 sats
     { upTo: Infinity, fixedFee: 4, percentage: 0.004 }, // fallback: 0.4% + 4 sats
   ];
 
