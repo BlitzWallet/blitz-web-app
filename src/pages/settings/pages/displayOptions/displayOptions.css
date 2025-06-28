@@ -1,0 +1,40 @@
+#displayOptionsContainer {
+  flex: 1;
+  width: 100%;
+}
+
+#displayOptionsContainer .backgroundContainer {
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#displayOptionsContainer .denominationContainer {
+  width: max-content;
+  padding: 0 15px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#displayOptionsContainer .denominationLabelText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+  flex-shrink: 1;
+}
+
+#displayOptionsContainer .exampleText {
+  text-align: center;
+  margin-bottom: 0;
+}
+#displayOptionsContainer .formattedSatTextContainer p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
