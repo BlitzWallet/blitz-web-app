@@ -16,6 +16,7 @@ import {
   SPARK_TO_LN_FEE,
   SPARK_TO_SPARK_FEE,
 } from "../../constants/math";
+import calculateProgressiveBracketFee from "./calculateSupportFee";
 import { formatBip21SparkAddress } from "./handleBip21SparkAddress";
 import {
   addSingleUnpaidSparkLightningTransaction,
@@ -39,10 +40,7 @@ export const sparkPaymenWrapper = async ({
   try {
     console.log("Begining spark payment");
     if (!sparkWallet) throw new Error("sparkWallet not initialized");
-    const supportFee =
-      Math.ceil(
-        amountSats * masterInfoObject?.enabledDeveloperSupport.baseFeePercent
-      ) + Number(masterInfoObject?.enabledDeveloperSupport?.baseFee);
+    const supportFee = calculateProgressiveBracketFee(amountSats);
     if (getFee) {
       console.log("Calculating spark payment fee");
       let calculatedFee = 0;
@@ -80,6 +78,7 @@ export const sparkPaymenWrapper = async ({
       console.log(address, "testing address");
       const lightningPayResponse = await sendSparkLightningPayment({
         invoice: address,
+        maxFeeSats: Math.round(fee - supportFee),
       });
       if (!lightningPayResponse)
         throw new Error("Error when sending lightning payment");

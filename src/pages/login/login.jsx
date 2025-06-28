@@ -4,12 +4,8 @@ import { useEffect, useState } from "react";
 import { decrypt } from "../../functions/encription";
 import { useAuth } from "../../contexts/authContext";
 import Storage from "../../functions/localStorage";
-import { useSpark } from "../../contexts/sparkContext";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
-import { initializeDatabase } from "../../functions/messaging/cachedMessages";
-import { initializePOSTransactionsDatabase } from "../../functions/pos";
-import { initializeSparkDatabase } from "../../functions/spark/transactions";
 
 function Login() {
   const navigate = useNavigate();
