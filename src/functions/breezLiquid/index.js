@@ -1,4 +1,7 @@
-import { BLITZ_DEFAULT_PAYMENT_DESCRIPTION } from "../../constants";
+import {
+  BITCOIN_SAT_TEXT,
+  BLITZ_DEFAULT_PAYMENT_DESCRIPTION,
+} from "../../constants";
 import { getLiquidSdk } from "../connectToLiquid.js";
 
 export async function breezLiquidReceivePaymentWrapper({
@@ -35,7 +38,7 @@ export async function breezLiquidReceivePaymentWrapper({
 
     // If the fees are acceptable, continue to create the Receive Payment
     const receiveFeesSat = prepareResponse.feesSat;
-    console.log(`Fees: ${receiveFeesSat} sats`);
+    console.log(`Fees: ${receiveFeesSat} ${BITCOIN_SAT_TEXT}`);
     console.log("Starting receive payment");
 
     const res = await sdk.receivePayment({
@@ -80,7 +83,7 @@ export async function breezLiquidPaymentWrapper({
 
     // If the fees are acceptable, continue to create the Send Payment
     const sendFeesSat = prepareResponse.feesSat;
-    console.log(`Fees: ${sendFeesSat} sats`);
+    console.log(`Fees: ${sendFeesSat} sat`);
     console.log("Sending payment");
     const sendResponse = await sdk.sendPayment({
       prepareResponse,
@@ -125,7 +128,7 @@ export async function breezLiquidLNAddressPaymentWrapper({
       validateSuccessActionUrl: optionalValidateSuccessActionUrl,
     });
     const feesSat = prepareResponse.feesSat;
-    console.log(`Fees: ${feesSat} sats`);
+    console.log(`Fees: ${feesSat} sat`);
     console.log("Sending LNURL pay");
     const result = await sdk.lnurlPay({
       prepareResponse,

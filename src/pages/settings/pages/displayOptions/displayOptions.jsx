@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import FormattedSatText from "../../../../components/formattedSatText/formattedSatText";
-import { BITCOIN_SATS_ICON } from "../../../../constants";
+import { BITCOIN_SAT_TEXT, BITCOIN_SATS_ICON } from "../../../../constants";
 import { Colors } from "../../../../constants/theme";
 import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 import { useNodeContext } from "../../../../contexts/nodeContext";
@@ -71,7 +71,9 @@ export default function DisplayOptions() {
         style={{ backgroundColor: Colors.dark.text }}
         className="backgroundContainer"
       >
-        <p className="denominationLabelText">How to display sats</p>
+        <p className="denominationLabelText">
+          How to display {BITCOIN_SAT_TEXT}
+        </p>
         <div
           onClick={() => {
             if (masterInfoObject.satDisplay === "symbol") return;
