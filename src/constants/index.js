@@ -26,6 +26,7 @@ const VALID_URL_REGEX =
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const VALID_USERNAME_REGEX = /^(?=.*\p{L})[\p{L}\p{N}_]+$/u;
+const IS_LETTER_REGEX = /^[A-Za-z]$/;
 const BITCOIN_SATS_ICON = "₿";
 const BITCOIN_SAT_TEXT = "SAT";
 const HIDDEN_BALANCE_TEXT = `* * * * *`;
@@ -128,4 +129,5 @@ export {
   LIQUID_PAYMENT_METHOD,
   BLITZ_PROFILE_IMG_STORAGE_REF,
   BITCOIN_SAT_TEXT,
+  IS_LETTER_REGEX,
 };

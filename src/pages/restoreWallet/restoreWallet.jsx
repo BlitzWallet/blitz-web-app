@@ -15,6 +15,7 @@ import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
 import { validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
+import { handleRestoreFromText } from "../../functions/seed";
 
 const NUMARRAY = Array.from({ length: 12 }, (_, i) => i + 1);
 const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
@@ -56,7 +57,10 @@ export default function RestoreWallet() {
 
       console.log(response);
       const data = response;
-      const splitSeed = data.split(" ");
+      const restoredSeed = handleRestoreFromText(data);
+      if (!restoredSeed.didWork) throw new Error(restoredSeed.error);
+
+      const splitSeed = restoredSeed.seed;
       if (
         !splitSeed.every((word) => word.trim().length > 0) ||
         splitSeed.length !== 12
