@@ -35,6 +35,7 @@ export default async function decodeSendAddress(props) {
 
   try {
     const sdk = getLiquidSdk();
+    if (!btcAdress) throw new Error("No address found, please try again.");
     // Handle cryptoqr.net special case
     if (btcAdress.includes("cryptoqr.net")) {
       try {
