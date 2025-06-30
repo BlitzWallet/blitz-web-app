@@ -6,7 +6,11 @@ import numberConverter from "../../functions/numberConverter";
 import { formatCurrency } from "../../functions/formatCurrency";
 import "./style.css";
 import ThemeText from "../themeText/themeText";
-import { BITCOIN_SATS_ICON, HIDDEN_BALANCE_TEXT } from "../../constants";
+import {
+  BITCOIN_SAT_TEXT,
+  BITCOIN_SATS_ICON,
+  HIDDEN_BALANCE_TEXT,
+} from "../../constants";
 
 export default function FormattedSatText({
   balance = 0,
@@ -114,7 +118,7 @@ export default function FormattedSatText({
         {!showSymbol && (
           <ThemeText
             textStyles={{ ...styles, marginLeft: "5px" }}
-            textContent={"sats"}
+            textContent={BITCOIN_SAT_TEXT}
           />
         )}
         {backText && (

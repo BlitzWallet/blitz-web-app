@@ -6,6 +6,7 @@ import "./settingsItem.css";
 import ViewMnemoinc from "../../viewkey/viewKey";
 import SparkInformation from "../pages/sparkInfo/sparkInfo";
 import DisplayCurrency from "../pages/currency/displayCurrency";
+import DisplayOptions from "../pages/displayOptions/displayOptions";
 
 export default function SettingsContentIndex() {
   const location = useLocation();
