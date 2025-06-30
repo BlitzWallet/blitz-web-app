@@ -56,9 +56,9 @@ export default defineConfig(({ command, mode }) => {
       global: "globalThis",
     },
     // Remove console logs in production
-    // esbuild: {
-    //   drop: isProduction ? ["console", "debugger"] : [],
-    // },
+    esbuild: {
+      drop: isProduction ? ["console", "debugger"] : [],
+    },
     build: {
       rollupOptions: {
         plugins: [

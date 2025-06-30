@@ -79,9 +79,7 @@ export const GlobalContactsList = ({ children }) => {
             publicKey,
             addedContacts
           );
-          console.log(decoded);
           const parsed = JSON.parse(decoded);
-          console.log(parsed);
           setDecodedAddedContacts(parsed);
         } catch (e) {
           console.error("Error decrypting or parsing:", e);

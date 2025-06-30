@@ -44,11 +44,12 @@ const defaultValues = {
 };
 
 export const fetchLocalStorageItems = async () => {
-  const results = await Promise.all(keys.map((key) => Storage.getItem(key)));
+  const results = keys.map((key) => Storage.getItem(key));
 
   const parsedResults = results.map((value, index) => {
     try {
-      return JSON.parse(value);
+      if (!value) throw new Error("No value saved");
+      return value;
     } catch {
       return defaultValues[keys[index]]; // Fallback to default if parsing fails
     }

@@ -41,13 +41,13 @@ const GENERALOPTIONS = [
     iconWhite: currencyIconWhite,
     arrowIcon: leftCheveronArrow,
   },
-  // {
-  //   for: "general",
-  //   name: "Display Options",
-  //   icon: colorIcon,
-  //   iconWhite: colorIconWhite,
-  //   arrowIcon: leftCheveronArrow,
-  // },
+  {
+    for: "general",
+    name: "Display Options",
+    icon: colorIcon,
+    iconWhite: colorIconWhite,
+    arrowIcon: leftCheveronArrow,
+  },
 
   // {
   //   for: "general",

@@ -7,6 +7,7 @@ import "./style.css";
 import ReceiveButtonsContainer from "./components/buttonContainer";
 import { initializeAddressProcess } from "../../functions/receiveBitcoin/addressGeneration";
 import { useGlobalContacts } from "../../contexts/globalContacts";
+import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 
 export default function ReceiveQRPage() {
   const { globalContactsInformation } = useGlobalContacts();
@@ -108,9 +109,10 @@ export default function ReceiveQRPage() {
           <p style={{ margin: 0 }} className="feeText">
             Fee:
           </p>
-          <p style={{ margin: 0 }} className="feeText">
-            0 sats
-          </p>
+          <FormattedSatText balance={0} neverHideBalance={true} />
+          {/* <p style={{ margin: 0 }} className="feeText">
+            0 sat
+          </p> */}
         </div>
       </div>
     </div>
