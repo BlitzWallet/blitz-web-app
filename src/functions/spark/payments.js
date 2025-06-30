@@ -69,7 +69,10 @@ export const sparkPaymenWrapper = async ({
       };
     }
     let response;
-    if (userBalance < amountSats + (paymentType === "bitcoin" ? 0 : fee))
+    if (
+      userBalance <
+      amountSats + (paymentType === "bitcoin" ? supportFee : fee)
+    )
       throw new Error("Insufficient funds");
 
     let supportFeeResponse;
@@ -119,7 +122,7 @@ export const sparkPaymenWrapper = async ({
       };
       response = tx;
 
-      await bulkUpdateSparkTransactions([tx], "blocked");
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx");
     } else if (paymentType === "bitcoin") {
       // make sure to import exist speed
       const onChainPayResponse = await sendSparkBitcoinPayment({
@@ -169,7 +172,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx], "blocked");
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx");
     } else {
       const sparkPayResponse = await sendSparkPayment({
         receiverSparkAddress: address,
@@ -197,7 +200,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx], "blocked");
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx");
     }
     console.log(response, "resonse in send function");
     return { didWork: true, response };

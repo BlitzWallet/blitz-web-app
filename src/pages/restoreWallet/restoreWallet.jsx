@@ -55,7 +55,6 @@ export default function RestoreWallet() {
 
       if (!response) throw new Error("Not able to get clipboard data");
 
-      console.log(response);
       const data = response;
       const restoredSeed = handleRestoreFromText(data);
       if (!restoredSeed.didWork) throw new Error(restoredSeed.error);
