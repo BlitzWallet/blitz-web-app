@@ -23,7 +23,6 @@ export function handleRestoreFromText(seedString) {
     let currentIndex = 0;
     let maxIndex = seedString.length;
     let currentWord = "";
-    const wordSet = new Set(wordlist.map((word) => word.toLowerCase()));
 
     while (currentIndex <= maxIndex) {
       const letter = seedString[currentIndex];
@@ -35,8 +34,20 @@ export function handleRestoreFromText(seedString) {
       currentWord += letter.toLowerCase();
       const currentTry = currentWord;
 
-      const isWord = wordSet.has(currentTry);
-      if (isWord) {
+      const posibleOptins = wordlist.filter((word) =>
+        word.toLowerCase().startsWith(currentTry)
+      );
+
+      if (!posibleOptins.length) {
+        const lastPosibleOption = currentWord.slice(0, currentWord.length - 1);
+        wordArray.push(lastPosibleOption);
+        currentWord = "";
+        continue;
+      }
+      if (
+        posibleOptins.length === 1 &&
+        posibleOptins[0].toLowerCase() === currentTry.toLowerCase()
+      ) {
         wordArray.push(currentTry);
         currentWord = "";
       }
