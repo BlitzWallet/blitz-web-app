@@ -13,6 +13,8 @@ function Login() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const wantsToDeleteAccount = queryParams.get("confirmed");
+  const [didUseEnter, setDidUseEnter] = useState(false);
+  const textInputElement = document.getElementById("inialPass");
 
   const [password, setPassword] = useState("");
 
@@ -31,6 +33,20 @@ function Login() {
     setMnemoinc(decryted);
     login(storedKey);
   };
+
+  useEffect(() => {
+    if (!didUseEnter) return;
+    handlePassEncription();
+  }, [didUseEnter]);
+  useEffect(() => {
+    const handleKeypressEvent = (e) => {
+      if (e.code.toLowerCase() !== "enter") return;
+      setDidUseEnter(true);
+    };
+    if (!textInputElement) return;
+    textInputElement.addEventListener("keypress", handleKeypressEvent);
+    return removeEventListener("keypress", handleKeypressEvent);
+  }, [textInputElement]);
 
   useEffect(() => {
     if (!wantsToDeleteAccount) return;

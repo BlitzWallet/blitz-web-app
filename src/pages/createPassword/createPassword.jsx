@@ -2,7 +2,7 @@ import "./style.css";
 import BackArrow from "../../components/backArrow/backArrow";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { encrypt } from "../../functions/encription";
 import { useAuth } from "../../contexts/authContext";
 import CustomButton from "../../components/customButton/customButton";
@@ -16,8 +16,16 @@ function CreatePassword() {
     initialPass: "",
     checkPass: "",
   });
+  const [didUseEnter, setDidUseEnter] = useState(false);
+  const confirmPasswordElement = document.getElementById("checkPass");
 
   const handlePassEncription = () => {
+    console.log(
+      !password.initialPass ||
+        !password.checkPass ||
+        password.initialPass !== password.checkPass,
+      password
+    );
     if (
       !password.initialPass ||
       !password.checkPass ||
@@ -29,6 +37,21 @@ function CreatePassword() {
     setMnemoinc(mnemoinc);
     login(encripted);
   };
+
+  useEffect(() => {
+    if (!didUseEnter) return;
+    handlePassEncription();
+  }, [didUseEnter]);
+  useEffect(() => {
+    const handleKeypressEvent = (e) => {
+      if (e.code.toLowerCase() !== "enter") return;
+      setDidUseEnter(true);
+    };
+    if (!confirmPasswordElement) return;
+    confirmPasswordElement.addEventListener("keypress", handleKeypressEvent);
+    return removeEventListener("keypress", handleKeypressEvent);
+  }, [confirmPasswordElement]);
+
   return (
     <div className="passwordContainer">
       <BackArrow />
