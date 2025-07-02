@@ -2,13 +2,12 @@ import "./style.css";
 import BackArrow from "../../components/backArrow/backArrow";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { encrypt } from "../../functions/encription";
 import { useAuth } from "../../contexts/authContext";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
 function CreatePassword() {
-  const navigate = useNavigate();
   const { login, setMnemoinc } = useAuth();
   const location = useLocation();
   const { mnemoinc } = location.state || {};
@@ -17,7 +16,8 @@ function CreatePassword() {
     checkPass: "",
   });
   const [didUseEnter, setDidUseEnter] = useState(false);
-  const confirmPasswordElement = document.getElementById("checkPass");
+  const checkPasswordRef = useRef(null);
+  const inputsContainer = document.getElementById("textInputContainer");
 
   const handlePassEncription = () => {
     console.log(
@@ -42,15 +42,25 @@ function CreatePassword() {
     if (!didUseEnter) return;
     handlePassEncription();
   }, [didUseEnter]);
+
   useEffect(() => {
     const handleKeypressEvent = (e) => {
+      const targetElement = e.target.id;
+      console.log(targetElement, "target element", e.code);
       if (e.code.toLowerCase() !== "enter") return;
+      if (targetElement === "inialPass") {
+        checkPasswordRef.current.focus();
+        return;
+      }
+      console.log("running");
       setDidUseEnter(true);
     };
-    if (!confirmPasswordElement) return;
-    confirmPasswordElement.addEventListener("keypress", handleKeypressEvent);
+
+    if (!inputsContainer) return;
+
+    inputsContainer.addEventListener("keypress", handleKeypressEvent);
     return removeEventListener("keypress", handleKeypressEvent);
-  }, [confirmPasswordElement]);
+  }, [inputsContainer]);
 
   return (
     <div className="passwordContainer">
@@ -61,25 +71,28 @@ function CreatePassword() {
         <p className="topText">
           This password protects your wallet locally. Choose a strong password.
         </p>
-        <p>Password</p>
-        <input
-          onChange={(e) =>
-            setPassword((prev) => ({ ...prev, initialPass: e.target.value }))
-          }
-          className="initialPass"
-          type="password"
-          name=""
-          id="inialPass"
-        />
-        <p>Confirm Password</p>
-        <input
-          onChange={(e) =>
-            setPassword((prev) => ({ ...prev, checkPass: e.target.value }))
-          }
-          type="password"
-          name=""
-          id="checkPass"
-        />
+        <div id="textInputContainer" className="inputsContainer">
+          <p>Password</p>
+          <input
+            onChange={(e) =>
+              setPassword((prev) => ({ ...prev, initialPass: e.target.value }))
+            }
+            className="initialPass"
+            type="password"
+            name=""
+            id="inialPass"
+          />
+          <p>Confirm Password</p>
+          <input
+            ref={checkPasswordRef}
+            onChange={(e) =>
+              setPassword((prev) => ({ ...prev, checkPass: e.target.value }))
+            }
+            type="password"
+            name=""
+            id="checkPass"
+          />
+        </div>
 
         <CustomButton
           actionFunction={handlePassEncription}

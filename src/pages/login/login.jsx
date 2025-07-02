@@ -38,6 +38,7 @@ function Login() {
     if (!didUseEnter) return;
     handlePassEncription();
   }, [didUseEnter]);
+
   useEffect(() => {
     const handleKeypressEvent = (e) => {
       if (e.code.toLowerCase() !== "enter") return;

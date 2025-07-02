@@ -6,6 +6,11 @@
 .passwordContainer p {
   margin: 0;
 }
+.passwordContainer .inputsContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
 .passwordContainer .inputContainer {
   width: 95%;
   max-width: 400px;
