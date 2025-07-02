@@ -47,7 +47,7 @@ export const sparkPaymenWrapper = async ({
       if (paymentType === "lightning") {
         const routingFee = await getSparkLightningPaymentFeeEstimate(address);
         if (!routingFee) throw new Error("Unable to calculate spark fee");
-        calculatedFee = routingFee + amountSats * SPARK_TO_LN_FEE;
+        calculatedFee = routingFee;
       } else if (paymentType === "bitcoin") {
         const feeResponse = await sparkWallet.getWithdrawalFeeEstimate({
           amountSats,
@@ -78,10 +78,10 @@ export const sparkPaymenWrapper = async ({
     let supportFeeResponse;
 
     if (paymentType === "lightning") {
-      console.log(address, "testing address");
+      const initialFee = Math.round(fee - supportFee);
       const lightningPayResponse = await sendSparkLightningPayment({
         invoice: address,
-        maxFeeSats: Math.round(fee - supportFee),
+        maxFeeSats: initialFee,
       });
       if (!lightningPayResponse)
         throw new Error("Error when sending lightning payment");

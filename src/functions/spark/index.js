@@ -278,6 +278,7 @@ export const sendSparkLightningPayment = async ({ invoice, maxFeeSats }) => {
     return await sparkWallet.payLightningInvoice({
       invoice,
       preferSpark: true,
+      maxFeeSats,
     });
   } catch (err) {
     console.log("Send lightning payment error", err);
