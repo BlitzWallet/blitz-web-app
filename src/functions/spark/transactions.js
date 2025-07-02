@@ -97,10 +97,8 @@ export const updateSingleSparkTransaction = async (sparkID, updates) => {
     if (!existing) return false;
     const updated = { ...existing, ...updates };
     await db.put(SPARK_TRANSACTIONS_TABLE_NAME, updated);
-    sparkTransactionsEventEmitter.emit(
-      SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
-    );
+    handleEventEmitter("transactions");
+
     return true;
   } catch (err) {
     console.error("updateSingleSparkTransaction error:", err);
@@ -161,8 +159,8 @@ export const bulkUpdateSparkTransactions = async (
       }
     }
     await tx.done;
+    handleEventEmitter(updateType);
 
-    sparkTransactionsEventEmitter.emit(SPARK_TX_UPDATE_ENVENT_NAME, updateType);
     return true;
   } catch (err) {
     console.error("bulkUpdateSparkTransactions error:", err);
@@ -180,10 +178,8 @@ export const addSingleSparkTransaction = async (tx) => {
       accountId: tx.accountId ?? "unknown",
       details: JSON.stringify(tx.details),
     });
-    sparkTransactionsEventEmitter.emit(
-      SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
-    );
+    handleEventEmitter("transactions");
+
     return true;
   } catch (err) {
     console.error("addSingleSparkTransaction error:", err);
@@ -195,10 +191,8 @@ export const deleteSparkTransaction = async (sparkID) => {
   try {
     const db = await dbPromise;
     await db.delete(SPARK_TRANSACTIONS_TABLE_NAME, sparkID);
-    sparkTransactionsEventEmitter.emit(
-      SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
-    );
+    handleEventEmitter("transactions");
+
     return true;
   } catch (err) {
     console.error("deleteSparkTransaction error:", err);
@@ -254,4 +248,52 @@ export const cleanStalePendingSparkLightningTransactions = async () => {
     console.error("cleanStalePendingSparkLightningTransactions error:", err);
     return false;
   }
+};
+const handleEventEmitter = (label, options = {}) => {
+  const {
+    maxAttempts = 30,
+    intervalMs = 2000,
+    eventName = SPARK_TX_UPDATE_ENVENT_NAME,
+  } = options;
+
+  if (typeof sparkTransactionsEventEmitter.listenerCount !== "function") {
+    console.log("Event emitter doesn't support listenerCount method");
+    return;
+  }
+
+  const hasListeners =
+    sparkTransactionsEventEmitter.listenerCount(eventName) > 0;
+
+  if (hasListeners) {
+    console.log("Listeners found, emitting immediately");
+    sparkTransactionsEventEmitter.emit(eventName, label);
+    return;
+  }
+
+  console.log("No listeners found, starting interval fallback");
+  let attempts = 0;
+  const intervalId = setInterval(() => {
+    attempts++;
+
+    if (attempts >= maxAttempts) {
+      console.log(`Max fallback attempts (${maxAttempts}) reached`);
+      clearInterval(intervalId);
+      return;
+    }
+
+    console.log(`Fallback emit attempt ${attempts}`);
+    try {
+      const nowHasListeners =
+        sparkTransactionsEventEmitter.listenerCount(eventName) > 0;
+      if (nowHasListeners) {
+        console.log("Listener detected, emitting event");
+        sparkTransactionsEventEmitter.emit(eventName, label);
+        clearInterval(intervalId);
+      }
+    } catch (error) {
+      console.error("Error during emit attempt:", error);
+    }
+  }, intervalMs);
+
+  return intervalId; // Allow manual cleanup if needed
 };
