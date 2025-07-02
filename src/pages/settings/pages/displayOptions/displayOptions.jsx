@@ -120,7 +120,7 @@ export default function DisplayOptions() {
             }}
           >
             {masterInfoObject.userBalanceDenomination !== "fiat"
-              ? "Sats"
+              ? BITCOIN_SAT_TEXT
               : currencyText}
           </p>
         </div>
