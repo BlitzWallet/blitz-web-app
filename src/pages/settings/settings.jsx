@@ -26,6 +26,7 @@ import nodeIcon from "../../assets/nodeIcon.png";
 import nodeIconWhite from "../../assets/nodeIconWhite.png";
 import ThemeText from "../../components/themeText/themeText";
 import { useEffect } from "react";
+import SocialOptionsBottomBar from "./socialOptions/socialOptions";
 const GENERALOPTIONS = [
   {
     for: "general",
@@ -202,7 +203,10 @@ export default function SettingsHome() {
   return (
     <div className="settingsPage">
       <PageNavBar text="Settings" />
-      <div className="contentContainer">{settingsItems}</div>
+      <div className="contentContainer">
+        {settingsItems}
+        <SocialOptionsBottomBar />
+      </div>
     </div>
   );
 }
