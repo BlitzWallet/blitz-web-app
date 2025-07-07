@@ -7,6 +7,7 @@ import ViewMnemoinc from "../../viewkey/viewKey";
 import SparkInformation from "../pages/sparkInfo/sparkInfo";
 import DisplayCurrency from "../pages/currency/displayCurrency";
 import DisplayOptions from "../pages/displayOptions/displayOptions";
+import EditMyProfilePage from "../../contacts/screens/editMyProfilePage/editMyProfilePage";
 
 export default function SettingsContentIndex() {
   const location = useLocation();
@@ -14,18 +15,8 @@ export default function SettingsContentIndex() {
   const selectedPage = props.for?.toLowerCase();
   const navigate = useNavigate();
 
-  if (
-    selectedPage === "point-of-sale" ||
-    selectedPage === "edit contact profile"
-  ) {
-    return (
-      <>
-        {selectedPage === "point-of-sale" && <PosSettingsPage />}
-        {selectedPage === "edit contact profile" && (
-          <EditMyProfilePage fromSettings={true} pageType="myProfile" />
-        )}
-      </>
-    );
+  if (selectedPage === "point-of-sale") {
+    return <>{selectedPage === "point-of-sale" && <PosSettingsPage />}</>;
   }
   return (
     <SafeAreaComponent addedClassName={"settingsContentIndexContianer"}>
@@ -35,6 +26,10 @@ export default function SettingsContentIndex() {
         {selectedPage === "display currency" && <DisplayCurrency />}
         {selectedPage === "node info" && <NodeInfo />}
         {selectedPage === "display options" && <DisplayOptions />}
+
+        {selectedPage === "edit contact profile" && (
+          <EditMyProfilePage fromSettings={true} pageType="myProfile" />
+        )}
 
         {selectedPage === "fast pay" && <FastPay />}
 

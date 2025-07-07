@@ -22,7 +22,7 @@ import xSmallIconBlack from "../../../../assets/x-small-black.webp";
 import CustomInput from "../../../../components/customInput/customInput";
 import { VALID_USERNAME_REGEX } from "../../../../constants";
 
-export default function EditMyProfilePage() {
+export default function EditMyProfilePage(navProps) {
   const navigate = useNavigate();
   const {
     decodedAddedContacts,
@@ -31,7 +31,8 @@ export default function EditMyProfilePage() {
   } = useGlobalContacts();
 
   const location = useLocation();
-  const props = location.state;
+
+  const props = { ...location.state, ...navProps };
   const pageType = props?.pageType || props.route?.params?.pageType;
   const fromSettings = props.fromSettings || props.route?.params?.fromSettings;
 
@@ -50,26 +51,28 @@ export default function EditMyProfilePage() {
 
   return (
     <div id="editMyProfile">
-      <div className="pageNavBar">
-        <BackArrow
-          backFunction={() => {
-            if (!isFirstTimeEditing) {
-              toggleGlobalContactsInformation(
-                {
-                  myProfile: {
-                    ...globalContactsInformation.myProfile,
-                    didEditProfile: true,
+      {!fromSettings && (
+        <div className="pageNavBar">
+          <BackArrow
+            backFunction={() => {
+              if (!isFirstTimeEditing) {
+                toggleGlobalContactsInformation(
+                  {
+                    myProfile: {
+                      ...globalContactsInformation.myProfile,
+                      didEditProfile: true,
+                    },
+                    addedContacts: globalContactsInformation.addedContacts,
                   },
-                  addedContacts: globalContactsInformation.addedContacts,
-                },
-                true
-              );
-            }
-            navigate(-1);
-          }}
-        />
-        <p>{fromSettings ? "Edit Profile" : ""}</p>
-      </div>
+                  true
+                );
+              }
+              navigate(-1);
+            }}
+          />
+          <p>{fromSettings ? "Edit Profile" : ""}</p>
+        </div>
+      )}
       <InnerContent
         isEditingMyProfile={isEditingMyProfile}
         selectedAddedContact={selectedAddedContact}
@@ -176,7 +179,10 @@ function InnerContent({
 
   return (
     <div className="editProfileInnerContainer">
-      <div className="editProfileScrollContainer">
+      <div
+        style={{ paddingTop: fromSettings ? 40 : 0 }}
+        className="editProfileScrollContainer"
+      >
         <div
           className="profileImageContainer"
           onClick={() => {
@@ -514,7 +520,7 @@ function InnerContent({
         selectedAddedContact?.name === inputs.name &&
         selectedAddedContact?.receiveAddress === inputs.receiveAddress
       )
-        navigate.goBack();
+        navigate(-1);
       else {
         let newAddedContacts = [...decodedAddedContacts];
         const indexOfContact = decodedAddedContacts.findIndex(
@@ -548,7 +554,7 @@ function InnerContent({
           },
           true
         );
-        navigate.goBack();
+        navigate(-1);
       }
     }
   }

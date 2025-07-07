@@ -50,13 +50,13 @@ const GENERALOPTIONS = [
     arrowIcon: leftCheveronArrow,
   },
 
-  // {
-  //   for: "general",
-  //   name: "Edit Contact Profile",
-  //   icon: contactsIconBlue,
-  //   iconWhite: contactsIconWhite,
-  //   arrowIcon: leftCheveronArrow,
-  // },
+  {
+    for: "general",
+    name: "Edit Contact Profile",
+    icon: contactsIconBlue,
+    iconWhite: contactsIconWhite,
+    arrowIcon: leftCheveronArrow,
+  },
   // {
   //   for: "general",
   //   name: "Fast Pay",

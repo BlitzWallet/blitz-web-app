@@ -48,25 +48,36 @@ export const GlobalContactsList = ({ children }) => {
   const lookForNewMessages = useRef(false);
   const unsubscribeMessagesRef = useRef(null);
   const unsubscribeSentMessagesRef = useRef(null);
+  const pendingWrite = useRef(null);
 
   const addedContacts = globalContactsInformation.addedContacts;
 
-  const toggleGlobalContactsInformation = useCallback(
-    (newData, writeToDB) => {
-      setGlobalContactsInformation((prev) => {
-        const newContacts = { ...prev, ...newData };
-        if (writeToDB) {
-          addDataToCollection(
-            { contacts: newContacts },
-            "blitzWalletUsers",
-            publicKey
-          );
-        }
-        return newContacts;
-      });
-    },
-    [publicKey]
-  );
+  const toggleGlobalContactsInformation = useCallback((newData, writeToDB) => {
+    console.log("WRITING TO DATABASE TWICE (should only see once)");
+
+    setGlobalContactsInformation((prev) => {
+      const newContacts = { ...prev, ...newData };
+
+      if (writeToDB) {
+        // Store the data we want to write outside the updater
+        pendingWrite.current = newContacts;
+      }
+
+      return newContacts;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (pendingWrite.current) {
+      console.log("RUNNING IN WRITE TO DB (should only see once)");
+      addDataToCollection(
+        { contacts: pendingWrite.current },
+        "blitzWalletUsers",
+        publicKey
+      );
+      pendingWrite.current = null;
+    }
+  }, [globalContactsInformation, publicKey]);
 
   useEffect(() => {
     if (!publicKey || !addedContacts) return;
