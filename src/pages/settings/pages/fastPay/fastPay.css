@@ -1,0 +1,11 @@
+#fastPayContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#fastPayContainer .customSwitchContainer {
+  width: 100%;
+  max-width: 500px;
+  align-self: center;
+}

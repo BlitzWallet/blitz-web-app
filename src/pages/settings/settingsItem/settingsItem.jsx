@@ -8,6 +8,7 @@ import SparkInformation from "../pages/sparkInfo/sparkInfo";
 import DisplayCurrency from "../pages/currency/displayCurrency";
 import DisplayOptions from "../pages/displayOptions/displayOptions";
 import EditMyProfilePage from "../../contacts/screens/editMyProfilePage/editMyProfilePage";
+import FastPay from "../pages/fastPay/fastPay";
 
 export default function SettingsContentIndex() {
   const location = useLocation();

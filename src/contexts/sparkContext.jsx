@@ -537,14 +537,14 @@ const SparkWalletProvider = ({ children, navigate }) => {
       }
     };
 
-    if (depositAddressIntervalRef.current) {
-      clearInterval(depositAddressIntervalRef.current);
-    }
-    handleDepositAddressCheck();
-    depositAddressIntervalRef.current = setInterval(
-      handleDepositAddressCheck,
-      10_000 * 60 //run every 5 minutes since that is the average block time
-    );
+    // if (depositAddressIntervalRef.current) {
+    //   clearInterval(depositAddressIntervalRef.current);
+    // }
+    // handleDepositAddressCheck();
+    // depositAddressIntervalRef.current = setInterval(
+    //   handleDepositAddressCheck,
+    //   10_000 * 60 //run every 5 minutes since that is the average block time
+    // );
   }, [sparkInformation.didConnect]);
 
   useEffect(() => {

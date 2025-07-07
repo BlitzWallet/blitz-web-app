@@ -1,0 +1,29 @@
+#switchButton {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+#switchButton .backgroundColorContainer {
+  width: 70px;
+  height: 35px;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+#switchButton .dotItem {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  position: absolute;
+  top: 5px;
+}
+
+#switchButton .switchText {
+  position: absolute;
+  font-weight: bold;
+  font-size: 12px;
+  top: 50%;
+  left: 0px;
+  transform-origin: center;
+}
