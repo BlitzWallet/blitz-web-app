@@ -28,14 +28,14 @@ export default function FastPay() {
       if (isNaN(parseValue)) {
         resetFunction();
         navigate.navigate("ErrorScreen", {
-          errorMessage: t("settings.fastpay.text1"),
+          errorMessage: "Value must be a number",
         });
         return;
       }
       if (parseValue === 0) {
         resetFunction();
         navigate.navigate("ErrorScreen", {
-          errorMessage: t("settings.fastpay.text2"),
+          errorMessage: "Must be greater than 0",
         });
         return;
       }
