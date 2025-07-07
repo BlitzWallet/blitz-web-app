@@ -15,7 +15,11 @@ import { useNodeContext } from "../../contexts/nodeContext";
 import { useAppStatus } from "../../contexts/appStatus";
 import ErrorWithPayment from "./components/errorScreen";
 import decodeSendAddress from "../../functions/sendBitcoin/decodeSendAdress";
-import { LIQUID_TYPES, SATSPERBITCOIN } from "../../constants";
+import {
+  LIQUID_TYPES,
+  QUICK_PAY_STORAGE_KEY,
+  SATSPERBITCOIN,
+} from "../../constants";
 import CustomInput from "../../components/customInput/customInput";
 import CustomNumberKeyboard from "../../components/customNumberKeyboard/customNumberKeyboard";
 import NumberInputSendPage from "./components/numberInput";
@@ -139,6 +143,46 @@ export default function SendPage() {
     }
     setTimeout(decodePayment, 1000);
   }, []);
+
+  useEffect(() => {
+    console.log(
+      !Object.keys(paymentInfo).length,
+      "|",
+      !masterInfoObject[QUICK_PAY_STORAGE_KEY].isFastPayEnabled,
+      "|",
+      !canSendPayment,
+      "|",
+      // paymentInfo.type === InputTypeVariant.LN_URL_PAY,
+      // '|',
+      !(
+        masterInfoObject[QUICK_PAY_STORAGE_KEY].fastPayThresholdSats >=
+        convertedSendAmount
+      ),
+      "|",
+      // paymentInfo.type === 'liquid' && !paymentInfo.data.isBip21,
+      "FAST PAY SETTINGS",
+      masterInfoObject[QUICK_PAY_STORAGE_KEY].fastPayThresholdSats,
+      convertedSendAmount
+    );
+
+    if (!Object.keys(paymentInfo).length) return;
+    if (!masterInfoObject[QUICK_PAY_STORAGE_KEY].isFastPayEnabled) return;
+    if (!canSendPayment) return;
+    if (canEditPaymentAmount) return;
+    // if (paymentInfo.type === InputTypeVariant.LN_URL_PAY) return;
+    if (
+      !(
+        masterInfoObject[QUICK_PAY_STORAGE_KEY].fastPayThresholdSats >=
+        convertedSendAmount
+      )
+    )
+      return;
+    // if (paymentInfo.type === 'liquid' && !paymentInfo.data.isBip21) return;
+
+    setTimeout(() => {
+      handleSend();
+    }, 150);
+  }, [paymentInfo, canEditPaymentAmount]);
 
   const handleSend = async () => {
     if (!canSendPayment) return;

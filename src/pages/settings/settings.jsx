@@ -27,6 +27,9 @@ import nodeIconWhite from "../../assets/nodeIconWhite.png";
 import ThemeText from "../../components/themeText/themeText";
 import { useEffect } from "react";
 import SocialOptionsBottomBar from "./socialOptions/socialOptions";
+import Icon from "../../components/customIcon/customIcon";
+import { Colors } from "../../constants/theme";
+
 const GENERALOPTIONS = [
   {
     for: "general",
@@ -57,13 +60,13 @@ const GENERALOPTIONS = [
     iconWhite: contactsIconWhite,
     arrowIcon: leftCheveronArrow,
   },
-  // {
-  //   for: "general",
-  //   name: "Fast Pay",
-  //   svgIcon: true,
-  //   svgName: "quickPayIcon",
-  //   arrowIcon: leftCheveronArrow,
-  // },
+  {
+    for: "general",
+    name: "Fast Pay",
+    svgIcon: true,
+    svgName: "quickPayIcon",
+    arrowIcon: leftCheveronArrow,
+  },
   // {
   //   for: "general",
   //   name: "Blitz Stats",
@@ -168,7 +171,11 @@ export default function SettingsHome() {
           }}
           className="settingsItemContainer"
         >
-          <img className="settingsItemImage" src={settingsElement.icon} />
+          {settingsElement.svgIcon ? (
+            <Icon color={Colors.light.blue} name={settingsElement.svgName} />
+          ) : (
+            <img className="settingsItemImage" src={settingsElement.icon} />
+          )}
           <ThemeText
             className={"settingsItemName"}
             textContent={settingsElement.name}
