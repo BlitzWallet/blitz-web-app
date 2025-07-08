@@ -75,8 +75,16 @@ export default function BlitzFeeInformation() {
   return (
     <div id="feeDetails">
       <ThemeText
+        textStyles={{ textAlign: "center", marginBottom: 20 }}
+        textContent={`Blitz Wallet offers free and open‑source products for the Bitcoin community.`}
+      />
+      <ThemeText
+        textStyles={{ textAlign: "center", marginBottom: 20 }}
+        textContent={`To help keep the project sustainable, we’ve added a small transaction fee to each payment.`}
+      />
+      <ThemeText
         textStyles={{ textAlign: "center", marginBottom: 30 }}
-        textContent={`Blitz Wallet offers free and open‑source products for the Bitcoin community. \n\nTo help keep the project sustainable, we’ve added a small transaction fee to each payment.\n\nHere’s how those fees are distributed:`}
+        textContent={`Here’s how those fees are distributed:`}
       />
 
       <GridSection
