@@ -63,6 +63,8 @@ const BLITZ_GOAL_USER_COUNT = 1_000_000;
 
 const IS_DONTATION_PAYMENT_BUFFER = 10_000;
 
+const INSET_WINDOW_WIDTH = "95%";
+
 const LIQUID_TYPES = {
   BitcoinAddress: "BitcoinAddress",
   LiquidAddress: "LiquidAddress",
@@ -130,4 +132,5 @@ export {
   BLITZ_PROFILE_IMG_STORAGE_REF,
   BITCOIN_SAT_TEXT,
   IS_LETTER_REGEX,
+  INSET_WINDOW_WIDTH,
 };
