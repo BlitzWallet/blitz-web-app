@@ -9,6 +9,7 @@ import DisplayCurrency from "../pages/currency/displayCurrency";
 import DisplayOptions from "../pages/displayOptions/displayOptions";
 import EditMyProfilePage from "../../contacts/screens/editMyProfilePage/editMyProfilePage";
 import FastPay from "../pages/fastPay/fastPay";
+import BlitzFeeInformation from "../pages/feeDetails/feeInformation";
 
 export default function SettingsContentIndex() {
   const location = useLocation();
@@ -35,6 +36,8 @@ export default function SettingsContentIndex() {
         {selectedPage === "fast pay" && <FastPay />}
 
         {selectedPage === "blitz stats" && <ExploreUsers />}
+
+        {selectedPage === "blitz fee details" && <BlitzFeeInformation />}
 
         {selectedPage === "backup wallet" && <ViewMnemoinc props={props} />}
         {selectedPage === "spark info" && <SparkInformation />}

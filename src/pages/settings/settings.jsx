@@ -22,6 +22,8 @@ import keyIcon from "../../assets/keyIcon.png";
 import keyIconWhite from "../../assets/keyIconWhite.png";
 import trashIcon from "../../assets/trashIcon.png";
 import trashIconWhite from "../../assets/trashIconWhite.png";
+import receipt from "../../assets/receipt.png";
+import receiptDM from "../../assets/receiptDM.png";
 import nodeIcon from "../../assets/nodeIcon.png";
 import nodeIconWhite from "../../assets/nodeIconWhite.png";
 import ThemeText from "../../components/themeText/themeText";
@@ -87,6 +89,13 @@ const SECURITYOPTIONS = [
 ];
 
 const ADVANCEDOPTIONS = [
+  {
+    for: "Closing Account",
+    name: "Blitz Fee Details",
+    icon: receipt,
+    iconWhite: receiptDM,
+    arrowIcon: leftCheveronArrow,
+  },
   {
     for: "Closing Account",
     name: "Delete Wallet",
