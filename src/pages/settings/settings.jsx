@@ -69,14 +69,14 @@ const GENERALOPTIONS = [
     svgName: "quickPayIcon",
     arrowIcon: leftCheveronArrow,
   },
-  // {
-  //   for: "general",
-  //   name: "Blitz Stats",
-  //   svgName: "crashDebugIcon",
-  //   icon: navigationIcon,
-  //   iconWhite: navigationIconWhite,
-  //   arrowIcon: leftCheveronArrow,
-  // },
+  {
+    for: "general",
+    name: "Blitz Stats",
+    svgName: "crashDebugIcon",
+    icon: navigationIcon,
+    iconWhite: navigationIconWhite,
+    arrowIcon: leftCheveronArrow,
+  },
 ];
 const SECURITYOPTIONS = [
   {

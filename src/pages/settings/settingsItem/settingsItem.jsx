@@ -10,6 +10,7 @@ import DisplayOptions from "../pages/displayOptions/displayOptions";
 import EditMyProfilePage from "../../contacts/screens/editMyProfilePage/editMyProfilePage";
 import FastPay from "../pages/fastPay/fastPay";
 import BlitzFeeInformation from "../pages/feeDetails/feeInformation";
+import ExploreUsers from "../pages/exploreUsers/exploreUsers";
 
 export default function SettingsContentIndex() {
   const location = useLocation();
