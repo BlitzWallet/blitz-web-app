@@ -45,10 +45,6 @@ export default function NoDataView() {
         lastUpdated: new Date().getTime(),
         data: response,
       });
-      setLocalStorageItem(
-        "savedExploreData",
-        JSON.stringify({ lastUpdated: new Date().getTime(), data: response })
-      );
     } catch (err) {
       console.log("handling explore users search err", err);
     } finally {
