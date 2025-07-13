@@ -128,14 +128,6 @@ export default function ExploreUsers() {
           borderColor:
             theme && darkModeType ? Colors.dark.text : Colors.light.blue,
         }}
-        className={`
-              ${
-                item === timeFrame
-                  ? theme && darkModeType
-                    ? "bg-gray-100 text-gray-900 border-gray-100"
-                    : "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-transparent border-indigo-600 text-gray-900 dark:text-gray-100"
-              } hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors`}
       >
         {item}
       </button>
