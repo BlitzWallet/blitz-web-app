@@ -207,19 +207,19 @@ export default async function initializeUserSettings(
       !lastUpdatedExploreData?.lastUpdated ||
       isNewDaySince(lastUpdatedExploreData?.lastUpdated)
     ) {
-      // const response = await fetchBackend(
-      //   "getTotalUserCount",
-      //   { data: publicKey },
-      //   privateKey,
-      //   publicKey
-      // );
-      // if (response) {
-      //   tempObject["exploreData"] = response;
-      //   Storage.setItem("savedExploreData", {
-      //     lastUpdated: new Date().getTime(),
-      //     data: response,
-      //   });
-      // } else tempObject["exploreData"] = null;
+      const response = await fetchBackend(
+        "getTotalUserCount",
+        { data: publicKey },
+        privateKey,
+        publicKey
+      );
+      if (response) {
+        tempObject["exploreData"] = response;
+        Storage.setItem("savedExploreData", {
+          lastUpdated: new Date().getTime(),
+          data: response,
+        });
+      } else tempObject["exploreData"] = null;
     } else {
       tempObject["exploreData"] = lastUpdatedExploreData.data;
     }

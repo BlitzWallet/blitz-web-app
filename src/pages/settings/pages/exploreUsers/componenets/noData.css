@@ -1,0 +1,9 @@
+.exporeUsersDataErrorContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.exporeUsersDataErrorContainer .lottieViewAnimation {
+  margin-top: auto;
+}
