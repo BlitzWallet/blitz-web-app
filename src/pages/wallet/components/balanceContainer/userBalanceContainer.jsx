@@ -10,7 +10,7 @@ export default function UserBalance() {
   const { toggleMasterInfoObject, masterInfoObject, setMasterInfoObject } =
     useGlobalContextProvider();
   const saveTimeoutRef = useRef(null);
-  console.log(masterInfoObject);
+
   return (
     <div className="userBalanceContainer">
       <p>Total balance</p>

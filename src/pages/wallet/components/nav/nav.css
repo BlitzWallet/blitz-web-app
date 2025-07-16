@@ -9,3 +9,32 @@
   height: 30px;
   cursor: pointer;
 }
+
+.walletNavBar .refreshContainer {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 10px;
+}
+.walletNavBar .refreshContainer img {
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
+  filter: brightness(0) saturate(100%) invert(26%) sepia(68%) saturate(3189%)
+    hue-rotate(201deg) brightness(102%) contrast(99%);
+}
+.walletNavBar .refreshContainer .spinningAnimation {
+  animation: spin 2s linear infinite;
+}
+.walletNavBar .refreshContainer p {
+  margin: 0;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

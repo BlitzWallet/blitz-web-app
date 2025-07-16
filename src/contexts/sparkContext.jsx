@@ -327,99 +327,13 @@ const SparkWalletProvider = ({ children, navigate }) => {
     window.addEventListener("focus", handleTabFocus);
     window.addEventListener("beforeunload", handleBeforeUnload);
     sparkTransactionsEventEmitter.on(SPARK_TX_UPDATE_ENVENT_NAME, handleUpdate);
-    // // Called when tab visibility changes
-    // const handleVisibilityChange = () => {
-    //   if (document.visibilityState === "visible") {
-    //     addListeners();
-    //   } else {
-    //     removeListeners();
-    //   }
-    // };
 
-    // // Initial listener add (e.g. when component mounts)
-    // if (document.visibilityState === "visible") {
-    //   addListeners();
-    // }
-
-    // document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // addListeners();
-    // // Clean up on unmount
     return () => {
       removeListeners();
       // document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [sparkInformation.didConnect]);
 
-  // useEffect(() => {
-  //   if (!sparkInformation.didConnect) return;
-
-  //   const handleUpdate = async (updateType) => {
-  //     try {
-  //       console.log(
-  //         "running update in spark context from db changes",
-  //         updateType
-  //       );
-  //       const balance = (await getSparkBalance()) || { balance: 0 };
-  //       const txs = await getAllSparkTransactions();
-  //       setSparkInformation((prev) => ({
-  //         ...prev,
-  //         balance: balance.balance,
-  //         transactions: txs ? txs : prev.transactions,
-  //       }));
-  //     } catch (err) {
-  //       console.log("error in spark handle db update function", err);
-  //     }
-  //   };
-
-  //   const transferHandler = (transferId, balance) => {
-  //     console.log(`Transfer ${transferId} claimed. New balance: ${balance}`);
-  //     handleIncomingPayment(transferId);
-  //   };
-
-  //   const addListeners = () => {
-  //     if (sparkPaymentActionsRef.current) return;
-  //     sparkPaymentActionsRef.current = true;
-  //     console.log("Adding spark listeners");
-
-  //     sparkTransactionsEventEmitter.on(
-  //       SPARK_TX_UPDATE_ENVENT_NAME,
-  //       handleUpdate
-  //     );
-  //     sparkWallet.on("transfer:claimed", transferHandler);
-  //     sparkWallet.on("deposit:confirmed", transferHandler);
-  //   };
-
-  //   const removeListeners = () => {
-  //     if (!sparkPaymentActionsRef.current) return;
-  //     sparkPaymentActionsRef.current = false;
-  //     console.log("Removing spark listeners");
-
-  //     sparkTransactionsEventEmitter.off(
-  //       SPARK_TX_UPDATE_ENVENT_NAME,
-  //       handleUpdate
-  //     );
-  //     sparkWallet.off("transfer:claimed", transferHandler);
-  //     sparkWallet.off("deposit:confirmed", transferHandler);
-  //   };
-
-  //   const handleAppStateChange = (nextAppState) => {
-  //     console.log(nextAppState);
-  //     if (nextAppState === "active") {
-  //       addListeners();
-  //     } else if (nextAppState.match(/inactive|background/)) {
-  //       removeListeners();
-  //     }
-  //   };
-
-  //   AppState.addEventListener("change", handleAppStateChange);
-
-  //   // Add on mount if app is already active
-  //   if (AppState.currentState === "active") {
-  //     addListeners();
-  //   }
-  // }, [sparkInformation.didConnect]);
-  // Storage.removeItem("depositAddressTxIds");
   useEffect(() => {
     if (!sparkInformation.didConnect) return;
     // Interval to check deposit addresses to see if they were paid
@@ -537,14 +451,14 @@ const SparkWalletProvider = ({ children, navigate }) => {
       }
     };
 
-    // if (depositAddressIntervalRef.current) {
-    //   clearInterval(depositAddressIntervalRef.current);
-    // }
-    // handleDepositAddressCheck();
-    // depositAddressIntervalRef.current = setInterval(
-    //   handleDepositAddressCheck,
-    //   10_000 * 60 //run every 5 minutes since that is the average block time
-    // );
+    if (depositAddressIntervalRef.current) {
+      clearInterval(depositAddressIntervalRef.current);
+    }
+    handleDepositAddressCheck();
+    depositAddressIntervalRef.current = setInterval(
+      handleDepositAddressCheck,
+      10_000 * 60 //run every 5 minutes since that is the average block time
+    );
   }, [sparkInformation.didConnect]);
 
   useEffect(() => {
