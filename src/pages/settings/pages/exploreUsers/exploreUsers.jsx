@@ -150,7 +150,11 @@ export default function ExploreUsers() {
           className={"downloadsContainerHeader"}
           textContent={"Blitz Wallet Downloads"}
         />
-        <ThemeText styles={{ marginBottom: 5 }} textContent={"Today"} />
+        <ThemeText
+          className={"todayText"}
+          styles={{ marginBottom: 5 }}
+          textContent={"Today"}
+        />
         <div className="donwloadsRow">
           <DateCountdown />
           <ThemeText

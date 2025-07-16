@@ -62,3 +62,16 @@
   border-radius: 8px;
   border: 2px solid black;
 }
+
+@media screen and (max-width: 450px) {
+  .exploreUsersContainer .downloadsContainer {
+    text-align: center;
+  }
+  .downloadsContainer .todayText {
+    margin: 0;
+  }
+  .downloadsContainer .donwloadsRow {
+    align-items: center;
+    flex-direction: column;
+  }
+}
