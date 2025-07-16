@@ -61,7 +61,7 @@ export default function AboutPage() {
           textContent={"Oliver Koblizek"}
         />
       </div>
-      <p>Versoin 0.0.3</p>
+      <p>Versoin 0.0.4</p>
     </div>
   );
 }
