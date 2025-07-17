@@ -2,7 +2,7 @@ import "./fonts.css";
 import "./index.css";
 import App from "./App.jsx";
 import "../pollyfills.js";
-import { StrictMode, Suspense, lazy, useState } from "react";
+import { StrictMode, Suspense, lazy, useContext, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
@@ -48,7 +48,11 @@ const ExpandedTxPage = lazy(() =>
 );
 const SendPage = lazy(() => import("./pages/sendPage/sendPage.jsx"));
 import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
-import { ThemeContextProvider } from "./contexts/themeContext.jsx";
+import {
+  ThemeContext,
+  ThemeContextProvider,
+  useThemeContext,
+} from "./contexts/themeContext.jsx";
 import LoadingScreen from "./pages/loadingScreen/index.jsx";
 import { BitcoinPriceProvider } from "./contexts/bitcoinPriceContext.jsx";
 import { KeysContextProvider } from "./contexts/keysContext.jsx";
@@ -70,6 +74,9 @@ import HandleLNURLPayments from "./contexts/lnurlContext.jsx";
 import { ImageCacheProvider } from "./contexts/imageCacheContext.jsx";
 import EditMyProfilePage from "./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx";
 import MyProfilePage from "./pages/contacts/screens/myProfilePage/myProfilePage.jsx";
+import useThemeColors from "./hooks/useThemeColors.js";
+import BottomTabs from "./tabs/tabs.jsx";
+
 // const ConfirmPayment = lazy(() =>
 //   import("./pages/confirmPayment/confirmPaymentScreen.jsx")
 // );
@@ -87,7 +94,15 @@ function Root() {
   const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(1);
-
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundColor, backgroundOffset, textColor } = useThemeColors();
+  console.log(
+    backgroundColor,
+    backgroundOffset,
+    textColor,
+    theme,
+    darkModeType
+  );
   // Define paths where the bottom navigation should be visible
   const showBottomTabsRoutes = ["/wallet", "/contacts", "/store"];
   const shouldShowBottomTabs = showBottomTabsRoutes.includes(location.pathname);
@@ -374,102 +389,11 @@ function Root() {
                                   </Suspense>
                                 </AnimatePresence>
                                 {shouldShowBottomTabs && (
-                                  <div
-                                    style={{
-                                      backgroundColor: Colors.light.background,
-                                    }}
-                                    id="bottonTabsContainer"
-                                  >
-                                    <div
-                                      className="border"
-                                      style={{
-                                        backgroundColor:
-                                          Colors.light.backgroundOffset,
-                                      }}
-                                    />
-                                    <BottomNavigation
-                                      className="customBottomNavStyles"
-                                      value={value}
-                                      onChange={(event, newValue) =>
-                                        setValue(newValue)
-                                      }
-                                      showLabels
-                                      style={{
-                                        backgroundColor:
-                                          Colors.light.background,
-                                      }}
-                                    >
-                                      <BottomNavigationAction
-                                        disableRipple
-                                        className="bottomTextElement"
-                                        sx={{
-                                          "& .MuiBottomNavigationAction-label":
-                                            {
-                                              color: Colors.light.text,
-                                            },
-                                          "&.Mui-selected .MuiBottomNavigationAction-label":
-                                            {
-                                              color: Colors.light.text,
-                                            },
-                                        }}
-                                        label="Contacts"
-                                        icon={
-                                          <TabsIcon
-                                            value={value}
-                                            icon="contacts"
-                                          />
-                                        }
-                                        component={Link}
-                                        to="/contacts"
-                                      />
-                                      <BottomNavigationAction
-                                        disableRipple
-                                        className="bottomTextElement"
-                                        sx={{
-                                          "& .MuiBottomNavigationAction-label":
-                                            {
-                                              color: Colors.light.text,
-                                            },
-                                          "&.Mui-selected .MuiBottomNavigationAction-label":
-                                            {
-                                              color: Colors.light.text,
-                                            },
-                                        }}
-                                        label="Home"
-                                        icon={
-                                          <TabsIcon
-                                            value={value}
-                                            icon="wallet"
-                                          />
-                                        }
-                                        component={Link}
-                                        to="/wallet"
-                                      />
-                                      <BottomNavigationAction
-                                        disableRipple
-                                        className="bottomTextElement"
-                                        sx={{
-                                          "& .MuiBottomNavigationAction-label":
-                                            {
-                                              color: Colors.light.text,
-                                            },
-                                          "&.Mui-selected .MuiBottomNavigationAction-label":
-                                            {
-                                              color: Colors.light.text,
-                                            },
-                                        }}
-                                        label="Store"
-                                        icon={
-                                          <TabsIcon
-                                            value={value}
-                                            icon="store"
-                                          />
-                                        }
-                                        component={Link}
-                                        to="/store"
-                                      />
-                                    </BottomNavigation>
-                                  </div>
+                                  <BottomTabs
+                                    value={value}
+                                    setValue={setValue}
+                                    Link={Link}
+                                  />
                                 )}
                               </ImageCacheProvider>
                             </LiquidEventProvider>
