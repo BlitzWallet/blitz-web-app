@@ -7,6 +7,7 @@ import { useNodeContext } from "../../../../contexts/nodeContext";
 import { formatCurrency } from "../../../../functions/formatCurrency";
 import handleDBStateChange from "../../../../functions/handleDBStateChange";
 import "./displayOptions.css";
+import DiscreteSlider from "../../../../components/slider/slider";
 
 export default function DisplayOptions() {
   const { toggleMasterInfoObject, setMasterInfoObject, masterInfoObject } =
@@ -127,6 +128,21 @@ export default function DisplayOptions() {
       </div>
       <p className="exampleText">Example</p>
       <FormattedSatText balance={50} />
+
+      <p>Home Screen</p>
+      <p>Displayed Transactions</p>
+      <DiscreteSlider
+        toggleFunction={(value) => {
+          console.log(value);
+          toggleMasterInfoObject({ homepageTxPreferance: value });
+        }}
+        min={15}
+        max={40}
+        step={5}
+        defaultValue={masterInfoObject.homepageTxPreferance}
+        theme={false}
+        darkModeType={false}
+      />
     </div>
   );
 }

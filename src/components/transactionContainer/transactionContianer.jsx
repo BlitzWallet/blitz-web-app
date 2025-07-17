@@ -91,15 +91,19 @@ export default function TransactionContanier({ frompage }) {
   }
   return (
     <div className="transactionContainer">
-      {groupedTransfers.slice(0, frompage === "home" ? 20 : undefined)}
-      {groupedTransfers?.length >= 20 && frompage === "home" && (
-        <p
-          onClick={() => navigate("/viewAllTransactions")}
-          className="viewAllTxText"
-        >
-          View all transactions
-        </p>
+      {groupedTransfers.slice(
+        0,
+        frompage === "home" ? masterInfoObject.homepageTxPreferance : undefined
       )}
+      {groupedTransfers?.length >= masterInfoObject.homepageTxPreferance &&
+        frompage === "home" && (
+          <p
+            onClick={() => navigate("/viewAllTransactions")}
+            className="viewAllTxText"
+          >
+            View all transactions
+          </p>
+        )}
     </div>
   );
 }
