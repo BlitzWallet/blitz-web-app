@@ -6,8 +6,14 @@ import { useAuth } from "../../contexts/authContext";
 import Storage from "../../functions/localStorage";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
+import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
+import ThemeText from "../../components/themeText/themeText";
 
 function Login() {
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset, textInputBackground, textInputColor, textColor } =
+    useThemeColors();
   const navigate = useNavigate();
   const { login, setMnemoinc, deleteWallet, logout } = useAuth();
   const location = useLocation();
@@ -71,10 +77,21 @@ function Login() {
     }
     deleateAllWalletData();
   }, [wantsToDeleteAccount]);
+
   return (
     <div className="passwordContainer">
-      <div className="inputContainer">
-        <p className="containerDescription">Enter Your Wallet Password</p>
+      <div
+        style={{
+          backgroundColor: theme ? backgroundOffset : Colors.dark.text,
+          borderColor: theme ? "#6d6d6d" : "gainsboro",
+          boxShadow: `0 0 5px 0 ${theme ? "#6d6d6d" : "gainsboro"}`,
+        }}
+        className="inputContainer"
+      >
+        <ThemeText
+          className={"containerDescription"}
+          textContent={"Enter Your Wallet Password"}
+        />
         <input
           type="text"
           name="username"
@@ -82,8 +99,12 @@ function Login() {
           style={{ display: "none" }}
           tabIndex={-1}
         />
-        <p>Password</p>
+        <ThemeText textContent={"Password"} />
         <input
+          style={{
+            backgroundColor: textInputBackground,
+            color: textInputColor,
+          }}
           onChange={(e) => setPassword(e.target.value)}
           className="initialPass"
           type="password"
@@ -92,8 +113,8 @@ function Login() {
           autoComplete="current-password"
         />
 
-        <p
-          onClick={() => {
+        <ThemeText
+          clickFunction={() => {
             navigate("/confirm-action", {
               state: {
                 confirmHeader: "Are you sure you want to reset your wallet?",
@@ -104,22 +125,24 @@ function Login() {
               },
             });
           }}
-          style={{ color: Colors.light.blue }}
           className="forgotPassword"
-        >
-          Forgot password?
-        </p>
+          textStyles={{
+            color: theme && darkModeType ? textColor : Colors.light.blue,
+          }}
+          textContent={" Forgot password?"}
+        />
 
         <CustomButton
           actionFunction={handlePassEncription}
           buttonStyles={{
-            backgroundColor: Colors.light.blue,
+            backgroundColor: theme ? Colors.dark.text : Colors.light.blue,
+
             opacity: !password ? 0.5 : 1,
             width: "100%",
             maxWidth: "unset",
             minWidth: "unset",
           }}
-          textStyles={{ color: Colors.dark.text }}
+          textStyles={{ color: theme ? Colors.light.text : Colors.dark.text }}
           textContent={"Unlock wallet"}
         />
       </div>
