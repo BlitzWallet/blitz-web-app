@@ -1,0 +1,70 @@
+.discreteSlider input[type="range"] {
+  background: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.discreteSlider input[type="range"]::-webkit-slider-thumb {
+  background-color: inherit;
+  box-shadow: none;
+  border: none;
+  -webkit-appearance: none;
+}
+
+.discreteSlider input[type="range"]::-webkit-slider-thumb:hover,
+.discreteSlider input[type="range"]::-webkit-slider-thumb:active {
+  background-color: inherit;
+  box-shadow: none;
+}
+
+.discreteSlider input[type="range"]::-webkit-slider-runnable-track {
+  background-color: inherit;
+}
+
+.discreteSlider input[type="range"]::-webkit-slider-runnable-track:hover {
+  background-color: inherit;
+}
+
+.discreteSlider input[type="range"]::-moz-range-thumb {
+  background-color: inherit;
+  box-shadow: none;
+  border: none;
+  -moz-appearance: none;
+}
+
+.discreteSlider input[type="range"]::-moz-range-thumb:hover,
+.discreteSlider input[type="range"]::-moz-range-thumb:active {
+  background-color: inherit;
+  box-shadow: none;
+}
+
+.discreteSlider input[type="range"]::-moz-range-track {
+  background-color: inherit;
+}
+
+.discreteSlider input[type="range"]::-moz-range-track:hover {
+  background-color: inherit;
+}
+
+.discreteSlider .MuiSlider-thumb,
+.discreteSlider .MuiSlider-thumb:hover,
+.discreteSlider .MuiSlider-thumb.Mui-active,
+.discreteSlider .MuiSlider-thumb.Mui-focusVisible {
+  background-color: inherit;
+  box-shadow: none;
+}
+
+.discreteSlider .MuiSlider-track,
+.discreteSlider .MuiSlider-track:hover {
+  background-color: inherit;
+}
+
+.discreteSlider .MuiSlider-rail {
+  background-color: inherit;
+}
+
+.discreteSlider .MuiSlider-valueLabel {
+  background-color: inherit;
+  color: inherit;
+}
