@@ -1,16 +1,24 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import SettingsIcon from "../../../../assets/settings.png";
+import SettingsIconWhite from "../../../../assets/settingsWhite.png";
+import darkMode from "../../../../assets/darkMode.png";
+import lightMode from "../../../../assets/lightMode.png";
+import lightModeWhite from "../../../../assets/lightModeWhite.png";
 import refresh from "../../../../assets/refresh.png";
+import refreshWhite from "../../../../assets/refreshWhite.png";
 import "./nav.css";
 import { useCallback, useState } from "react";
 import { useSpark } from "../../../../contexts/sparkContext";
 import { getSparkBalance } from "../../../../functions/spark";
 import { fullRestoreSparkState } from "../../../../functions/spark/restore";
 import { getAllSparkTransactions } from "../../../../functions/spark/transactions";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import ThemeImage from "../../../../components/ThemeImage/themeImage";
 
 export default function WalletNavBar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useThemeContext();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { setSparkInformation, sparkInformation } = useSpark();
   const handleRefresh = useCallback(async () => {
@@ -35,16 +43,29 @@ export default function WalletNavBar() {
   }, []);
   return (
     <div className="walletNavBar">
-      <div></div>
+      <ThemeImage
+        clickFunction={() => toggleTheme(!theme)}
+        lightModeIcon={darkMode}
+        darkModeIcon={lightMode}
+        lightsOutIcon={lightModeWhite}
+      />
 
       <div className="refreshContainer">
-        <img
+        <ThemeImage
+          styles={{ width: 23, height: 23 }}
+          clickFunction={handleRefresh}
+          lightModeIcon={refresh}
+          darkModeIcon={refresh}
+          lightsOutIcon={refreshWhite}
           className={`${isRefreshing ? "spinningAnimation" : ""}`}
-          onClick={handleRefresh}
-          src={refresh}
         />
       </div>
-      <img onClick={() => navigate("/settings")} src={SettingsIcon} />
+      <ThemeImage
+        clickFunction={() => navigate("/settings")}
+        lightModeIcon={SettingsIcon}
+        darkModeIcon={SettingsIcon}
+        lightsOutIcon={SettingsIconWhite}
+      />
     </div>
   );
 }
