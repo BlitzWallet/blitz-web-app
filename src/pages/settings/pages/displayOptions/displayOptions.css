@@ -2,6 +2,12 @@
   flex: 1;
   width: 100%;
 }
+#displayOptionsContainer .themeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
 
 #displayOptionsContainer .backgroundContainer {
   padding: 10px;

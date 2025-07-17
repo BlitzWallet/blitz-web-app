@@ -8,11 +8,16 @@ import { formatCurrency } from "../../../../functions/formatCurrency";
 import handleDBStateChange from "../../../../functions/handleDBStateChange";
 import "./displayOptions.css";
 import DiscreteSlider from "../../../../components/slider/slider";
+import ThemeText from "../../../../components/themeText/themeText";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
+import CheckCircle from "../../../../components/checkCircle/checkCircle";
 
 export default function DisplayOptions() {
   const { toggleMasterInfoObject, setMasterInfoObject, masterInfoObject } =
     useGlobalContextProvider();
-
+  const { theme, darkModeType, toggleDarkModeType } = useThemeContext();
+  const { backgroundOffset, backgroundColor, textColor } = useThemeColors();
   const { fiatStats } = useNodeContext();
 
   const satDisplay = masterInfoObject?.satDisplay;
@@ -25,13 +30,42 @@ export default function DisplayOptions() {
   const saveTimeoutRef = useRef(null);
   return (
     <div id="displayOptionsContainer">
-      <p>Balance Denomination</p>
+      <ThemeText textContent={"Theme"} />
 
       <div
-        style={{ backgroundColor: Colors.dark.text, marginBottom: "20px" }}
+        onClick={() => {
+          if (darkModeType) return;
+          toggleDarkModeType(!darkModeType);
+        }}
+        className="themeRow"
+      >
+        <ThemeText textContent={"Lights out"} />
+        <CheckCircle isActive={darkModeType} />
+      </div>
+      <div
+        onClick={() => {
+          if (!darkModeType) return;
+          toggleDarkModeType(!darkModeType);
+        }}
+        className="themeRow"
+      >
+        <ThemeText textContent={"Dim"} />
+        <CheckCircle isActive={!darkModeType} />
+      </div>
+
+      <ThemeText textContent={"Balance Denomination"} />
+
+      <div
+        style={{
+          backgroundColor: theme ? backgroundOffset : Colors.dark.text,
+          marginBottom: "20px",
+        }}
         className="backgroundContainer"
       >
-        <p className="denominationLabelText">Current denomination</p>
+        <ThemeText
+          className={"denominationLabelText"}
+          textContent={"Current denomination"}
+        />
         <div
           onClick={() => {
             if (masterInfoObject.userBalanceDenomination === "sats")
@@ -56,25 +90,36 @@ export default function DisplayOptions() {
                 saveTimeoutRef
               );
           }}
-          style={{ backgroundColor: Colors.light.background }}
+          style={{
+            backgroundColor: theme ? Colors.dark.text : Colors.light.background,
+          }}
           className="denominationContainer"
         >
-          <p style={{ color: Colors.light.blue }}>
-            {masterInfoObject.userBalanceDenomination === "sats"
-              ? BITCOIN_SATS_ICON
-              : masterInfoObject.userBalanceDenomination === "fiat"
-              ? formattedCurrency[2]
-              : "*"}
-          </p>
+          <ThemeText
+            textStyles={{
+              color:
+                theme && darkModeType
+                  ? Colors.lightsout.background
+                  : Colors.light.blue,
+            }}
+            textContent={
+              masterInfoObject.userBalanceDenomination === "sats"
+                ? BITCOIN_SATS_ICON
+                : masterInfoObject.userBalanceDenomination === "fiat"
+                ? formattedCurrency[2]
+                : "*"
+            }
+          />
         </div>
       </div>
       <div
-        style={{ backgroundColor: Colors.dark.text }}
+        style={{ backgroundColor: theme ? backgroundOffset : Colors.dark.text }}
         className="backgroundContainer"
       >
-        <p className="denominationLabelText">
-          How to display {BITCOIN_SAT_TEXT}
-        </p>
+        <ThemeText
+          className={"denominationLabelText"}
+          textContent={` How to display ${BITCOIN_SAT_TEXT}`}
+        />
         <div
           onClick={() => {
             if (masterInfoObject.satDisplay === "symbol") return;
@@ -83,23 +128,32 @@ export default function DisplayOptions() {
           style={{
             backgroundColor:
               satDisplay !== "word"
-                ? Colors.light.blue
+                ? theme && darkModeType
+                  ? Colors.lightsout.background
+                  : Colors.light.blue
+                : theme
+                ? Colors.dark.text
                 : Colors.light.background,
             marginLeft: "auto",
             marginRight: "10px",
           }}
           className="denominationContainer"
         >
-          <p
-            style={{
+          <ThemeText
+            textStyles={{
               color:
-                satDisplay !== "word" ? Colors.dark.text : Colors.light.blue,
+                satDisplay !== "word"
+                  ? Colors.dark.text
+                  : theme && darkModeType
+                  ? Colors.lightsout.background
+                  : Colors.light.blue,
             }}
-          >
-            {masterInfoObject.userBalanceDenomination !== "fiat"
-              ? BITCOIN_SATS_ICON
-              : currencySymbol}
-          </p>
+            textContent={
+              masterInfoObject.userBalanceDenomination !== "fiat"
+                ? BITCOIN_SATS_ICON
+                : currencySymbol
+            }
+          />
         </div>
         <div
           onClick={() => {
@@ -109,28 +163,36 @@ export default function DisplayOptions() {
           style={{
             backgroundColor:
               satDisplay === "word"
-                ? Colors.light.blue
+                ? theme && darkModeType
+                  ? Colors.lightsout.background
+                  : Colors.light.blue
+                : theme
+                ? Colors.dark.text
                 : Colors.light.background,
           }}
           className="denominationContainer"
         >
-          <p
-            style={{
+          <ThemeText
+            textStyles={{
               color:
-                satDisplay === "word" ? Colors.dark.text : Colors.light.blue,
+                satDisplay === "word"
+                  ? Colors.dark.text
+                  : theme && darkModeType
+                  ? Colors.lightsout.background
+                  : Colors.light.blue,
             }}
-          >
-            {masterInfoObject.userBalanceDenomination !== "fiat"
-              ? BITCOIN_SAT_TEXT
-              : currencyText}
-          </p>
+            textContent={
+              masterInfoObject.userBalanceDenomination === "word"
+                ? BITCOIN_SAT_TEXT
+                : currencyText
+            }
+          />
         </div>
       </div>
-      <p className="exampleText">Example</p>
+      <ThemeText className={"exampleText"} textContent={"Example"} />
       <FormattedSatText balance={50} />
-
-      <p>Home Screen</p>
-      <p>Displayed Transactions</p>
+      <ThemeText textContent={"Home Screen"} />
+      <ThemeText textContent={"Displayed Transactions"} />
       <DiscreteSlider
         toggleFunction={(value) => {
           console.log(value);
@@ -140,8 +202,9 @@ export default function DisplayOptions() {
         max={40}
         step={5}
         defaultValue={masterInfoObject.homepageTxPreferance}
-        theme={false}
-        darkModeType={false}
+        theme={theme}
+        darkModeType={darkModeType}
+        textColor={textColor}
       />
     </div>
   );
