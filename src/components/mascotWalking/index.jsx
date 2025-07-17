@@ -9,7 +9,7 @@ export default function MascotWalking() {
   const transformedAnimation = useMemo(() => {
     return updateMascatWalkingAnimation(
       mascotAnimation,
-      theme === "lightsout" ? "white" : "blue"
+      theme ? "white" : "blue"
     );
   }, [theme]);
   return (

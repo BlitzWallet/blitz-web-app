@@ -29,12 +29,16 @@ import { useNavigate } from "react-router-dom";
 import { JsEventListener } from "../../functions/breezLiquid/JsEventListener.js";
 import { useNodeContext } from "../../contexts/nodeContext.jsx";
 import { Colors } from "../../constants/theme.js";
+import { useThemeContext } from "../../contexts/themeContext.jsx";
+import useThemeColors from "../../hooks/useThemeColors.js";
 
 export default function LoadingScreen() {
   const didInitializeMessageIntervalRef = useRef(false);
   const didInitializeWalletRef = useRef(false);
   const didLoadInformation = useRef(false);
   const navigate = useNavigate();
+  const { theme, darkModeType } = useThemeContext();
+  const { textColor } = useThemeColors();
   const { setStartConnectingToSpark, setNumberOfCachedTxs } = useSpark();
   const { toggleMasterInfoObject, masterInfoObject, setMasterInfoObject } =
     useGlobalContextProvider();
@@ -134,7 +138,7 @@ export default function LoadingScreen() {
         <MascotWalking />
       </div>
       <ThemeText
-        textStyles={{ color: Colors.light.blue }}
+        textStyles={{ color: theme ? textColor : Colors.light.blue }}
         textContent={hasError ? hasError : loadingMessage}
       />
     </div>
