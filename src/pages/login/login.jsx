@@ -96,7 +96,9 @@ function Login() {
           type="text"
           name="username"
           autoComplete="username"
-          style={{ display: "none" }}
+          style={{
+            display: "none",
+          }}
           tabIndex={-1}
         />
         <ThemeText textContent={"Password"} />
@@ -104,6 +106,7 @@ function Login() {
           style={{
             backgroundColor: textInputBackground,
             color: textInputColor,
+            border: theme && darkModeType ? "unset" : "2px solid gainsboro",
           }}
           onChange={(e) => setPassword(e.target.value)}
           className="initialPass"

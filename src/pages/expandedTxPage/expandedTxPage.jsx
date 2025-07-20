@@ -2,18 +2,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import BackArrow from "../../components/backArrow/backArrow";
 import "./style.css";
 import { Colors } from "../../constants/theme";
+import pendingTx from "../../assets/pendingTx.png";
 import check from "../../assets/check.svg";
+import failed from "../../assets/x-small-black.webp";
 import ThemeText from "../../components/themeText/themeText";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import { useThemeContext } from "../../contexts/themeContext";
 import { useEffect, useState } from "react";
 import CustomButton from "../../components/customButton/customButton";
+import useThemeColors from "../../hooks/useThemeColors";
 
 export default function ExpandedTxPage() {
   const location = useLocation();
   const props = location.state;
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(0);
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset, backgroundColor } = useThemeColors();
 
   const transaction = props?.transaction;
   const paymentType = transaction.paymentType;
@@ -32,26 +37,34 @@ export default function ExpandedTxPage() {
     });
   }, []);
 
-  console.log(windowWidth);
-
   return (
     <>
       <BackArrow backFunction={() => navigate(-1)} />
       <div className="expandedTxContainer">
         <div
-          style={{ backgroundColor: Colors.light.expandedTxReceitBackground }}
+          style={{
+            backgroundColor: theme
+              ? backgroundOffset
+              : Colors.light.expandedTxReceitBackground,
+          }}
           className="receiptContainer"
         >
           <div
-            style={{ backgroundColor: Colors.light.background }}
+            style={{ backgroundColor: backgroundColor }}
             className="paymentStatusOuterContainer"
           >
             <div
               style={{
                 backgroundColor: isPending
-                  ? Colors.light.expandedTxPendingOuter
+                  ? theme
+                    ? Colors.dark.expandedTxPendingOuter
+                    : Colors.light.expandedTxPendingOuter
                   : isFailed
-                  ? Colors.light.expandedTxFailed
+                  ? theme && darkModeType
+                    ? Colors.lightsout.backgroundOffset
+                    : Colors.light.expandedTxFailed
+                  : theme
+                  ? Colors.dark.expandedTxConfimred
                   : Colors.light.expandedTxConfimred,
               }}
               className="paymentStatusFirstCircle"
@@ -59,19 +72,33 @@ export default function ExpandedTxPage() {
               <div
                 style={{
                   backgroundColor: isPending
-                    ? Colors.light.expandedTxPendingInner
+                    ? theme
+                      ? Colors.dark.expandedTxPendingInner
+                      : Colors.light.expandedTxPendingInner
                     : isFailed
-                    ? Colors.constants.cancelRed
+                    ? theme && darkModeType
+                      ? Colors.dark.text
+                      : Colors.constants.cancelRed
+                    : theme
+                    ? Colors.dark.text
                     : Colors.light.blue,
                 }}
                 className="paymentStatusSecondCircle"
               >
                 <img
                   style={{
-                    filter: `invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)`,
+                    filter: isPending
+                      ? theme
+                        ? "brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(307deg) brightness(103%) contrast(101%)" // white
+                        : "brightness(0) saturate(100%) invert(97%) sepia(31%) saturate(97%) hue-rotate(195deg) brightness(110%) contrast(84%)"
+                      : backgroundColor === "#EBEBEB"
+                      ? "brightness(0) saturate(100%) invert(97%) sepia(31%) saturate(97%) hue-rotate(195deg) brightness(110%) contrast(84%)"
+                      : backgroundColor === "#000000"
+                      ? "brightness(0) saturate(100%) invert(0%) sepia(100%) saturate(7459%) hue-rotate(44deg) brightness(92%) contrast(101%)"
+                      : "brightness(0) saturate(100%) invert(12%) sepia(40%) saturate(2530%) hue-rotate(188deg) brightness(100%) contrast(107%)",
                   }}
                   className="paymentStatusIcon"
-                  src={check}
+                  src={isFailed ? failed : isPending ? pendingTx : check}
                 />
               </div>
             </div>
@@ -97,18 +124,30 @@ export default function ExpandedTxPage() {
               className="paymentStatusPillContiner"
               style={{
                 backgroundColor: isPending
-                  ? Colors.light.expandedTxPendingOuter
+                  ? theme
+                    ? Colors.dark.expandedTxPendingInner
+                    : Colors.light.expandedTxPendingOuter
                   : isFailed
-                  ? Colors.light.expandedTxFailed
+                  ? theme && darkModeType
+                    ? Colors.lightsout.background
+                    : Colors.light.expandedTxFailed
+                  : theme
+                  ? Colors.dark.expandedTxConfimred
                   : Colors.light.expandedTxConfimred,
               }}
             >
               <ThemeText
                 textStyles={{
                   color: isPending
-                    ? Colors.light.expandedTxPendingInner
+                    ? theme
+                      ? Colors.dark.text
+                      : Colors.light.expandedTxPendingInner
                     : isFailed
-                    ? Colors.constants.cancelRed
+                    ? theme && darkModeType
+                      ? Colors.dark.text
+                      : Colors.constants.cancelRed
+                    : theme
+                    ? Colors.dark.text
                     : Colors.light.blue,
                 }}
                 textContent={
@@ -169,10 +208,10 @@ export default function ExpandedTxPage() {
               width: "100%",
               maxWidth: "max-content",
               minWidth: "unset",
-              backgroundColor: Colors.light.blue,
+              backgroundColor: theme ? Colors.dark.text : Colors.light.primary,
               margin: "30px auto",
             }}
-            textStyles={{ color: Colors.dark.text }}
+            textStyles={{ color: theme ? Colors.light.text : Colors.dark.text }}
             textContent={"Technical details"}
           />
           <ReceiptDots windowWidth={windowWidth} />
@@ -198,7 +237,7 @@ function Border({ windowWidth }) {
           width: "20px",
           height: "2px",
           marginRight: "5px",
-          backgroundColor: Colors.light.background,
+          backgroundColor: theme ? Colors.dark.text : Colors.light.background,
         }}
       />
     );
@@ -212,6 +251,7 @@ function Border({ windowWidth }) {
 }
 
 function ReceiptDots({ windowWidth }) {
+  const { backgroundColor } = useThemeColors();
   let dotElements = [];
   const dotsWidth = windowWidth;
   const numDots = Math.floor(dotsWidth / 20);
@@ -224,7 +264,7 @@ function ReceiptDots({ windowWidth }) {
           width: "20px",
           height: "20px",
           borderRadius: "10px",
-          backgroundColor: Colors.light.background,
+          backgroundColor: backgroundColor,
         }}
       />
     );
