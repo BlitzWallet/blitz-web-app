@@ -153,6 +153,7 @@ function QrCode({ addressState, navigate, location }) {
 
 function TopBar({ navigateHome }) {
   const navigate = useNavigate();
+  console.log(navigateHome, "navigaet home");
   return (
     <BackArrow
       backFunction={() => {

@@ -22,7 +22,6 @@ export default function SendAndRequestBtns() {
         />
         <ThemeImage
           styles={{ width: "100%", height: "100%" }}
-          clickFunction={() => naigate("/camera")}
           lightModeIcon={sendRequestImage}
           darkModeIcon={sendRequestImage}
           lightsOutIcon={sendRequestImage}
@@ -37,14 +36,12 @@ export default function SendAndRequestBtns() {
         <img className="buttonImage" src={Qr} alt="small arrow" />
       </div> */}
       <div onClick={() => naigate("/receive")} className="buttonContainer">
-        {" "}
         <div
           style={{ backgroundColor: theme ? "transparent" : Colors.light.blue }}
           className="fill"
         />
         <ThemeImage
           styles={{ width: "100%", height: "100%" }}
-          clickFunction={() => naigate("/camera")}
           lightModeIcon={sendRequestImage}
           darkModeIcon={sendRequestImage}
           lightsOutIcon={sendRequestImage}
