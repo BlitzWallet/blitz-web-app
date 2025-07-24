@@ -13,11 +13,15 @@ import questionMark from "../../assets/questionMarkSVG.svg";
 import "./contacts.css";
 import ContactProfileImage from "./components/profileImage/profileImage";
 import { Colors } from "../../constants/theme";
+import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
 
 export default function Contacts() {
   const { masterInfoObject } = useGlobalContextProvider();
   const { decodedAddedContacts, globalContactsInformation, contactsMessags } =
     useGlobalContacts();
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset } = useThemeColors();
   const { isConnectedToTheInternet } = useAppStatus();
   const { cache } = useImageCache();
   const hideUnknownContacts = masterInfoObject.hideUnknownContacts;
@@ -112,7 +116,7 @@ export default function Contacts() {
             /> 
           </div> */}
           <div
-            style={{ backgroundColor: Colors.light.backgroundOffset }}
+            style={{ backgroundColor: backgroundOffset }}
             className="myContactContainer"
             onClick={() => {
               navigate("/my-profile");
@@ -121,6 +125,8 @@ export default function Contacts() {
             <ContactProfileImage
               updated={cache[masterInfoObject?.uuid]?.updated}
               uri={cache[masterInfoObject?.uuid]?.localUri}
+              theme={theme}
+              darkModeType={darkModeType}
             />
           </div>
         </div>
@@ -151,6 +157,11 @@ export default function Contacts() {
       ) : ( */}
       <div className="noContactsContainer">
         <img
+          style={{
+            filter: theme
+              ? "brightness(0) saturate(100%) invert(100%) sepia(3%) saturate(7500%) hue-rotate(137deg) brightness(113%) contrast(101%)"
+              : "initial",
+          }}
           className="questionMarkIcon"
           src={questionMark}
           alt="question mark to show no contact has been created"

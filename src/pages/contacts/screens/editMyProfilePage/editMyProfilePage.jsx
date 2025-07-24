@@ -21,6 +21,8 @@ import imagesIcon from "../../../../assets/imagesDark.png";
 import xSmallIconBlack from "../../../../assets/x-small-black.webp";
 import CustomInput from "../../../../components/customInput/customInput";
 import { VALID_USERNAME_REGEX } from "../../../../constants";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
 
 export default function EditMyProfilePage(navProps) {
   const navigate = useNavigate();
@@ -95,6 +97,9 @@ function InnerContent({
   const { cache, refreshCache, removeProfileImageFromCache } = useImageCache();
   //   const { backgroundOffset, textInputColor, textInputBackground, textColor } =
   //     GetThemeColors();
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset, textInputColor, textInputBackground, textColor } =
+    useThemeColors();
   const {
     decodedAddedContacts,
     globalContactsInformation,
@@ -208,7 +213,7 @@ function InnerContent({
         >
           <div
             className="profileImageBackground"
-            style={{ backgroundColor: Colors.light.backgroundOffset }}
+            style={{ backgroundColor: backgroundOffset }}
           >
             {isAddingImage ? (
               <FullLoadingScreen />
@@ -224,8 +229,8 @@ function InnerContent({
                     ? myProfileImage?.localUri
                     : selectedAddedContactImage?.localUri
                 }
-                // darkModeType={darkModeType}
-                // theme={theme}
+                darkModeType={darkModeType}
+                theme={theme}
               />
             )}
           </div>
@@ -269,7 +274,7 @@ function InnerContent({
               textAlign: "right",
               color:
                 inputs.name.length < 30
-                  ? Colors.light.text
+                  ? textColor
                   : Colors.constants.cancelRed,
               marginTop: 20,
               marginBottom: 0,
@@ -304,7 +309,7 @@ function InnerContent({
                 textAlign: "right",
                 color:
                   inputs.receiveAddress.length < 60
-                    ? Colors.light.text
+                    ? textColor
                     : Colors.constants.cancelRed,
                 marginTop: 20,
                 marginBottom: 0,
@@ -342,7 +347,7 @@ function InnerContent({
                 textAlign: "right",
                 color:
                   inputs.uniquename.length < 30
-                    ? Colors.light.text
+                    ? textColor
                     : Colors.constants.cancelRed,
                 marginTop: 20,
                 marginBottom: 0,
@@ -380,7 +385,7 @@ function InnerContent({
               textAlign: "right",
               color:
                 inputs.bio.length < 150
-                  ? Colors.light.text
+                  ? textColor
                   : Colors.constants.cancelRed,
             }}
             textContent={`${inputs.bio.length} / ${150}`}

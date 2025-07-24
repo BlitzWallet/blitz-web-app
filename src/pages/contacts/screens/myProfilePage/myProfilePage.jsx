@@ -1,5 +1,6 @@
 import BackArrow from "../../../../components/backArrow/backArrow";
 import SettingsIcon from "../../../../assets/settings.png";
+import SettingsIconWhite from "../../../../assets/settingsWhite.png";
 import "./myProfilePage.css";
 import ContactProfileImage from "../../components/profileImage/profileImage";
 import { useGlobalContacts } from "../../../../contexts/globalContacts";
@@ -11,9 +12,14 @@ import MaxHeap from "../../../../functions/maxHeap";
 import imagesIcon from "../../../../assets/imagesDark.png";
 import ThemeText from "../../../../components/themeText/themeText";
 import { Colors } from "../../../../constants/theme";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
+import ThemeImage from "../../../../components/ThemeImage/themeImage";
 
 export default function MyProfilePage() {
   const { cache } = useImageCache();
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset } = useThemeColors();
 
   const { globalContactsInformation, decodedAddedContacts, contactsMessags } =
     useGlobalContacts();
@@ -66,15 +72,16 @@ export default function MyProfilePage() {
     <div id="myProfilePageContainer">
       <div className="pageNavbar">
         <BackArrow />
-        <img
+        <ThemeImage
           className="settingsIcon"
-          onClick={() =>
+          clickFunction={() =>
             navigate("/edit-profile", {
               state: { pageType: "myProfile", fromSettings: false },
             })
           }
-          src={SettingsIcon}
-          alt="Settings icon"
+          lightModeIcon={SettingsIcon}
+          darkModeIcon={SettingsIcon}
+          lightsOutIcon={SettingsIconWhite}
         />
       </div>
       <div
@@ -87,11 +94,13 @@ export default function MyProfilePage() {
           });
         }}
         className="profileImageBackground"
-        style={{ backgroundColor: Colors.light.backgroundOffset }}
+        style={{ backgroundColor: backgroundOffset }}
       >
         <ContactProfileImage
           updated={cache[myContact.uuid]?.updated}
           uri={cache[myContact.uuid]?.localUri}
+          theme={theme}
+          darkModeType={darkModeType}
         />
         <div
           style={{ backgroundColor: Colors.dark.text }}
