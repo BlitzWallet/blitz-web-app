@@ -13,6 +13,8 @@ import "./exploreUsers.css";
 import NoDataView from "./componenets/noDataView";
 import "./exploreUsers.css";
 import { Colors } from "../../../../constants/theme";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
 
 const DAY_IN_MILLS = 86400000;
 const WEEK_IN_MILLS = DAY_IN_MILLS * 7;
@@ -38,7 +40,8 @@ export default function ExploreUsers() {
   const [timeFrame, setTimeFrame] = useState("day");
   const { masterInfoObject } = useGlobalContextProvider();
   console.log(masterInfoObject.exploreData);
-  const { theme, darkModeType } = { theme: false, darkModeType: false }; // useGlobalThemeContext();
+  const { theme, darkModeType } = useThemeContext();
+  const { textColor, backgroundOffset } = useThemeColors();
   //   const { t } = useTranslation();
   const [targetUserCountBarWidth, setTargetUserCountBarWidth] = useState(0);
   const [yAxisWidth, setYAxisWidth] = useState(0);
@@ -123,7 +126,7 @@ export default function ExploreUsers() {
               ? theme && darkModeType
                 ? Colors.light.text
                 : Colors.dark.text
-              : Colors.light.text,
+              : textColor,
 
           borderColor:
             theme && darkModeType ? Colors.dark.text : Colors.light.blue,
@@ -143,7 +146,7 @@ export default function ExploreUsers() {
   return (
     <div className="exploreUsersContainer">
       <div
-        style={{ backgroundColor: Colors.light.backgroundOffset }}
+        style={{ backgroundColor: backgroundOffset }}
         className="downloadsContainer"
       >
         <ThemeText

@@ -18,12 +18,14 @@ import displayCorrectDenomination from "../../../../functions/displayCorrectDeno
 import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 import { Colors } from "../../../../constants/theme";
 import { INSET_WINDOW_WIDTH } from "../../../../constants";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
 
 export default function BlitzFeeInformation() {
   const { fiatStats } = useNodeContext();
   const { masterInfoObject } = useGlobalContextProvider();
-  const { theme, darkModeType } = { theme: false, darkModeType: false }; // useGlobalThemeContext();
-  //   const { textColor } = GetThemeColors();
+  const { theme, darkModeType } = useThemeContext();
+  const { textColor } = useThemeColors();
   const [paymentType, setPaymentType] = useState("lightning");
   const [minHeight, setMinHeight] = useState(0);
 
@@ -57,7 +59,7 @@ export default function BlitzFeeInformation() {
                 ? theme && darkModeType
                   ? Colors.light.text
                   : Colors.dark.text
-                : Colors.light.text, //textColor,
+                : textColor,
             textTransform: "capitalize",
             padding: 10,
           }}
@@ -115,7 +117,7 @@ function GridSection({
   masterInfoObject,
   fiatStats,
 }) {
-  //   const { backgroundOffset } = GetThemeColors();
+  const { backgroundOffset } = useThemeColors();
 
   return (
     <div
@@ -129,7 +131,7 @@ function GridSection({
       <div
         className="gridRow"
         style={{
-          backgroundColor: Colors.light.backgroundOffset, // backgroundOffset,
+          backgroundColor: backgroundOffset,
         }}
       >
         <ThemeText textStyles={headerCellStyle} textContent={"Up To"} />

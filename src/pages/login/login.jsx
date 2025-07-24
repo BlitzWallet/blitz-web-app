@@ -83,8 +83,8 @@ function Login() {
       <div
         style={{
           backgroundColor: theme ? backgroundOffset : Colors.dark.text,
-          borderColor: theme ? "#6d6d6d" : "gainsboro",
-          boxShadow: `0 0 5px 0 ${theme ? "#6d6d6d" : "gainsboro"}`,
+          borderColor: theme ? backgroundOffset : "gainsboro",
+          boxShadow: "unset",
         }}
         className="inputContainer"
       >
