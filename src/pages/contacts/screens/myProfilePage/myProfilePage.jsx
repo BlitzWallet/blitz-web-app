@@ -120,7 +120,10 @@ export default function MyProfilePage() {
         style={{ backgroundColor: Colors.dark.text }}
         className="bioContainer"
       >
-        <ThemeText textContent={myContact?.bio || "No bio set"} />
+        <ThemeText
+          textStyles={{ color: Colors.light.text }}
+          textContent={myContact?.bio || "No bio set"}
+        />
       </div>
       {createdPayments?.length != 0 ? (
         <p>Transactions go here</p>
