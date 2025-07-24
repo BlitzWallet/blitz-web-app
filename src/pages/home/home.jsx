@@ -14,6 +14,7 @@ function Home() {
           buttonClassName={"actionButton"}
           actionFunction={() => navigate("/disclaimer")}
           textStyles={{ color: Colors.dark.text }}
+          buttonStyles={{ backgroundColor: Colors.light.blue }}
           textContent={"Make new wallet"}
         />
         <CustomButton

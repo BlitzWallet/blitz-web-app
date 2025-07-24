@@ -105,6 +105,7 @@ function CreatePassword() {
                 : 1,
             maxWidth: "unset",
             minWidth: "unset",
+            backgroundColor: Colors.light.blue,
           }}
           textStyles={{ color: Colors.dark.text }}
           textContent={"Create Wallet"}

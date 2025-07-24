@@ -21,21 +21,21 @@ export default function TransactionContanier({ frompage }) {
   if (frompage === "home" && sparkInformation.didConnect === null) {
     return (
       <div className="transactionContainer">
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
       </div>
     );
   }
