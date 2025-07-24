@@ -8,9 +8,13 @@ import ReceiveButtonsContainer from "./components/buttonContainer";
 import { initializeAddressProcess } from "../../functions/receiveBitcoin/addressGeneration";
 import { useGlobalContacts } from "../../contexts/globalContacts";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
+import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
+import ThemeText from "../../components/themeText/themeText";
 
 export default function ReceiveQRPage() {
   const { globalContactsInformation } = useGlobalContacts();
+  const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
@@ -85,11 +89,17 @@ export default function ReceiveQRPage() {
         navigate={navigate}
       />
       <div className="receiveQrPageContent">
-        <p className="selectedReceiveOption">{selectedRecieveOption}</p>
+        <ThemeText
+          className={"selectedReceiveOption"}
+          textContent={selectedRecieveOption}
+        />
+
         <QrCode
           addressState={addressState}
           navigate={navigate}
           location={location}
+          theme={theme}
+          darkModeType={darkModeType}
         />
         <ReceiveButtonsContainer
           initialSendAmount={initialSendAmount}
@@ -97,6 +107,8 @@ export default function ReceiveQRPage() {
           receiveOption={receiveOption}
           generatingInvoiceQRCode={addressState.isGeneratingInvoice}
           generatedAddress={addressState.generatedAddress}
+          theme={theme}
+          darkModeType={darkModeType}
         />
         <div style={{ marginBottom: "auto" }}></div>
         <div
@@ -106,30 +118,32 @@ export default function ReceiveQRPage() {
             flexDirection: "column",
           }}
         >
-          <p style={{ margin: 0 }} className="feeText">
-            Fee:
-          </p>
+          <ThemeText textStyles={{ margin: 0 }} textContent={"Fee:"} />
           <FormattedSatText balance={0} neverHideBalance={true} />
-          {/* <p style={{ margin: 0 }} className="feeText">
-            0 sat
-          </p> */}
         </div>
       </div>
     </div>
   );
 }
 
-function QrCode({ addressState, navigate, location }) {
+function QrCode({ addressState, navigate, location, theme, darkModeType }) {
+  const { backgroundOffset } = useThemeColors();
   if (addressState.isGeneratingInvoice) {
     return (
-      <div className="qrCodeContainerReceivePage">
+      <div
+        style={{ backgroundColor: backgroundOffset }}
+        className="qrCodeContainerReceivePage"
+      >
         <p>loading...</p>
       </div>
     );
   }
   if (!addressState.generatedAddress) {
     return (
-      <div className="qrCodeContainerReceivePage">
+      <div
+        style={{ backgroundColor: backgroundOffset }}
+        className="qrCodeContainerReceivePage"
+      >
         <p>
           {addressState.errorMessageText.text || "Unable to generate address"}
         </p>
@@ -138,6 +152,7 @@ function QrCode({ addressState, navigate, location }) {
   }
   return (
     <div
+      style={{ backgroundColor: backgroundOffset, cursor: "pointer" }}
       onClick={() =>
         copyToClipboard(addressState.generatedAddress, navigate, location)
       }
@@ -153,6 +168,7 @@ function QrCode({ addressState, navigate, location }) {
 
 function TopBar({ navigateHome }) {
   const navigate = useNavigate();
+  console.log(navigateHome, "navigaet home");
   return (
     <BackArrow
       backFunction={() => {

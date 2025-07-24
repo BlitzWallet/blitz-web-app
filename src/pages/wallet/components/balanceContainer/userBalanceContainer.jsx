@@ -4,6 +4,7 @@ import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject"
 import { useSpark } from "../../../../contexts/sparkContext";
 import "./style.css";
 import handleDBStateChange from "../../../../functions/handleDBStateChange";
+import ThemeText from "../../../../components/themeText/themeText";
 
 export default function UserBalance() {
   const { sparkInformation } = useSpark();
@@ -13,7 +14,8 @@ export default function UserBalance() {
 
   return (
     <div className="userBalanceContainer">
-      <p>Total balance</p>
+      <ThemeText textContent={"Total Balance"} />
+
       <div
         onClick={() => {
           if (masterInfoObject.userBalanceDenomination === "sats")

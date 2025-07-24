@@ -8,6 +8,8 @@ import { Colors } from "../../../../constants/theme";
 import ThemeText from "../../../../components/themeText/themeText";
 import CustomToggleSwitch from "../../../../components/switch/switch";
 import "./textInputWithSliderSettingsItem.css";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
 
 export default function TextInputWithSliderSettingsItem({
   sliderTitle = "",
@@ -19,9 +21,9 @@ export default function TextInputWithSliderSettingsItem({
   switchStateValue,
   switchPage,
 }) {
-  const { theme } = { theme: false }; // useGlobalThemeContext();
+  const { theme } = useThemeContext();
   const [inputValue, setInputValue] = useState(undefined);
-  //   const { backgroundOffset, backgroundColor, textColor } = GetThemeColors();
+  const { backgroundOffset, backgroundColor, textColor } = useThemeColors();
 
   const resetInputValue = useCallback(() => {
     setInputValue(String(defaultTextInputValue));
@@ -31,13 +33,13 @@ export default function TextInputWithSliderSettingsItem({
     <div
       id="textInputWithSliderSettingsItem"
       style={{
-        backgroundColor: theme ? Colors.dark.background : Colors.dark.text,
+        backgroundColor: theme ? backgroundOffset : Colors.dark.text,
       }}
     >
       <div
         className="switchContainer"
         style={{
-          borderBottom: `1px solid ${Colors.light.background}`,
+          borderBottom: `1px solid ${backgroundColor}`,
         }}
       >
         <ThemeText
@@ -49,6 +51,7 @@ export default function TextInputWithSliderSettingsItem({
           page={switchPage}
           toggleSwitchFunction={CustomToggleSwitchFunction}
           stateValue={switchStateValue}
+          containerStyles={{}}
         />
       </div>
 
@@ -76,7 +79,8 @@ export default function TextInputWithSliderSettingsItem({
             handleSubmit(inputValue, resetInputValue);
           }}
           style={{
-            backgroundColor: Colors.light.background,
+            color: textColor,
+            backgroundColor: backgroundColor,
           }}
         />
       </div>

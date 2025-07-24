@@ -27,10 +27,15 @@ const Storage = {
 
   removeAllItems: () => {
     try {
-      const numberOfItems = localStorage.length;
-      for (let index = 0; index < numberOfItems; index++) {
-        const keyName = localStorage.key(index);
-        Storage.removeItem(keyName);
+      let numberOfItems = localStorage.length;
+      let runCount = 0;
+      let maxRunCount = 5;
+      while (numberOfItems && runCount < maxRunCount) {
+        for (let index = 0; index < numberOfItems; index++) {
+          const keyName = localStorage.key(index);
+          Storage.removeItem(keyName);
+        }
+        numberOfItems = localStorage.length;
       }
     } catch (err) {
       console.error("Error removing from localStorage", err);

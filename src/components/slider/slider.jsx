@@ -46,6 +46,7 @@ export default function DiscreteSlider({
   toggleFunction,
   theme,
   darkModeType,
+  textColor,
 }) {
   const currentValueRef = React.useRef(null);
   return (
@@ -65,9 +66,12 @@ export default function DiscreteSlider({
         className="discreteSlider"
         sx={{
           height: 10,
-          color: theme ? "black" : Colors.dark.text,
-          backgroundColor: theme ? "black" : Colors.dark.text,
+          color: Colors.dark.text,
+          backgroundColor: Colors.dark.text,
           padding: 0,
+          "& .MuiSlider-markLabel": {
+            color: textColor,
+          },
         }}
       />
     </Box>

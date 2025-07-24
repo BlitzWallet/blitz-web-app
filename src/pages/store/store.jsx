@@ -1,3 +1,5 @@
+import ThemeText from "../../components/themeText/themeText";
+
 export default function Store() {
   return (
     <div
@@ -9,7 +11,7 @@ export default function Store() {
       }}
       className="storeContainer"
     >
-      <p>Coming Soon...</p>
+      <ThemeText textContent={"Coming Soon..."} />
     </div>
   );
 }

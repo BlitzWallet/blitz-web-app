@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 
@@ -6,15 +7,33 @@ export default function ThemeText({
   colorOverride,
   textStyles,
   className,
+  reversed,
+  clickFunction,
 }) {
   const { theme } = useThemeContext();
+
+  const memorizedStyles = useMemo(
+    () => ({
+      color: theme
+        ? reversed
+          ? Colors.light.text
+          : Colors.dark.text
+        : reversed
+        ? Colors.dark.text
+        : Colors.light.text,
+      ...textStyles,
+    }),
+    [theme, textStyles]
+  );
   return (
     <p
-      className={`${className || ""}`}
-      style={{
-        color: colorOverride ? colorOverride : Colors[theme].text,
-        ...textStyles,
+      onClick={() => {
+        if (clickFunction) {
+          clickFunction();
+        }
       }}
+      className={`${className || ""}`}
+      style={memorizedStyles}
     >
       {textContent}
     </p>

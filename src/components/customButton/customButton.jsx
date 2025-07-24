@@ -1,4 +1,5 @@
 import { Colors } from "../../constants/theme";
+import { useThemeContext } from "../../contexts/themeContext";
 import FullLoadingScreen from "../fullLoadingScreen/fullLoadingScreen";
 import ThemeText from "../themeText/themeText";
 import "./style.css";
@@ -12,13 +13,14 @@ export default function CustomButton({
   buttonClassName,
   textClassName,
 }) {
+  const { theme, darkModeType } = useThemeContext();
   return (
     <button
       onClick={() => {
         if (!actionFunction) return;
         actionFunction();
       }}
-      style={{ ...buttonStyles }}
+      style={{ backgroundColor: Colors.dark.text, ...buttonStyles }}
       className={`customButton ${buttonClassName}`}
     >
       {useLoading ? (
@@ -32,7 +34,11 @@ export default function CustomButton({
           className={textClassName}
           textContent={textContent}
           textStyles={{
-            color: Colors.light.text,
+            color: theme
+              ? darkModeType
+                ? Colors.lightsout.background
+                : Colors.dark.background
+              : Colors.light.text,
             ...textStyles,
           }}
         />

@@ -4,11 +4,15 @@ import { QUICK_PAY_STORAGE_KEY } from "../../../../constants";
 import { useCallback } from "react";
 import TextInputWithSliderSettingsItem from "../../components/textInputWithSliderSettingsItem/textInputWithSliderSettingsItem";
 import "./fastPay.css";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
 
 export default function FastPay() {
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
   const navigate = useNavigate();
+  const { theme } = useThemeContext();
+  const { backgroundOffset } = useThemeColors();
   const fastPayThreshold =
     masterInfoObject[QUICK_PAY_STORAGE_KEY].fastPayThresholdSats;
   const isOn = masterInfoObject[QUICK_PAY_STORAGE_KEY].isFastPayEnabled;

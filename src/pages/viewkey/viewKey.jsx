@@ -9,12 +9,17 @@ import calculateSeedQR from "../../functions/calculateSeedQR";
 import QRCodeQrapper from "../../components/qrCode/qrCode";
 import CustomButton from "../../components/customButton/customButton";
 import copyToClipboard from "../../functions/copyToClipboard";
+import useThemeColors from "../../hooks/useThemeColors";
+import ThemeText from "../../components/themeText/themeText";
+import { useThemeContext } from "../../contexts/themeContext";
 
 export default function ViewMnemoinc() {
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
   const { mnemoinc } = useAuth();
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundColor } = useThemeColors();
   const [shouldShowMnemoinc, setShouldShowMnemoinc] = useState(
     !!props?.confirmed
   );
@@ -47,17 +52,25 @@ export default function ViewMnemoinc() {
   return (
     <div className="viewMnemoincContainer">
       <div
-        style={{ top: shouldShowMnemoinc ? "200%" : 0 }}
+        style={{ top: shouldShowMnemoinc ? "200%" : 0, backgroundColor }}
         className="mnemoincCover"
       >
         <div className="coverContent">
-          <p className="viewMnemoincText">
-            Are you sure you want to show your recover phrase?
-          </p>
+          <ThemeText
+            className={"viewMnemoincText"}
+            textContent={"Are you sure you want to show your recover phrase?"}
+          />
           <div className="buttonContianer">
             <CustomButton
               actionFunction={() => setShouldShowMnemoinc(true)}
-              textStyles={{ color: Colors.dark.text }}
+              buttonStyles={{
+                backgroundColor:
+                  theme && darkModeType ? Colors.dark.text : Colors.light.blue,
+              }}
+              textStyles={{
+                color:
+                  theme && darkModeType ? Colors.light.text : Colors.dark.text,
+              }}
               textContent={"Yes"}
             />
             <CustomButton
@@ -67,8 +80,14 @@ export default function ViewMnemoinc() {
           </div>
         </div>
       </div>
-      <p className="warning1">Keep this phrase in a secure and safe place</p>
-      <p className="warning2">Don’t share or screenshot this phrase!</p>
+      <ThemeText
+        className={"warning1"}
+        textContent={"Keep this phrase in a secure and safe place"}
+      />
+      <ThemeText
+        className={"warning2"}
+        textContent={"Don’t share or screenshot this phrase!"}
+      />
       <div className="mnemoincContainer">
         {showSeedAsWords ? (
           <KeyContainer keys={mnemoinc.split(" ")} />

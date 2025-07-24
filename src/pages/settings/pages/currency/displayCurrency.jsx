@@ -8,6 +8,9 @@ import { Colors } from "../../../../constants/theme";
 import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getLiquidSdk } from "../../../../functions/connectToLiquid";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
+import ThemeText from "../../../../components/themeText/themeText";
 const TEST_FIAT_DATA = [
   {
     id: "AED",
@@ -1071,6 +1074,8 @@ const TEST_FIAT_DATA = [
 export default function DisplayCurrency() {
   const [isSaving, setIsSaving] = useState(false);
   const [liquidSdk, setLiquidSdk] = useState(null);
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundColor } = useThemeColors();
   const [enteredCurrency, setEnteredCurrency] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
@@ -1127,7 +1132,7 @@ export default function DisplayCurrency() {
       ) : (
         <>
           <CustomInput
-            containerStyles={{ backgroundColor: Colors.light.background }}
+            containerStyles={{ backgroundColor: backgroundColor }}
             containerClassName={"displayCurrencyInputContainer"}
             textInputClassName={"displayCurrencyInput"}
             placeholder={"USD..."}
@@ -1188,8 +1193,8 @@ function FiatCurrencyElement({
         containerSize={30}
       />
       <div className="nameContainer">
-        <p>{currency.info.name}</p>
-        <p>{currency.id}</p>
+        <ThemeText textContent={currency.info.name} />
+        <ThemeText textContent={currency.id} />
       </div>
     </div>
   );

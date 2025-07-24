@@ -4,11 +4,16 @@ import "./ErrorScreen.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { Colors } from "../../constants/theme";
 import CustomButton from "../../components/customButton/customButton";
+import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
+import ThemeText from "../../components/themeText/themeText";
 
 export default function ErrorScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const [visible, setVisible] = useState(true); // controls animation
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset, backgroundColor } = useThemeColors();
 
   const errorMessage = location?.state?.errorMessage || "Something went wrong.";
   const navigateBack = location?.state?.navigateBack;
@@ -54,18 +59,22 @@ export default function ErrorScreen() {
           }}
         >
           <div
-            style={{ backgroundColor: Colors.dark.text }}
+            style={{
+              backgroundColor: theme ? backgroundOffset : Colors.dark.text,
+            }}
             className="error-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="error-message">{errorMessage}</p>
+            <ThemeText className={"error-message"} textContent={errorMessage} />
 
             <div style={{ alignSelf: "center" }} onClick={handleOkClick}>
               <CustomButton
                 buttonStyles={{
-                  backgroundColor: Colors.light.blue,
+                  backgroundColor: theme ? backgroundColor : Colors.light.blue,
                 }}
-                textStyles={{ color: Colors.dark.text }}
+                textStyles={{
+                  color: theme ? Colors.dark.text : Colors.dark.text,
+                }}
                 textContent={"OK"}
               />
             </div>

@@ -8,6 +8,8 @@ import { useSpring, animated } from "@react-spring/web";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { Colors } from "../../constants/theme";
 import "./switch.css";
+import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
 
 const CustomToggleSwitch = ({
   page,
@@ -17,9 +19,9 @@ const CustomToggleSwitch = ({
 }) => {
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
-  const { theme, darkModeType } = { theme: false, darkModeType: false }; //useGlobalThemeContext();
+  const { theme, darkModeType } = useThemeContext();
 
-  // const { textColor, backgroundOffset, backgroundColor } = GetThemeColors();
+  const { textColor, backgroundOffset, backgroundColor } = useThemeColors();
   const [textWidth, setTextWidth] = useState(0);
 
   const isOn =
@@ -63,8 +65,8 @@ const CustomToggleSwitch = ({
       page === "useTrampoline" ||
       page === "LoginSecurityMode" ||
       page === "fastPay"
-    ? Colors.light.background
-    : Colors.light.backgroundOffset;
+    ? backgroundColor
+    : backgroundOffset;
 
   const toggleSwitch = () => {
     toggleMasterInfoObject({
@@ -116,7 +118,7 @@ const CustomToggleSwitch = ({
               ? darkModeType && theme
                 ? Colors.lightsout.background
                 : Colors.dark.text
-              : Colors.light.text,
+              : textColor,
             transform: springProps.animatedValue.to(
               (v) =>
                 `translate(${localIsOn ? 10 : 70 - textWidth - 10}px, -50%)`

@@ -72,6 +72,7 @@ function CreateSeed() {
             copyToClipboard(seed.join(" "), navigate, location)
           }
           textStyles={{ color: Colors.dark.text }}
+          buttonStyles={{ backgroundColor: Colors.light.blue }}
           textContent={"Copy"}
         />
         <CustomButton

@@ -8,38 +8,44 @@ import SkeletonLoadingTx from "./skeletonLoadingTx";
 import FormattedSatText from "../formattedSatText/formattedSatText";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { HIDDEN_BALANCE_TEXT } from "../../constants";
+import ThemeText from "../themeText/themeText";
+import { useThemeContext } from "../../contexts/themeContext";
 
 export default function TransactionContanier({ frompage }) {
   const { sparkInformation } = useSpark();
   const { masterInfoObject } = useGlobalContextProvider();
   const currentTime = new Date();
   const navigate = useNavigate();
+  const { darkModeType, theme } = useThemeContext();
 
   if (frompage === "home" && sparkInformation.didConnect === null) {
     return (
       <div className="transactionContainer">
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
-        <SkeletonLoadingTx />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
+        <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
       </div>
     );
   }
   if (frompage === "home" && !sparkInformation.didConnect) {
     return (
       <div className="transactionContainer">
-        <p className="noTxText">Error connecting to spark.</p>
+        <ThemeText
+          className={"noTxText"}
+          textContent={"Error connecting to spark."}
+        />
       </div>
     );
   }
@@ -60,9 +66,11 @@ export default function TransactionContanier({ frompage }) {
     if (bannerText !== lastBanner && frompage !== "home") {
       lastBanner = bannerText;
       groupedTransfers.push(
-        <p key={`banner-${index}`} className="dateBannerText">
-          {bannerText}
-        </p>
+        <ThemeText
+          key={`banner-${index}`}
+          textContent={bannerText}
+          className={"dateBannerText"}
+        />
       );
     }
 
@@ -76,6 +84,8 @@ export default function TransactionContanier({ frompage }) {
         currentTime={currentTime}
         currnetTxTime={currnetTxTime}
         masterInfoObject={masterInfoObject}
+        darkModeType={darkModeType}
+        theme={theme}
       />
     );
   });
@@ -83,9 +93,10 @@ export default function TransactionContanier({ frompage }) {
   if (!groupedTransfers?.length) {
     return (
       <div className="transactionContainer">
-        <p className="noTxText">
-          Send or receive a transaction for it to show up here.
-        </p>
+        <ThemeText
+          className={"noTxText"}
+          textContent={"Send or receive a transaction for it to show up here."}
+        />
       </div>
     );
   }
@@ -97,12 +108,11 @@ export default function TransactionContanier({ frompage }) {
       )}
       {groupedTransfers?.length >= masterInfoObject.homepageTxPreferance &&
         frompage === "home" && (
-          <p
-            onClick={() => navigate("/viewAllTransactions")}
-            className="viewAllTxText"
-          >
-            View all transactions
-          </p>
+          <ThemeText
+            clickFunction={() => navigate("/viewAllTransactions")}
+            className={"viewAllTxText"}
+            textContent={" View all transactions"}
+          />
         )}
     </div>
   );
@@ -115,6 +125,8 @@ function TxItem({
   navigate,
   details,
   masterInfoObject,
+  darkModeType,
+  theme,
 }) {
   const timeDifference = currentTime - details.time;
   const minutes = timeDifference / (1000 * 60);
@@ -146,22 +158,30 @@ function TxItem({
               ? "310deg"
               : "130deg"
           })`,
+          filter:
+            theme && darkModeType
+              ? "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(134deg) brightness(111%) contrast(101%)"
+              : "initial",
         }}
         src={isPending ? pendingTx : arrow}
         alt=""
       />
       <div className="textContainer">
-        <p className="descriptionText">
-          {masterInfoObject.userBalanceDenomination === "hidden"
-            ? HIDDEN_BALANCE_TEXT
-            : description
-            ? description
-            : details.direction === "INCOMING"
-            ? "Received"
-            : "Sent"}
-        </p>
-        <p className="dateText">
-          {`${
+        <ThemeText
+          className={"descriptionText"}
+          textContent={
+            masterInfoObject.userBalanceDenomination === "hidden"
+              ? HIDDEN_BALANCE_TEXT
+              : description
+              ? description
+              : details.direction === "INCOMING"
+              ? "Received"
+              : "Sent"
+          }
+        />
+        <ThemeText
+          className={"dateText"}
+          textContent={`${
             minutes <= 1
               ? `Just now`
               : minutes <= 60
@@ -184,7 +204,7 @@ function TxItem({
               ? "year"
               : "years"
           } ${minutes < 1 ? "" : "ago"}`}
-        </p>
+        />
       </div>
       <FormattedSatText
         frontText={

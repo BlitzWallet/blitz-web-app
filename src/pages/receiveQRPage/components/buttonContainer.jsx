@@ -4,6 +4,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import copyToClipboard from "../../../functions/copyToClipboard";
 import "./buttonContainer.css";
 import CustomButton from "../../../components/customButton/customButton";
+import { useThemeContext } from "../../../contexts/themeContext";
+import { Colors } from "../../../constants/theme";
+import useThemeColors from "../../../hooks/useThemeColors";
 
 export default function ReceiveButtonsContainer({
   generatingInvoiceQRCode,
@@ -14,6 +17,8 @@ export default function ReceiveButtonsContainer({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, darkModeType } = useThemeContext();
+  const { textColor } = useThemeColors();
 
   return (
     <div className="receiveButtonContainer">
@@ -47,6 +52,11 @@ export default function ReceiveButtonsContainer({
             },
           })
         }
+        buttonStyles={{
+          backgroundColor: "transparent",
+          borderColor: theme ? Colors.dark.text : Colors.light.text,
+        }}
+        textStyles={{ color: textColor }}
         textContent={"Choose format"}
       />
     </div>

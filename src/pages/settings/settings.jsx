@@ -23,7 +23,7 @@ import keyIconWhite from "../../assets/keyIconWhite.png";
 import trashIcon from "../../assets/trashIcon.png";
 import trashIconWhite from "../../assets/trashIconWhite.png";
 import receipt from "../../assets/receipt.png";
-import receiptDM from "../../assets/receiptDM.png";
+import receiptDM from "../../assets/receiptWhite.png";
 import nodeIcon from "../../assets/nodeIcon.png";
 import nodeIconWhite from "../../assets/nodeIconWhite.png";
 import ThemeText from "../../components/themeText/themeText";
@@ -31,6 +31,8 @@ import { useEffect } from "react";
 import SocialOptionsBottomBar from "./socialOptions/socialOptions";
 import Icon from "../../components/customIcon/customIcon";
 import { Colors } from "../../constants/theme";
+import ThemeImage from "../../components/ThemeImage/themeImage";
+import { useThemeContext } from "../../contexts/themeContext";
 
 const GENERALOPTIONS = [
   {
@@ -144,6 +146,7 @@ export default function SettingsHome() {
   const wantsToDeleteAccount = queryParams.get("confirmed");
   const props = location.state;
   const { deleteWallet } = useAuth();
+  const { theme, darkModeType } = useThemeContext();
   const settignsList = props?.isDoomsday ? DOOMSDAYSETTINGS : SETTINGSOPTIONS;
 
   useEffect(() => {
@@ -181,9 +184,21 @@ export default function SettingsHome() {
           className="settingsItemContainer"
         >
           {settingsElement.svgIcon ? (
-            <Icon color={Colors.light.blue} name={settingsElement.svgName} />
+            <Icon
+              color={
+                theme && darkModeType ? Colors.dark.text : Colors.light.blue
+              }
+              name={settingsElement.svgName}
+            />
           ) : (
-            <img className="settingsItemImage" src={settingsElement.icon} />
+            <ThemeImage
+              className="settingsItemImage"
+              lightModeIcon={settingsElement.icon}
+              darkModeIcon={settingsElement.icon}
+              lightsOutIcon={settingsElement.iconWhite}
+              styles={{ width: 20, height: 20 }}
+            />
+            // <img className="settingsItemImage" src={settingsElement.icon} />
           )}
           <ThemeText
             className={"settingsItemName"}
@@ -191,6 +206,12 @@ export default function SettingsHome() {
           />
           <img
             className="settingsItemChevron"
+            style={{
+              filter:
+                theme && darkModeType
+                  ? "brightness(0) saturate(100%) invert(100%) sepia(3%) saturate(7500%) hue-rotate(137deg) brightness(113%) contrast(101%)"
+                  : "initial",
+            }}
             src={settingsElement.arrowIcon}
           />
         </div>

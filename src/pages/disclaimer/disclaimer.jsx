@@ -25,6 +25,7 @@ function DisclaimerPage() {
         <CustomButton
           actionFunction={() => navigate("/createAccount")}
           textStyles={{ color: Colors.dark.text }}
+          buttonStyles={{ backgroundColor: Colors.light.blue }}
           textContent={"Next"}
         />
         <a href="https://blitz-wallet.com/pages/terms/">Terms and Conditions</a>

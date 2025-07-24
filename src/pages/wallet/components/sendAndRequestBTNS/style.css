@@ -8,27 +8,28 @@
 .sendAndRequstContainer .buttonContainer {
   width: 55px;
   height: 55px;
-  border-radius: 40px;
+  border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  position: relative;
 }
-.sendAndRequstContainer .buttonImage {
-  width: 30px;
-  height: 30px;
-}
-.sendAndRequstContainer .buttonWhite {
-  background-color: #fff;
-}
-.sendAndRequstContainer .buttonBlue {
-  background-color: var(--primaryBlue);
+.sendAndRequstContainer .buttonContainer .fill {
+  width: 45px;
+  height: 45px;
+
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .sendAndRequstContainer .send {
-  transform: rotate(90deg);
+  transform: rotate(0deg);
 }
 .sendAndRequstContainer .request {
-  transform: rotate(-90deg);
+  transform: rotate(-180deg);
 }

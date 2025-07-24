@@ -5,11 +5,17 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { Colors } from "../../constants/theme";
 import CustomButton from "../customButton/customButton";
+import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
+import ThemeText from "../themeText/themeText";
 
 export default function ConfirmActionPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [visible, setVisible] = useState(true); // controls animation
+
+  const { theme } = useThemeContext();
+  const { backgroundOffset } = useThemeColors();
 
   const {
     confirmHeader,
@@ -70,12 +76,20 @@ export default function ConfirmActionPage() {
           }}
         >
           <div
-            style={{ backgroundColor: Colors.dark.text }}
+            style={{
+              backgroundColor: theme ? backgroundOffset : Colors.dark.text,
+            }}
             className="confirm-action-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="confirm-action-header">{confirmHeader}</p>
-            <p className="confirm-action-message">{confirmMessage}</p>
+            <ThemeText
+              className="confirm-action-header"
+              textContent={confirmHeader}
+            />
+            <ThemeText
+              className="confirm-action-message"
+              textContent={confirmMessage}
+            />
 
             <div
               className="confirm-action-button-container"
@@ -99,21 +113,25 @@ export default function ConfirmActionPage() {
                   handleOkClick();
                 }}
                 buttonStyles={{
-                  backgroundColor: Colors.light.blue,
+                  backgroundColor: theme ? Colors.dark.text : Colors.light.blue,
                   flex: 1,
                   margin: 5,
                 }}
-                textStyles={{ color: Colors.dark.text }}
+                textStyles={{
+                  color: theme ? Colors.light.text : Colors.dark.text,
+                }}
                 textContent={"Yes"}
               />
               <CustomButton
                 actionFunction={handleOkClick}
                 buttonStyles={{
-                  backgroundColor: Colors.light.blue,
+                  backgroundColor: theme ? Colors.dark.text : Colors.light.blue,
                   flex: 1,
                   margin: 5,
                 }}
-                textStyles={{ color: Colors.dark.text }}
+                textStyles={{
+                  color: theme ? Colors.light.text : Colors.dark.text,
+                }}
                 textContent={"No"}
               />
             </div>
