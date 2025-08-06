@@ -359,7 +359,7 @@ export default function SendPage() {
         return;
       }
       if (
-        paymentInfo?.type === InputTypeVariant.LN_URL_PAY &&
+        paymentInfo?.type === LIQUID_TYPES.LnUrlPay &&
         (convertedSendAmount < minLNURLSatAmount ||
           convertedSendAmount > maxLNURLSatAmount)
       ) {
