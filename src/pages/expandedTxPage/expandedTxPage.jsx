@@ -207,7 +207,7 @@ export default function ExpandedTxPage() {
               <ThemeText textContent={"Memo"} />
               <div
                 className="descriptionScrollviewContainer"
-                style={{ backgroundColor: Colors.light.background }}
+                style={{ backgroundColor: backgroundColor }}
               >
                 <ThemeText textContent={description} />
               </div>

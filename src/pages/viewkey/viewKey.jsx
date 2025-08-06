@@ -19,12 +19,20 @@ export default function ViewMnemoinc() {
   const props = location.state;
   const { mnemoinc } = useAuth();
   const { theme, darkModeType } = useThemeContext();
-  const { backgroundColor } = useThemeColors();
+  const { backgroundColor, backgroundOffset, textColor } = useThemeColors();
   const [shouldShowMnemoinc, setShouldShowMnemoinc] = useState(
     !!props?.confirmed
   );
   const [showSeedAsWords, setShowSeedAsWords] = useState(true);
   const seedQRCalculation = calculateSeedQR(mnemoinc);
+
+  useEffect(() => {
+    if (props.confirmed === undefined) return;
+    if (props.confirmed) {
+      setShowSeedAsWords(false);
+    }
+    console.log(props.confirmed, "is confimred");
+  }, [props.confirmed]);
 
   const toggleSeedAsWords = () => {
     if (showSeedAsWords && !props?.confirmed) {
@@ -65,11 +73,11 @@ export default function ViewMnemoinc() {
               actionFunction={() => setShouldShowMnemoinc(true)}
               buttonStyles={{
                 backgroundColor:
-                  theme && darkModeType ? Colors.dark.text : Colors.light.blue,
+                  theme && darkModeType ? backgroundOffset : Colors.light.blue,
               }}
               textStyles={{
                 color:
-                  theme && darkModeType ? Colors.light.text : Colors.dark.text,
+                  theme && darkModeType ? Colors.dark.text : Colors.dark.text,
               }}
               textContent={"Yes"}
             />
@@ -85,6 +93,9 @@ export default function ViewMnemoinc() {
         textContent={"Keep this phrase in a secure and safe place"}
       />
       <ThemeText
+        textStyles={{
+          color: theme && darkModeType ? textColor : Colors.constants.cancelRed,
+        }}
         className={"warning2"}
         textContent={"Don’t share or screenshot this phrase!"}
       />
@@ -100,18 +111,18 @@ export default function ViewMnemoinc() {
 
       <div
         onClick={toggleSeedAsWords}
-        style={{ backgroundColor: Colors.light.backgroundOffset }}
+        style={{ backgroundColor: backgroundOffset }}
         className="switchContainer"
       >
         <div
           style={{
-            backgroundColor: Colors.dark.text,
+            backgroundColor: backgroundColor,
             left: showSeedAsWords ? "3px" : "100px",
           }}
           className="optionSlider"
         />
-        <p>Words</p>
-        <p>QR Code</p>
+        <ThemeText textContent={"Words"} />
+        <ThemeText textContent={"QR Code"} />
       </div>
       <CustomButton
         actionFunction={() => {
