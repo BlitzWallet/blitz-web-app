@@ -12,6 +12,10 @@ import getLiquidAddressFromSwap from "../boltz/magicRoutingHints";
 import { LIQUID_TYPES, SATSPERBITCOIN } from "../../constants";
 import processSparkAddress from "./processSparkAddress";
 import { decodeBip21SparkAddress } from "../spark/handleBip21SparkAddress";
+import { decodeBip21Address } from "../bip21AddressFormmating";
+import { decodeLNURL } from "../lnurl/bench32Formmater";
+import { formatLightningAddress } from "../lnurl";
+import { handleCryptoQRAddress, isSupportedPNPQR } from "./getMerchantAddress";
 
 export default async function decodeSendAddress(props) {
   let {
@@ -37,49 +41,14 @@ export default async function decodeSendAddress(props) {
     const sdk = getLiquidSdk();
     if (!btcAdress) throw new Error("No address found, please try again.");
     // Handle cryptoqr.net special case
-    if (btcAdress.includes("cryptoqr.net")) {
-      try {
-        const [username, domain] = btcAdress.split("@");
-        const response = await fetch(
-          `https://${domain}/.well-known/lnurlp/${username}`
-        );
-        const data = await response.json();
 
-        if (data.status === "ERROR") {
-          goBackFunction(
-            "Not able to get merchant payment information from invoice"
-          );
-          return;
-        }
-
-        const bolt11 = await getLNAddressForLiquidPayment(
-          { data, type: "lnurlpay" },
-          data.minSendable / 1000
-        );
-
-        if (!bolt11) throw new Error("Not able to parse invoice");
-
-        const parsedInvoice = await sdk.parseInvoice(bolt11);
-
-        if (parsedInvoice.amountMsat / 1000 >= maxZeroConf) {
-          goBackFunction(
-            `Cannot send more than ${displayCorrectDenomination({
-              amount: maxZeroConf,
-              masterInfoObject,
-              fiatStats,
-            })} to a merchant`
-          );
-          return;
-        }
-        btcAdress = bolt11;
-      } catch (err) {
-        console.log("error getting cryptoQR", err);
-        goBackFunction(
-          `There was a problem getting the invoice for this address`
-        );
-        return;
-      }
+    if (isSupportedPNPQR(btcAdress)) {
+      btcAdress = handleCryptoQRAddress(
+        btcAdress,
+        getLNAddressForLiquidPayment
+      );
     }
+
     if (
       btcAdress.toLowerCase().startsWith("spark:") ||
       btcAdress.toLowerCase().startsWith("sp1p")
@@ -110,6 +79,36 @@ export default async function decodeSendAddress(props) {
       }
     }
 
+    if (
+      btcAdress.toLowerCase().startsWith("lightning") ||
+      btcAdress.toLowerCase().startsWith("bitcoin") ||
+      btcAdress.toLowerCase().startsWith("lnurl")
+    ) {
+      const decodedAddress = btcAdress.toLowerCase().startsWith("lnurl")
+        ? btcAdress
+        : decodeBip21Address(
+            btcAdress,
+            btcAdress.toLowerCase().startsWith("lightning")
+              ? "lightning"
+              : "bitcoin"
+          );
+      const lnurl = btcAdress.toLowerCase().startsWith("lnurl")
+        ? decodedAddress
+        : btcAdress.toLowerCase().startsWith("lightning")
+        ? decodedAddress.address.toUpperCase()
+        : decodedAddress.options.lightning.toUpperCase();
+
+      const decodedLNULR = decodeLNURL(lnurl);
+      if (!decodedLNULR)
+        throw new Error(
+          "Not able to get lightning address from lightning link."
+        );
+
+      const lightningAddress = formatLightningAddress(decodedLNULR);
+
+      btcAdress = lightningAddress;
+    }
+
     const chosenPath = parsedInvoice
       ? Promise.resolve(parsedInvoice)
       : sdk.parse(btcAdress);
@@ -122,21 +121,6 @@ export default async function decodeSendAddress(props) {
       return goBackFunction("Unable to parse address");
     }
     console.log(input, "parsed input");
-
-    if (input.type.toLowerCase() === LIQUID_TYPES.Bolt11.toLowerCase()) {
-      try {
-        const isMagicRoutingHint = await getLiquidAddressFromSwap(
-          input.invoice.bolt11
-        );
-        if (isMagicRoutingHint) {
-          const parsed = await sdk.parse(isMagicRoutingHint);
-          input = parsed;
-        }
-      } catch (err) {
-        goBackFunction("Failed to resolve embedded liquid address");
-        return;
-      }
-    }
 
     let processedPaymentInfo;
     try {
@@ -191,8 +175,8 @@ async function processInputType(input, context) {
     case LIQUID_TYPES.LnUrlPay.toLowerCase(): //works
       return await processLNUrlPay(input, context);
 
-    // case LIQUID_TYPES.LnUrlWithdraw.toLowerCase():
-    //   return await processLNUrlWithdraw(input, context);
+    case LIQUID_TYPES.LnUrlWithdraw.toLowerCase():
+      return await processLNUrlWithdraw(input, context);
 
     // case LIQUID_TYPES.LiquidAddress.toLowerCase(): //doesnt work
     //   return processLiquidAddress(input, context);

@@ -2,8 +2,13 @@ import { SATSPERBITCOIN } from "../../constants";
 import { sparkPaymenWrapper } from "../spark/payments";
 
 export default async function processBitcoinAddress(input, context) {
-  const { masterInfoObject, comingFromAccept, enteredPaymentInfo, fiatStats } =
-    context;
+  const {
+    masterInfoObject,
+    comingFromAccept,
+    enteredPaymentInfo,
+    fiatStats,
+    paymentInfo,
+  } = context;
 
   const amountSat = comingFromAccept
     ? enteredPaymentInfo.amount
@@ -18,28 +23,42 @@ export default async function processBitcoinAddress(input, context) {
   };
   let paymentFee = 0;
   let supportFee = 0;
+  let feeQuote;
   if (amountSat) {
-    const paymentFeeResponse = await sparkPaymenWrapper({
-      getFee: true,
-      address: input.address.address,
-      paymentType: "bitcoin",
-      amountSats: amountSat,
-      masterInfoObject,
-    });
+    if (
+      paymentInfo.paymentFee &&
+      paymentInfo.supportFee &&
+      paymentInfo.feeQuote
+    ) {
+      paymentFee = paymentInfo.paymentFee;
+      supportFee = paymentInfo.supportFee;
+      feeQuote = paymentInfo.feeQuote;
+    } else {
+      const paymentFeeResponse = await sparkPaymenWrapper({
+        getFee: true,
+        address: input.address.address,
+        paymentType: "bitcoin",
+        amountSats: amountSat,
+        masterInfoObject,
+      });
 
-    if (!paymentFeeResponse.didWork) throw new Error(paymentFeeResponse.error);
+      if (!paymentFeeResponse.didWork)
+        throw new Error(paymentFeeResponse.error);
 
-    paymentFee = paymentFeeResponse.fee;
-    supportFee = paymentFeeResponse.supportFee;
+      paymentFee = paymentFeeResponse.fee;
+      supportFee = paymentFeeResponse.supportFee;
+      feeQuote = paymentFeeResponse.feeQuote;
+    }
   }
 
   return {
     data: newPaymentInfo,
     type: "Bitcoin",
     paymentNetwork: "Bitcoin",
+    address: input.address.address,
     paymentFee: paymentFee,
     supportFee: supportFee,
-    address: input.address.address,
+    feeQuote,
     sendAmount: !amountSat
       ? ""
       : `${

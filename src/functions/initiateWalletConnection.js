@@ -10,8 +10,8 @@ import { cleanStalePendingSparkLightningTransactions } from "./spark/transaction
 
 export async function initWallet({
   setSparkInformation,
-  toggleGlobalContactsInformation,
-  globalContactsInformation,
+  // toggleGlobalContactsInformation,
+  // globalContactsInformation,
   mnemoinc,
 }) {
   console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
@@ -22,8 +22,8 @@ export async function initWallet({
     if (didConnectToSpark.isConnected) {
       const didSetSpark = await initializeSparkSession({
         setSparkInformation,
-        globalContactsInformation,
-        toggleGlobalContactsInformation,
+        // globalContactsInformation,
+        // toggleGlobalContactsInformation,
       });
 
       if (!didSetSpark)
@@ -44,8 +44,8 @@ export async function initWallet({
 
 async function initializeSparkSession({
   setSparkInformation,
-  globalContactsInformation,
-  toggleGlobalContactsInformation,
+  // globalContactsInformation,
+  // toggleGlobalContactsInformation,
 }) {
   try {
     // Clean DB state but do not hold up process
@@ -58,29 +58,30 @@ async function initializeSparkSession({
         getSparkIdentityPubKey(),
       ]);
 
-    if (balance === undefined || transactions === undefined)
+    if (!balance.didWork || transactions === undefined)
       throw new Error("Unable to initialize spark from history");
 
-    if (
-      !globalContactsInformation.myProfile.sparkAddress ||
-      !globalContactsInformation.myProfile.sparkIdentityPubKey
-    ) {
-      toggleGlobalContactsInformation(
-        {
-          myProfile: {
-            ...globalContactsInformation.myProfile,
-            sparkAddress: sparkAddress,
-            sparkIdentityPubKey: identityPubKey,
-          },
-        },
-        true
-      );
-    }
+    // if (
+    //   !globalContactsInformation.myProfile.sparkAddress ||
+    //   !globalContactsInformation.myProfile.sparkIdentityPubKey
+    // ) {
+    //   toggleGlobalContactsInformation(
+    //     {
+    //       myProfile: {
+    //         ...globalContactsInformation.myProfile,
+    //         sparkAddress: sparkAddress.response,
+    //         sparkIdentityPubKey: identityPubKey,
+    //       },
+    //     },
+    //     true
+    //   );
+    // }
+
     const storageObject = {
       balance: Number(balance.balance),
       transactions: transactions,
       identityPubKey,
-      sparkAddress,
+      sparkAddress: sparkAddress.response,
       didConnect: true,
     };
     console.log("Spark storage object", storageObject);

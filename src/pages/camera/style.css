@@ -126,7 +126,7 @@
   z-index: 99;
   width: 95%;
   max-width: 150px;
-  background-color: transparent;
+  background-color: transparent !important;
   border: 2px solid white;
   cursor: pointer;
 }

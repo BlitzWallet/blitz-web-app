@@ -21,6 +21,7 @@ const AppStatusProvider = ({ children }) => {
     useState(true);
 
   const [didGetToHomepage, setDidGetToHomePage] = useState(false);
+  const [appState, setAppState] = useState("active");
 
   const toggleDidGetToHomepage = useCallback((newInfo) => {
     setDidGetToHomePage(newInfo);
@@ -48,6 +49,23 @@ const AppStatusProvider = ({ children }) => {
     })();
   }, []);
 
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      console.log("App state changed to:", nextAppState);
+      setAppState(nextAppState);
+    };
+
+    window.addEventListener("blur", () => {
+      handleAppStateChange("background");
+    });
+    window.addEventListener("focus", () => {
+      handleAppStateChange("active");
+    });
+    window.addEventListener("beforeunload", () => {
+      handleAppStateChange("background");
+    });
+  }, []);
+
   console.log(minMaxLiquidSwapAmounts, "min max liquid swap amounts");
 
   const contextValue = useMemo(
@@ -57,6 +75,7 @@ const AppStatusProvider = ({ children }) => {
       isConnectedToTheInternet,
       didGetToHomepage,
       toggleDidGetToHomepage,
+      appState,
     }),
     [
       minMaxLiquidSwapAmounts,
@@ -64,6 +83,7 @@ const AppStatusProvider = ({ children }) => {
       isConnectedToTheInternet,
       didGetToHomepage,
       toggleDidGetToHomepage,
+      appState,
     ]
   );
 

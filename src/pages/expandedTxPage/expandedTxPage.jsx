@@ -208,7 +208,7 @@ export default function ExpandedTxPage() {
               width: "100%",
               maxWidth: "max-content",
               minWidth: "unset",
-              backgroundColor: theme ? Colors.dark.text : Colors.light.primary,
+              backgroundColor: theme ? Colors.dark.text : Colors.light.blue,
               margin: "30px auto",
             }}
             textStyles={{ color: theme ? Colors.light.text : Colors.dark.text }}

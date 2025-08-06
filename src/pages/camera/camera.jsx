@@ -12,6 +12,7 @@ import flashLightNoFill from "../../assets/flashlightNoFillWhite.png";
 import flashLightFill from "../../assets/flashlight.png";
 import images from "../../assets/images.png";
 import { useCameraPermission } from "../../hooks/useCameraPermission";
+import ThemeText from "../../components/themeText/themeText";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
@@ -156,11 +157,13 @@ export default function Camera() {
           }}
         >
           {!isCameraReady && (
-            <p>
-              {cameraPermissions === "denied"
-                ? "To use this feature, enable camera in the browser settings."
-                : "Loading camera..."}
-            </p>
+            <ThemeText
+              textContent={
+                cameraPermissions === "denied"
+                  ? "To use this feature, enable camera in the browser settings."
+                  : "Loading camera..."
+              }
+            />
           )}
         </div>
       </div>

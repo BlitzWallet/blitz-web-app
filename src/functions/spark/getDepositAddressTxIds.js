@@ -1,24 +1,34 @@
+import fetchBackend from "../../../db/handleBackend";
 import Storage from "../localStorage";
 
-export default async function getDepositAddressTxIds(address) {
-  const savedDepositTxids = Storage.getItem("depositAddressTxIds") || {};
-
+export default async function getDepositAddressTxIds(
+  address,
+  contactsPrivateKey,
+  publicKey
+) {
+  const savedDepositTxids = {};
   let savedTxIds = savedDepositTxids[address];
   if (!savedTxIds) {
     savedTxIds = [];
   }
-
-  const ids = await fetchTxidsFromBlockstream(address, savedTxIds);
+  const ids = await fetchTxidsFromBlockstream(
+    address,
+    contactsPrivateKey,
+    publicKey
+  );
   if (ids.length > 0) {
     savedTxIds.push(...ids);
     savedDepositTxids[address] = savedTxIds;
-    Storage.setItem("depositAddressTxIds", savedDepositTxids);
   }
 
   return savedDepositTxids[address] || [];
 }
 
-async function fetchTxidsFromBlockstream(address, savedTxIds) {
+async function fetchTxidsFromBlockstream(
+  address,
+  contactsPrivateKey,
+  publicKey
+) {
   const apis = [
     {
       name: "Blockstream",
@@ -28,12 +38,28 @@ async function fetchTxidsFromBlockstream(address, savedTxIds) {
       name: "Mempool.space",
       url: `https://mempool.space/api/address/${address}/txs`,
     },
+    {
+      name: "fbBLockstream",
+    },
   ];
 
   for (const api of apis) {
     try {
-      const response = await fetch(api.url);
-      const data = await response.json();
+      let data;
+      if (api.name === "fbBLockstream") {
+        const response = await fetchBackend(
+          "enterpriseBlockstreamEsploraData",
+          { address },
+          contactsPrivateKey,
+          publicKey
+        );
+        data = response;
+      } else {
+        const response = await fetch(api.url);
+        data = await response.json();
+        console.log("api response data", data);
+      }
+
       if (!Array.isArray(data)) {
         throw new Error(`Invalid response from ${api.name} API`);
       }
@@ -48,15 +74,12 @@ async function fetchTxidsFromBlockstream(address, savedTxIds) {
         });
       });
 
-      return data
+      const exploraData = data
         .map((tx) => {
           const isIncomingTx = tx.vout.some(
             (vout) => vout.scriptpubkey_address === address
           );
-          const isAlreadySaved = savedTxIds.some(
-            (item) => item.txid === tx.txid
-          );
-          if (!isIncomingTx || isAlreadySaved) {
+          if (!isIncomingTx) {
             return null;
           }
           // Check if this transaction has any unspent outputs to our address
@@ -67,9 +90,24 @@ async function fetchTxidsFromBlockstream(address, savedTxIds) {
             }
             return false;
           });
-          return hasUnspentOutputs ? { txid: tx.txid, didClaim: false } : null;
+
+          if (!hasUnspentOutputs) return null;
+          const isConfirmed = tx.status?.confirmed || false;
+          return { txid: tx.txid, didClaim: false, isConfirmed };
         })
         .filter(Boolean);
+
+      let savedDepositTxids = Storage.getItem("alreadyClaimedTxs") || {};
+
+      let savedTxIds = savedDepositTxids[address] || [];
+      let updatedExploraData = exploraData;
+      if (savedTxIds.length) {
+        updatedExploraData = exploraData.filter(
+          (item) => !savedTxIds.includes(item.txid)
+        );
+      }
+
+      return updatedExploraData;
     } catch (err) {
       console.log(`fetching data from ${api.name.toLowerCase()} failed`, err);
 
