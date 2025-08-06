@@ -188,6 +188,19 @@ export default function ExpandedTxPage() {
               }}
               textContent={paymentType}
             />
+            {isPending && transaction.paymentType === "bitcoin" && (
+              <>
+                <ThemeText textContent={"Confs required"} />
+                <ThemeText
+                  textStyles={{
+                    textAlign: windowWidth > 320 ? "right" : "center",
+                  }}
+                  textContent={
+                    transaction.details.direction === "INCOMING" ? "3" : "2"
+                  }
+                />
+              </>
+            )}
           </div>
           {description && (
             <div className="descriptionContainer">
