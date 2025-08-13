@@ -206,6 +206,7 @@ function TxItem({
           } ${minutes < 1 ? "" : "ago"}`}
         />
       </div>
+
       <FormattedSatText
         frontText={
           masterInfoObject.userBalanceDenomination !== "hidden"
