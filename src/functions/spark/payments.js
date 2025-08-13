@@ -55,7 +55,10 @@ export const sparkPaymenWrapper = async ({
       let calculatedFee = 0;
       let tempFeeQuote;
       if (paymentType === "lightning") {
-        const routingFee = await getSparkLightningPaymentFeeEstimate(address);
+        const routingFee = await getSparkLightningPaymentFeeEstimate(
+          address,
+          amountSats
+        );
         if (!routingFee.didWork)
           throw new Error(routingFee.error || "Unable to get routing fee");
         calculatedFee = routingFee.response;

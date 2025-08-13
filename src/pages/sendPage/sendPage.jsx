@@ -29,6 +29,7 @@ import { getBoltzApiUrl } from "../../functions/boltz/boltzEndpoitns";
 
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
+import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
 
 export default function SendPage() {
   const location = useLocation();
@@ -180,36 +181,12 @@ export default function SendPage() {
     setIsSendingPayment(true);
 
     try {
-      let formmateedSparkPaymentInfo = {
-        address: "",
-        paymentType: "",
-      };
+      const formmateedSparkPaymentInfo = formatSparkPaymentAddress(
+        paymentInfo,
+        false
+      );
+
       // manipulate paymetn details here
-      if (
-        paymentInfo.type.toLowerCase() === LIQUID_TYPES.Bolt11.toLowerCase()
-      ) {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.decodedInput?.invoice?.bolt11?.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "lightning";
-      } else if (paymentInfo.type.toLowerCase() === "spark") {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.data?.address.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "spark";
-      } else if (
-        paymentInfo.type.toLowerCase() === LIQUID_TYPES.LnUrlPay.toLowerCase()
-      ) {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.data?.invoice.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "lightning";
-      } else if (paymentInfo.type.toLowerCase() === "liquid") {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.data?.invoice.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "lightning";
-        console.log(paymentInfo?.boltzData);
-      } else if (paymentInfo?.type.toLowerCase() === "bitcoin") {
-        formmateedSparkPaymentInfo.address = paymentInfo?.address.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "bitcoin";
-      }
       console.log(formmateedSparkPaymentInfo, "manual spark information");
 
       const memo =
@@ -410,8 +387,8 @@ export default function SendPage() {
           amount: convertedSendAmount,
           description: paymentDescription,
         },
-        setLoadingMessage,
         paymentInfo,
+        setLoadingMessage,
         parsedInvoice: paymentInfo.decodedInput,
         fromPage,
         publishMessageFunc,
