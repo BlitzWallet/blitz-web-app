@@ -11,6 +11,9 @@ import FormattedSatText from "../../components/formattedSatText/formattedSatText
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
+import ThemeImage from "../../components/ThemeImage/themeImage";
+import aboutIcon from "../../assets/aboutIcon.png";
+import aboutIconWhite from "../../assets/aboutIconWhite.png";
 
 export default function ReceiveQRPage() {
   const { globalContactsInformation } = useGlobalContacts();
@@ -112,14 +115,40 @@ export default function ReceiveQRPage() {
         />
         <div style={{ marginBottom: "auto" }}></div>
         <div
+          onClick={() => {
+            if (selectedRecieveOption.toLowerCase() !== "bitcoin") return;
+            navigate("/error", {
+              state: {
+                errorMessage:
+                  "On-chain payments have a network fee and 0.1% Spark fee.\n\nIf you send money to yourself, you’ll pay the network fee twice — once to send it and once to claim it.\n\nIf someone else sends you money, you’ll only pay the network fee once to claim it.",
+                background: location,
+              },
+            });
+          }}
           style={{
             alignItems: "center",
             display: "flex",
             flexDirection: "column",
+            cursor:
+              selectedRecieveOption.toLowerCase() === "bitcoin"
+                ? "pointer"
+                : "default",
           }}
         >
-          <ThemeText textStyles={{ margin: 0 }} textContent={"Fee:"} />
-          <FormattedSatText balance={0} neverHideBalance={true} />
+          <div className="feeTextContainer">
+            <ThemeText textStyles={{ margin: 0 }} textContent={"Fee"} />
+            <ThemeImage
+              styles={{ width: 15, height: 15, marginLeft: "5px" }}
+              lightModeIcon={aboutIcon}
+              darkModeIcon={aboutIcon}
+              lightsOutIcon={aboutIconWhite}
+            />
+          </div>
+          {selectedRecieveOption.toLowerCase() === "bitcoin" ? (
+            <ThemeText textStyles={{ margin: 0 }} textContent={"Variable"} />
+          ) : (
+            <FormattedSatText balance={0} neverHideBalance={true} />
+          )}
         </div>
       </div>
     </div>

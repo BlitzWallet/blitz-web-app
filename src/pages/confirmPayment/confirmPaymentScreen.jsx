@@ -12,9 +12,11 @@ import "./confirmPayment.css";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
+import { useThemeContext } from "../../contexts/themeContext";
 
 export default function ConfirmPayment() {
   const navigate = useNavigate();
+  const { theme } = useThemeContext();
   const location = useLocation();
   const props = location.state;
   const animationRef = useRef(null);
@@ -78,9 +80,7 @@ export default function ConfirmPayment() {
 
         <p className="errorText">
           {didSucceed
-            ? showPendingMessage
-              ? "Your balance will be updated shortly"
-              : ""
+            ? ""
             : "There was an issue sending this payment, please try again."}
         </p>
 
@@ -124,13 +124,13 @@ export default function ConfirmPayment() {
               window.location.href = mailto;
             }}
             buttonClassName={"errorButton"}
-            textStyles={{ color: Colors.light.blue }}
+            textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
             textContent={"Send report to developer"}
           />
         )}
         <CustomButton
           actionFunction={handleBack}
-          textStyles={{ color: Colors.dark.text }}
+          textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
           buttonClassName={"continueBTN"}
           textContent={"Continue"}
         />

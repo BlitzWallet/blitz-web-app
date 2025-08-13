@@ -19,6 +19,7 @@ import {
   LIQUID_TYPES,
   QUICK_PAY_STORAGE_KEY,
   SATSPERBITCOIN,
+  SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
 } from "../../constants";
 import CustomInput from "../../components/customInput/customInput";
 import CustomNumberKeyboard from "../../components/customNumberKeyboard/customNumberKeyboard";
@@ -28,6 +29,7 @@ import { getBoltzApiUrl } from "../../functions/boltz/boltzEndpoitns";
 
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
+import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
 
 export default function SendPage() {
   const location = useLocation();
@@ -72,6 +74,13 @@ export default function SendPage() {
   const isLiquidPayment = paymentInfo?.paymentNetwork === "liquid";
   const isBitcoinPayment = paymentInfo?.paymentNetwork === "Bitcoin";
   const isSparkPayment = paymentInfo?.paymentNetwork === "spark";
+  const isLNURLPayment = paymentInfo?.type === LIQUID_TYPES.LnUrlPay;
+  const minLNURLSatAmount = isLNURLPayment
+    ? paymentInfo?.data?.minSendable / 1000
+    : 0;
+  const maxLNURLSatAmount = isLNURLPayment
+    ? paymentInfo?.data?.maxSendable / 1000
+    : 0;
 
   const paymentFee =
     (paymentInfo?.paymentFee || 0) + (paymentInfo?.supportFee || 0);
@@ -102,25 +111,6 @@ export default function SendPage() {
         return;
       }
 
-      console.log({
-        fiatStats,
-        btcAdress,
-        goBackFunction: errorMessageNavigation,
-        setPaymentInfo,
-        liquidNodeInformation,
-        masterInfoObject,
-        // setWebViewArgs,
-        navigate,
-        maxZeroConf:
-          minMaxLiquidSwapAmounts?.submarineSwapStats?.limits?.maximalZeroConf,
-        comingFromAccept,
-        enteredPaymentInfo,
-        setLoadingMessage,
-        paymentInfo,
-        fromPage,
-        publishMessageFunc,
-      });
-
       await decodeSendAddress({
         fiatStats,
         btcAdress,
@@ -139,6 +129,7 @@ export default function SendPage() {
         paymentInfo,
         fromPage,
         publishMessageFunc,
+        sparkInformation,
       });
     }
     setTimeout(decodePayment, 1000);
@@ -190,37 +181,21 @@ export default function SendPage() {
     setIsSendingPayment(true);
 
     try {
-      let formmateedSparkPaymentInfo = {
-        address: "",
-        paymentType: "",
-      };
+      const formmateedSparkPaymentInfo = formatSparkPaymentAddress(
+        paymentInfo,
+        false
+      );
+
       // manipulate paymetn details here
-      if (
-        paymentInfo.type.toLowerCase() === LIQUID_TYPES.Bolt11.toLowerCase()
-      ) {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.decodedInput?.invoice?.bolt11?.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "lightning";
-      } else if (paymentInfo.type.toLowerCase() === "spark") {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.data?.address.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "spark";
-      } else if (
-        paymentInfo.type.toLowerCase() === LIQUID_TYPES.LnUrlPay.toLowerCase()
-      ) {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.data?.invoice.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "lightning";
-      } else if (paymentInfo.type.toLowerCase() === "liquid") {
-        formmateedSparkPaymentInfo.address =
-          paymentInfo?.data?.invoice.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "lightning";
-        console.log(paymentInfo?.boltzData);
-      } else if (paymentInfo?.type.toLowerCase() === "bitcoin") {
-        formmateedSparkPaymentInfo.address = paymentInfo?.address.toLowerCase();
-        formmateedSparkPaymentInfo.paymentType = "bitcoin";
-      }
       console.log(formmateedSparkPaymentInfo, "manual spark information");
+
+      const memo =
+        paymentInfo.type === "bolt11"
+          ? enteredPaymentInfo?.description ||
+            paymentDescription ||
+            paymentInfo?.data.message ||
+            ""
+          : paymentDescription || paymentInfo?.data.message || "";
       const paymentObject = {
         getFee: false,
         ...formmateedSparkPaymentInfo,
@@ -230,9 +205,11 @@ export default function SendPage() {
             : convertedSendAmount,
         masterInfoObject,
         fee: paymentFee,
-        memo: paymentDescription || paymentInfo?.data.message || "",
+        memo,
         userBalance: userBalance,
         sparkInformation,
+        feeQuote: paymentInfo.feeQuote,
+        usingZeroAmountInvoice: paymentInfo.usingZeroAmountInvoice,
       };
       // Shouuld be same for all paymetns
       const paymentResponse = await sparkPaymenWrapper(paymentObject);
@@ -322,7 +299,8 @@ export default function SendPage() {
       }
       if (
         isLiquidPayment &&
-        paymentInfo.sendAmount < minMaxLiquidSwapAmounts.min
+        (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
+          convertedSendAmount > minMaxLiquidSwapAmounts.max)
       ) {
         navigate("/error", {
           state: {
@@ -338,6 +316,58 @@ export default function SendPage() {
         });
         return;
       }
+
+      if (
+        paymentInfo?.type === "Bitcoin" &&
+        convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
+      ) {
+        navigate("/error", {
+          state: {
+            errorMessage: `Minimum on-chain send amount is ${displayCorrectDenomination(
+              {
+                amount: SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
+                fiatStats,
+                masterInfoObject,
+              }
+            )}`,
+            background: location,
+          },
+        });
+        return;
+      }
+      if (
+        paymentInfo?.type === LIQUID_TYPES.LnUrlPay &&
+        (convertedSendAmount < minLNURLSatAmount ||
+          convertedSendAmount > maxLNURLSatAmount)
+      ) {
+        navigate("/error", {
+          state: {
+            errorMessage: `${
+              convertedSendAmount < minLNURLSatAmount ? "Minimum" : "Maximum"
+            } send amount ${displayCorrectDenomination({
+              amount:
+                convertedSendAmount < minLNURLSatAmount
+                  ? minLNURLSatAmount
+                  : maxLNURLSatAmount,
+              fiatStats,
+              masterInfoObject,
+            })}`,
+            background: location,
+          },
+        });
+        return;
+      }
+
+      if (!canSendPayment && !!paymentInfo?.sendAmount) {
+        navigate("/error", {
+          state: {
+            errorMessage: "Not enough funds to cover fees",
+            background: location,
+          },
+        });
+        return;
+      }
+
       if (!canSendPayment) return;
       setIsLoading(true);
       await decodeSendAddress({
@@ -357,15 +387,15 @@ export default function SendPage() {
           amount: convertedSendAmount,
           description: paymentDescription,
         },
-        setLoadingMessage,
         paymentInfo,
+        setLoadingMessage,
         parsedInvoice: paymentInfo.decodedInput,
         fromPage,
         publishMessageFunc,
+        sparkInformation,
       });
     } catch (err) {
       console.error("Error saving payment info", err);
-
       navigate("/error", {
         state: {
           errorMessage: "Error decoding payment.",
@@ -457,7 +487,25 @@ export default function SendPage() {
         <CustomButton
           buttonStyles={{
             marginTop: canEditPaymentAmount ? 0 : "auto",
-            opacity: isSendingPayment ? 1 : canSendPayment ? 1 : 0.5,
+            opacity: isSendingPayment
+              ? 1
+              : canSendPayment &&
+                !(
+                  isLiquidPayment &&
+                  (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
+                    convertedSendAmount > minMaxLiquidSwapAmounts.max)
+                ) &&
+                !(
+                  paymentInfo?.type === "lnUrlPay" &&
+                  (convertedSendAmount < minLNURLSatAmount ||
+                    convertedSendAmount > maxLNURLSatAmount)
+                ) &&
+                !(
+                  paymentInfo?.type === "Bitcoin" &&
+                  convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
+                )
+              ? 1
+              : 0.5,
           }}
           actionFunction={() => {
             canEditPaymentAmount ? handleSave() : handleSend();

@@ -2,17 +2,18 @@
   display: flex;
   flex: 1;
   position: relative;
+  margin-top: 20px;
 }
 #displayCurrencyContainer .displayCurrencyInputContainer {
-  width: 95%;
-  position: fixed;
+  width: 100%;
+  position: sticky;
+  top: 0;
   z-index: 99;
-  left: 50%;
-  transform: translateX(-50%);
+
   max-width: unset;
   align-items: center;
   justify-content: center;
-  padding-top: 20px;
+  padding-top: 10px;
 }
 #displayCurrencyContainer .displayCurrencyInput {
   width: 100%;
@@ -22,7 +23,7 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  margin-top: 90px;
+  height: fit-content;
 }
 #displayCurrencyContainer .fiatCurrencyElement {
   display: flex;

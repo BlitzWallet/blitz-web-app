@@ -188,13 +188,26 @@ export default function ExpandedTxPage() {
               }}
               textContent={paymentType}
             />
+            {isPending && transaction.paymentType === "bitcoin" && (
+              <>
+                <ThemeText textContent={"Confs required"} />
+                <ThemeText
+                  textStyles={{
+                    textAlign: windowWidth > 320 ? "right" : "center",
+                  }}
+                  textContent={
+                    transaction.details.direction === "INCOMING" ? "3" : "2"
+                  }
+                />
+              </>
+            )}
           </div>
           {description && (
             <div className="descriptionContainer">
               <ThemeText textContent={"Memo"} />
               <div
                 className="descriptionScrollviewContainer"
-                style={{ backgroundColor: Colors.light.background }}
+                style={{ backgroundColor: backgroundColor }}
               >
                 <ThemeText textContent={description} />
               </div>
@@ -208,7 +221,7 @@ export default function ExpandedTxPage() {
               width: "100%",
               maxWidth: "max-content",
               minWidth: "unset",
-              backgroundColor: theme ? Colors.dark.text : Colors.light.primary,
+              backgroundColor: theme ? Colors.dark.text : Colors.light.blue,
               margin: "30px auto",
             }}
             textStyles={{ color: theme ? Colors.light.text : Colors.dark.text }}

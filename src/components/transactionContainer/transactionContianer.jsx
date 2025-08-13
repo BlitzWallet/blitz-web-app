@@ -155,8 +155,8 @@ function TxItem({
             isPending
               ? "0deg"
               : details.direction === "INCOMING"
-              ? "310deg"
-              : "130deg"
+              ? "-90deg"
+              : "90deg"
           })`,
           filter:
             theme && darkModeType

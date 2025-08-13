@@ -32,6 +32,7 @@ export default [
       "no-undef": "error",
       "no-unused-vars": "off",
       "no-unreachable": "off",
+      "no-useless-escape": "off",
       quotes: "off",
     },
   },

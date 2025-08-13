@@ -1,73 +1,30 @@
-import {
-  getSparkLightningPaymentStatus,
-  getSparkPaymentStatus,
-  useSparkPaymentType,
-} from ".";
-import {
-  deleteUnpaidSparkLightningTransaction,
-  getAllUnpaidSparkLightningInvoices,
-} from "./transactions";
+import { useSparkPaymentType } from ".";
 
 export async function transformTxToPaymentObject(
   tx,
   sparkAddress,
   forcePaymentType,
-  isRestore
+  isRestore,
+  unpaidLNInvoices
 ) {
+  // Defer all payments to the 10 second interval to be updated
   const paymentType = forcePaymentType
     ? forcePaymentType
     : useSparkPaymentType(tx);
 
   if (paymentType === "lightning") {
-    const unpaidInvoices = await getAllUnpaidSparkLightningInvoices();
-    const possibleMatches = unpaidInvoices.filter(
-      (inv) => inv.amount === tx.totalValue
-    );
+    const foundInvoice = unpaidLNInvoices.find((item) => {
+      const details = JSON.parse(item.details);
+      return (
+        item.amount === tx.totalValue &&
+        Math.abs(details?.createdTime - new Date(tx.createdTime).getTime()) <
+          1000 * 30
+      );
+    });
 
-    for (const invoice of possibleMatches) {
-      let attempts = 0;
-      let paymentDetails = null;
-
-      while (attempts < 5) {
-        const result = await getSparkLightningPaymentStatus({
-          lightningInvoiceId: invoice.sparkID,
-        });
-
-        if (result?.transfer) {
-          paymentDetails = result;
-          break;
-        }
-
-        await new Promise((res) => setTimeout(res, 1000));
-        attempts++;
-      }
-
-      if (paymentDetails?.transfer?.sparkId === tx.id) {
-        await deleteUnpaidSparkLightningTransaction(invoice.sparkID);
-
-        return {
-          id: tx.id,
-          paymentStatus: "completed",
-          paymentType: "lightning",
-          accountId: tx.receiverIdentityPublicKey,
-          details: {
-            fee: 0,
-            amount: tx.totalValue,
-            address: paymentDetails?.invoice?.encodedInvoice || "",
-            time: tx.updatedTime
-              ? new Date(tx.updatedTime).getTime()
-              : new Date().getTime(),
-            direction: tx.transferDirection,
-            description: invoice?.description || "",
-            preimage: paymentDetails?.paymentPreimage || "",
-            isRestore,
-          },
-        };
-      }
-    }
     return {
       id: tx.id,
-      paymentStatus: "completed",
+      paymentStatus: "pending",
       paymentType: "lightning",
       accountId: tx.receiverIdentityPublicKey,
       details: {
@@ -78,14 +35,19 @@ export async function transformTxToPaymentObject(
           ? new Date(tx.updatedTime).getTime()
           : new Date().getTime(),
         direction: tx.transferDirection,
-        description: "",
+        description: foundInvoice?.description || "",
         preimage: "",
         isRestore,
+        isBlitzContactPayment: foundInvoice
+          ? JSON.parse(foundInvoice.details)?.isBlitzContactPayment
+          : undefined,
+        shouldNavigate: foundInvoice ? foundInvoice?.shouldNavigate : undefined,
+        isLNURL: foundInvoice
+          ? JSON.parse(foundInvoice.details)?.isLNURL
+          : undefined,
       },
     };
-  }
-
-  if (paymentType === "spark") {
+  } else if (paymentType === "spark") {
     return {
       id: tx.id,
       paymentStatus: "completed",
@@ -104,18 +66,19 @@ export async function transformTxToPaymentObject(
         isRestore,
       },
     };
-  }
-
-  if (paymentType === "bitcoin") {
+  } else {
     return {
       id: tx.id,
-      paymentStatus: getSparkPaymentStatus(tx.status),
+      paymentStatus: "pending",
       paymentType: "bitcoin",
-      accountId: tx.ownerIdentityPublicKey,
+      accountId:
+        tx.transferDirection === "OUTGOING"
+          ? tx.senderIdentityPublicKey
+          : tx.receiverIdentityPublicKey,
       details: {
         fee: 0,
-        amount: tx.value,
-        address: tx.address,
+        amount: tx.totalValue,
+        address: tx.address || "",
         time: tx.updatedTime
           ? new Date(tx.updatedTime).getTime()
           : new Date().getTime(),
@@ -127,6 +90,4 @@ export async function transformTxToPaymentObject(
       },
     };
   }
-
-  return null;
 }

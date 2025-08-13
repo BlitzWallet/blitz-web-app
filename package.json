@@ -15,7 +15,7 @@
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@breeztech/breez-sdk-liquid": "^0.9.2-rc1",
-    "@buildonspark/spark-sdk": "^0.1.43",
+    "@buildonspark/spark-sdk": "^0.2.6",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.1",

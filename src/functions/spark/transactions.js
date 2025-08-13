@@ -6,6 +6,8 @@ export const SPARK_TRANSACTIONS_TABLE_NAME = "SPARK_TRANSACTIONS";
 export const LIGHTNING_REQUEST_IDS_TABLE_NAME = "LIGHTNING_REQUEST_IDS";
 export const sparkTransactionsEventEmitter = new EventEmitter();
 export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
+let bulkUpdateTransactionQueue = [];
+let isProcessingBulkUpdate = false;
 
 let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 1, {
   upgrade(db) {
@@ -33,13 +35,17 @@ export const initializeSparkDatabase = async () => {
   }
 };
 
-export const getAllSparkTransactions = async () => {
+export const getAllSparkTransactions = async (limit = null) => {
   try {
     const db = await dbPromise;
     const all = await db.getAll(SPARK_TRANSACTIONS_TABLE_NAME);
-    return all.sort(
+    const sorted = all.sort(
       (a, b) => JSON.parse(b.details).time - JSON.parse(a.details).time
     );
+    if (limit) {
+      return sorted.slice(0, limit);
+    }
+    return sorted;
   } catch (err) {
     console.error("getAllSparkTransactions error:", err);
     return [];
@@ -97,7 +103,13 @@ export const updateSingleSparkTransaction = async (sparkID, updates) => {
     if (!existing) return false;
     const updated = { ...existing, ...updates };
     await db.put(SPARK_TRANSACTIONS_TABLE_NAME, updated);
-    handleEventEmitter("transactions");
+
+    await new Promise((res) => setTimeout(res, 1000));
+    handleEventEmitterPost(
+      sparkTransactionsEventEmitter,
+      SPARK_TX_UPDATE_ENVENT_NAME,
+      "transactions"
+    );
 
     return true;
   } catch (err) {
@@ -106,66 +118,161 @@ export const updateSingleSparkTransaction = async (sparkID, updates) => {
   }
 };
 
-export const bulkUpdateSparkTransactions = async (
-  transactions,
-  updateType = "transactions"
-) => {
-  try {
-    const db = await dbPromise;
-    const tx = db.transaction([SPARK_TRANSACTIONS_TABLE_NAME], "readwrite");
-    const store = tx.objectStore(SPARK_TRANSACTIONS_TABLE_NAME);
-    for (const t of transactions) {
-      const tempSparkId = t.useTempId ? t.tempId : t.id;
-      const finalSparkId = t.id;
-      const newDetails = t.details;
+export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
+  const [updateType = "transactions", fee = 0, passedBalance = 0] = data;
+  console.log(transactions, "transactions list in bulk updates");
+  if (!Array.isArray(transactions) || transactions.length === 0) return;
 
-      const existing = await store.get(tempSparkId);
+  return addToBulkUpdateQueue(async () => {
+    try {
+      console.log("Running bulk updates", updateType);
+      const db = await dbPromise;
+      const tx = db.transaction([SPARK_TRANSACTIONS_TABLE_NAME], "readwrite");
+      const store = tx.objectStore(SPARK_TRANSACTIONS_TABLE_NAME);
 
-      if (existing) {
-        let existingDetails = {};
-        try {
-          existingDetails = JSON.parse(existing.details);
-        } catch {
-          existingDetails = {};
-        }
-        let mergedDetails = { ...existingDetails };
+      const processedTransactions = new Map();
 
-        for (const key in newDetails) {
-          const value = newDetails[key];
-          if (value !== "" && value !== null && value !== undefined) {
-            mergedDetails[key] = value;
+      for (const t of transactions) {
+        const finalSparkId = t.id;
+        const tempSparkId = t.useTempId ? t.tempId : t.id;
+
+        if (processedTransactions.has(finalSparkId)) {
+          const existingTx = processedTransactions.get(finalSparkId);
+          const mergedDetails = { ...existingTx.details };
+
+          for (const key in t.details) {
+            const value = t.details[key];
+            if (
+              value !== "" &&
+              value !== null &&
+              value !== undefined &&
+              value !== 0
+            ) {
+              mergedDetails[key] = value;
+            }
           }
+          processedTransactions.set(finalSparkId, {
+            sparkID: finalSparkId,
+            tempSparkId: existingTx.tempSparkId || tempSparkId,
+            paymentStatus: t.paymentStatus || existingTx.paymentStatus,
+            paymentType: t.paymentType || existingTx.paymentType || "unknown",
+            accountId: t.accountId || existingTx.accountId || "unknown",
+            details: mergedDetails,
+            useTempId: t.useTempId || existingTx.useTempId,
+          });
+        } else {
+          processedTransactions.set(finalSparkId, {
+            sparkID: finalSparkId,
+            tempSparkId: t.useTempId ? tempSparkId : null,
+            paymentStatus: t.paymentStatus,
+            paymentType: t.paymentType || "unknown",
+            accountId: t.accountId || "unknown",
+            details: t.details,
+            useTempId: t.useTempId,
+          });
         }
-        await store.put({
-          ...existing,
-          sparkID: t.id,
-          paymentStatus: t.paymentStatus,
-          paymentType: t.paymentType ?? "unknown",
-          accountId: t.accountId ?? "unknown",
-          details: JSON.stringify(mergedDetails),
-        });
-        // If the ID changed, delete the old temp entry to avoid duplicates
-        if (finalSparkId !== tempSparkId) {
-          await store.delete(tempSparkId);
-        }
-      } else {
-        await store.put({
-          sparkID: t.id,
-          paymentStatus: t.paymentStatus,
-          paymentType: t.paymentType ?? "unknown",
-          accountId: t.accountId ?? "unknown",
-          details: JSON.stringify(newDetails),
-        });
       }
-    }
-    await tx.done;
-    handleEventEmitter(updateType);
 
-    return true;
-  } catch (err) {
-    console.error("bulkUpdateSparkTransactions error:", err);
-    return false;
-  }
+      for (const [
+        finalSparkId,
+        processedTx,
+      ] of processedTransactions.entries()) {
+        const existingTx = await store.get(finalSparkId);
+        let existingTempTx = null;
+        if (
+          processedTx.tempSparkId &&
+          processedTx.tempSparkId !== finalSparkId
+        ) {
+          existingTempTx = await store.get(processedTx.tempSparkId);
+        }
+
+        const mergeDetails = (existingDetails = {}, newDetails = {}) => {
+          const merged = { ...existingDetails };
+          for (const key in newDetails) {
+            const value = newDetails[key];
+            if (
+              value !== "" &&
+              value !== null &&
+              value !== undefined &&
+              value !== 0
+            ) {
+              merged[key] = value;
+            }
+          }
+          return merged;
+        };
+
+        if (existingTx) {
+          let mergedDetails = {};
+          try {
+            mergedDetails = mergeDetails(
+              JSON.parse(existingTx.details),
+              processedTx.details
+            );
+          } catch {
+            mergedDetails = processedTx.details;
+          }
+
+          await store.put({
+            sparkID: finalSparkId,
+            paymentStatus: processedTx.paymentStatus,
+            paymentType: processedTx.paymentType,
+            accountId: processedTx.accountId,
+            details: JSON.stringify(mergedDetails),
+          });
+
+          if (existingTempTx && processedTx.tempSparkId !== finalSparkId) {
+            await store.delete(processedTx.tempSparkId);
+          }
+        } else if (existingTempTx) {
+          let mergedDetails = {};
+          try {
+            mergedDetails = mergeDetails(
+              JSON.parse(existingTempTx.details),
+              processedTx.details
+            );
+          } catch {
+            mergedDetails = processedTx.details;
+          }
+
+          await store.put({
+            sparkID: finalSparkId,
+            paymentStatus: processedTx.paymentStatus,
+            paymentType: processedTx.paymentType,
+            accountId: processedTx.accountId,
+            details: JSON.stringify(mergedDetails),
+          });
+
+          if (processedTx.tempSparkId !== finalSparkId) {
+            await store.delete(processedTx.tempSparkId);
+          }
+        } else {
+          await store.put({
+            sparkID: finalSparkId,
+            paymentStatus: processedTx.paymentStatus,
+            paymentType: processedTx.paymentType,
+            accountId: processedTx.accountId,
+            details: JSON.stringify(processedTx.details),
+          });
+        }
+      }
+
+      await tx.done;
+      await new Promise((res) => setTimeout(res, 1000));
+      handleEventEmitterPost(
+        sparkTransactionsEventEmitter,
+        SPARK_TX_UPDATE_ENVENT_NAME,
+        updateType,
+        fee,
+        passedBalance
+      );
+
+      return true;
+    } catch (err) {
+      console.error("bulkUpdateSparkTransactions error:", err);
+      return false;
+    }
+  });
 };
 
 export const addSingleSparkTransaction = async (tx) => {
@@ -178,7 +285,12 @@ export const addSingleSparkTransaction = async (tx) => {
       accountId: tx.accountId ?? "unknown",
       details: JSON.stringify(tx.details),
     });
-    handleEventEmitter("transactions");
+    await new Promise((res) => setTimeout(res, 1000));
+    handleEventEmitterPost(
+      sparkTransactionsEventEmitter,
+      SPARK_TX_UPDATE_ENVENT_NAME,
+      "fullUpdate"
+    );
 
     return true;
   } catch (err) {
@@ -191,7 +303,12 @@ export const deleteSparkTransaction = async (sparkID) => {
   try {
     const db = await dbPromise;
     await db.delete(SPARK_TRANSACTIONS_TABLE_NAME, sparkID);
-    handleEventEmitter("transactions");
+    await new Promise((res) => setTimeout(res, 1000));
+    handleEventEmitterPost(
+      sparkTransactionsEventEmitter,
+      SPARK_TX_UPDATE_ENVENT_NAME,
+      "transactions"
+    );
 
     return true;
   } catch (err) {
@@ -249,24 +366,22 @@ export const cleanStalePendingSparkLightningTransactions = async () => {
     return false;
   }
 };
-const handleEventEmitter = (label, options = {}) => {
-  const {
-    maxAttempts = 30,
-    intervalMs = 2000,
-    eventName = SPARK_TX_UPDATE_ENVENT_NAME,
-  } = options;
+const handleEventEmitterPost = (eventEmitter, eventName, ...eventParams) => {
+  const maxAttempts = 30;
+  const intervalMs = 2000;
 
-  if (typeof sparkTransactionsEventEmitter.listenerCount !== "function") {
+  if (typeof eventEmitter.listenerCount !== "function") {
     console.log("Event emitter doesn't support listenerCount method");
     return;
   }
 
-  const hasListeners =
-    sparkTransactionsEventEmitter.listenerCount(eventName) > 0;
+  const hasListeners = eventEmitter.listenerCount(eventName) > 0;
+
+  console.log(hasListeners, "has listners");
 
   if (hasListeners) {
     console.log("Listeners found, emitting immediately");
-    sparkTransactionsEventEmitter.emit(eventName, label);
+    eventEmitter.emit(eventName, ...eventParams);
     return;
   }
 
@@ -283,11 +398,10 @@ const handleEventEmitter = (label, options = {}) => {
 
     console.log(`Fallback emit attempt ${attempts}`);
     try {
-      const nowHasListeners =
-        sparkTransactionsEventEmitter.listenerCount(eventName) > 0;
+      const nowHasListeners = eventEmitter.listenerCount(eventName) > 0;
       if (nowHasListeners) {
         console.log("Listener detected, emitting event");
-        sparkTransactionsEventEmitter.emit(eventName, label);
+        eventEmitter.emit(eventName, ...eventParams);
         clearInterval(intervalId);
       }
     } catch (error) {
@@ -296,4 +410,33 @@ const handleEventEmitter = (label, options = {}) => {
   }, intervalMs);
 
   return intervalId; // Allow manual cleanup if needed
+};
+
+const addToBulkUpdateQueue = async (operation) => {
+  return new Promise((resolve, reject) => {
+    bulkUpdateTransactionQueue.push({ operation, resolve, reject });
+
+    if (!isProcessingBulkUpdate) {
+      processBulkUpdateQueue();
+    }
+  });
+};
+
+const processBulkUpdateQueue = async () => {
+  if (isProcessingBulkUpdate || bulkUpdateTransactionQueue.length === 0) return;
+
+  isProcessingBulkUpdate = true;
+
+  while (bulkUpdateTransactionQueue.length > 0) {
+    const { operation, resolve, reject } = bulkUpdateTransactionQueue.shift();
+
+    try {
+      const result = await operation();
+      resolve(result);
+    } catch (err) {
+      reject(err);
+    }
+  }
+
+  isProcessingBulkUpdate = false;
 };

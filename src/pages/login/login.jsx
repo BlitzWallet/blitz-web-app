@@ -130,7 +130,7 @@ function Login() {
           }}
           className="forgotPassword"
           textStyles={{
-            color: theme && darkModeType ? textColor : Colors.light.blue,
+            color: theme ? textColor : Colors.light.blue,
           }}
           textContent={" Forgot password?"}
         />

@@ -12,10 +12,13 @@ import flashLightNoFill from "../../assets/flashlightNoFillWhite.png";
 import flashLightFill from "../../assets/flashlight.png";
 import images from "../../assets/images.png";
 import { useCameraPermission } from "../../hooks/useCameraPermission";
+import ThemeText from "../../components/themeText/themeText";
+import { useThemeContext } from "../../contexts/themeContext";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
 export default function Camera() {
+  const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef(null);
@@ -152,15 +155,19 @@ export default function Camera() {
         <div
           className="scan-region-highlight"
           style={{
-            border: `4px solid ${Colors.light.blue}`,
+            border: `4px solid ${
+              theme && darkModeType ? Colors.dark.text : Colors.light.blue
+            }`,
           }}
         >
           {!isCameraReady && (
-            <p>
-              {cameraPermissions === "denied"
-                ? "To use this feature, enable camera in the browser settings."
-                : "Loading camera..."}
-            </p>
+            <ThemeText
+              textContent={
+                cameraPermissions === "denied"
+                  ? "To use this feature, enable camera in the browser settings."
+                  : "Loading camera..."
+              }
+            />
           )}
         </div>
       </div>

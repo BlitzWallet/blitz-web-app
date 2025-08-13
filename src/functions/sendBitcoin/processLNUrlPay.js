@@ -3,8 +3,13 @@ import { SATSPERBITCOIN } from "../../constants";
 import { sparkPaymenWrapper } from "../spark/payments";
 
 export default async function processLNUrlPay(input, context) {
-  const { masterInfoObject, comingFromAccept, enteredPaymentInfo, fiatStats } =
-    context;
+  const {
+    masterInfoObject,
+    comingFromAccept,
+    enteredPaymentInfo,
+    fiatStats,
+    paymentInfo,
+  } = context;
 
   const amountMsat = comingFromAccept
     ? enteredPaymentInfo.amount * 1000
@@ -20,7 +25,6 @@ export default async function processLNUrlPay(input, context) {
       const [tag, value] = item;
       if (tag === "text/plain") return true;
     }) || [];
-
   if (comingFromAccept) {
     let numberOfTries = 0;
     let maxRetries = 3;
@@ -54,18 +58,22 @@ export default async function processLNUrlPay(input, context) {
       throw new Error(
         "Unable to retrive invoice from LNURL, please try again."
       );
+    if (paymentInfo.paymentFee && paymentInfo.supportFee) {
+      paymentFee = paymentInfo.paymentFee;
+      supportFee = paymentInfo.supportFee;
+    } else {
+      const fee = await sparkPaymenWrapper({
+        getFee: true,
+        address: invoice,
+        amountSats: Number(enteredPaymentInfo.amount),
+        paymentType: "lightning",
+        masterInfoObject,
+      });
 
-    const fee = await sparkPaymenWrapper({
-      getFee: true,
-      address: invoice,
-      amountSats: Number(enteredPaymentInfo.amount),
-      paymentType: "lightning",
-      masterInfoObject,
-    });
-
-    if (!fee.didWork) throw new Error(fee.error);
-    paymentFee = fee.fee;
-    supportFee = fee.supportFee;
+      if (!fee.didWork) throw new Error(fee.error);
+      paymentFee = fee.fee;
+      supportFee = fee.supportFee;
+    }
   }
 
   return {
@@ -80,13 +88,15 @@ export default async function processLNUrlPay(input, context) {
     supportFee,
     type: "lnurlpay",
     paymentNetwork: "lightning",
-    sendAmount: `${
-      masterInfoObject.userBalanceDenomination != "fiat"
-        ? `${Math.round(amountMsat / 1000)}`
-        : fiatValue < 0.01
-        ? ""
-        : `${fiatValue.toFixed(2)}`
-    }`,
+    sendAmount: comingFromAccept
+      ? `${
+          masterInfoObject.userBalanceDenomination != "fiat"
+            ? `${Math.round(amountMsat / 1000)}`
+            : fiatValue < 0.01
+            ? ""
+            : `${fiatValue.toFixed(2)}`
+        }`
+      : "",
     canEditPayment: !comingFromAccept,
   };
 }
