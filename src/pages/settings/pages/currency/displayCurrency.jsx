@@ -1130,7 +1130,7 @@ export default function DisplayCurrency() {
           text={"Saving currency setting"}
         />
       ) : (
-        <>
+        <div className="fiatCurrencyElementContainer">
           <CustomInput
             containerStyles={{ backgroundColor: backgroundColor }}
             containerClassName={"displayCurrencyInputContainer"}
@@ -1139,10 +1139,8 @@ export default function DisplayCurrency() {
             value={enteredCurrency}
             onchange={setEnteredCurrency}
           />
-          <div className="fiatCurrencyElementContainer">
-            {fiatCurrencyElements}
-          </div>
-        </>
+          {fiatCurrencyElements}
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 import { QUICK_PAY_STORAGE_KEY } from "../../../../constants";
 import { useCallback } from "react";
@@ -10,6 +10,7 @@ import useThemeColors from "../../../../hooks/useThemeColors";
 export default function FastPay() {
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
+  const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useThemeContext();
   const { backgroundOffset } = useThemeColors();
@@ -31,15 +32,22 @@ export default function FastPay() {
       const parseValue = Number(value);
       if (isNaN(parseValue)) {
         resetFunction();
-        navigate.navigate("ErrorScreen", {
-          errorMessage: "Value must be a number",
+        navigate("/error", {
+          state: {
+            errorMessage: "Value must be a number",
+            background: location,
+          },
         });
+
         return;
       }
       if (parseValue === 0) {
         resetFunction();
-        navigate.navigate("ErrorScreen", {
-          errorMessage: "Must be greater than 0",
+        navigate("/error", {
+          state: {
+            errorMessage: "Must be greater than 0",
+            background: location,
+          },
         });
         return;
       }

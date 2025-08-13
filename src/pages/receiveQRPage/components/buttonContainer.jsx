@@ -31,7 +31,7 @@ export default function ReceiveButtonsContainer({
             },
           })
         }
-        textContent={"Edit"}
+        textContent={"Amount"}
       />
       <CustomButton
         buttonStyles={{ opacity: generatingInvoiceQRCode ? 0.5 : 1 }}
@@ -57,7 +57,7 @@ export default function ReceiveButtonsContainer({
           borderColor: theme ? Colors.dark.text : Colors.light.text,
         }}
         textStyles={{ color: textColor }}
-        textContent={"Choose format"}
+        textContent={"Choose Network"}
       />
     </div>
   );

@@ -124,13 +124,13 @@ export default function ConfirmPayment() {
               window.location.href = mailto;
             }}
             buttonClassName={"errorButton"}
-            textStyles={{ color: theme ? Colors.dark.text : Colors.light.blue }}
+            textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
             textContent={"Send report to developer"}
           />
         )}
         <CustomButton
           actionFunction={handleBack}
-          textStyles={{ color: theme ? Colors.dark.text : Colors.light.blue }}
+          textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
           buttonClassName={"continueBTN"}
           textContent={"Continue"}
         />

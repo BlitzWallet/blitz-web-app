@@ -32,3 +32,8 @@
   margin-top: 0;
   margin-bottom: 0;
 }
+
+.feeTextContainer {
+  display: flex;
+  align-items: center;
+}

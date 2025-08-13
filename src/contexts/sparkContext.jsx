@@ -524,7 +524,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
               }
             }
 
-            await bulkUpdateSparkTransactions([updatedTx]);
+            await bulkUpdateSparkTransactions([updatedTx], "fullUpdate");
             console.log("Updated bitcoin transaction:", updatedTx);
           }
         }

@@ -214,7 +214,7 @@ export default function SendPage() {
 
       const memo =
         paymentInfo.type === "bolt11"
-          ? enteredPaymentInfo.description ||
+          ? enteredPaymentInfo?.description ||
             paymentDescription ||
             paymentInfo?.data.message ||
             ""
