@@ -28,7 +28,9 @@ function DisclaimerPage() {
           buttonStyles={{ backgroundColor: Colors.light.blue }}
           textContent={"Next"}
         />
-        <a href="https://blitz-wallet.com/pages/terms/">Terms and Conditions</a>
+        <a href="https://blitzwalletapp.com/pages/terms/">
+          Terms and Conditions
+        </a>
       </div>
     </div>
   );

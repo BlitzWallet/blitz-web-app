@@ -118,7 +118,7 @@ export default function ConfirmPayment() {
         {!didSucceed && (
           <CustomButton
             actionFunction={() => {
-              const mailto = `mailto:blake@blitz-wallet.com?subject=Payment Failed&body=${encodeURIComponent(
+              const mailto = `mailto:blake@blitzwalletapp.com?subject=Payment Failed&body=${encodeURIComponent(
                 errorMessage
               )}`;
               window.location.href = mailto;

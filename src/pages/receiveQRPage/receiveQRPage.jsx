@@ -37,7 +37,7 @@ export default function ReceiveQRPage() {
   const [addressState, setAddressState] = useState({
     selectedRecieveOption: selectedRecieveOption,
     isReceivingSwap: false,
-    generatedAddress: `${globalContactsInformation.myProfile.uniqueName}@blitz-wallet.com`,
+    generatedAddress: `${globalContactsInformation.myProfile.uniqueName}@blitzwalletapp.com`,
     isGeneratingInvoice: false,
     minMaxSwapAmount: { min: 0, max: 0 },
     swapPegInfo: {},
