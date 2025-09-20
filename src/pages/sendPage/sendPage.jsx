@@ -30,6 +30,7 @@ import { getBoltzApiUrl } from "../../functions/boltz/boltzEndpoitns";
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
+import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 
 export default function SendPage() {
   const location = useLocation();
@@ -46,6 +47,7 @@ export default function SendPage() {
   const [paymentInfo, setPaymentInfo] = useState({});
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
+  const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { liquidNodeInformation, fiatStats } = useNodeContext();
   const { minMaxLiquidSwapAmounts } = useAppStatus();
   const [isSendingPayment, setIsSendingPayment] = useState(false);
@@ -64,6 +66,11 @@ export default function SendPage() {
     masterInfoObject.userBalanceDenomination === "hidden" ||
     masterInfoObject.userBalanceDenomination === "sats";
   const canEditPaymentAmount = paymentInfo?.canEditPayment;
+  const enabledLRC20 = masterInfoObject?.lrc20Settings?.isEnabled;
+  const [masterTokenInfo, setMasterTokenInfo] = useState({});
+  const selectedLRC20Asset = masterTokenInfo?.tokenName || "Bitcoin";
+  const seletctedToken = masterTokenInfo?.details || {};
+
   const convertedSendAmount = isBTCdenominated
     ? Math.round(Number(sendingAmount))
     : Math.round(
@@ -130,32 +137,14 @@ export default function SendPage() {
         fromPage,
         publishMessageFunc,
         sparkInformation,
+        seletctedToken,
+        currentWalletMnemoinc,
       });
     }
     setTimeout(decodePayment, 1000);
   }, []);
 
   useEffect(() => {
-    console.log(
-      !Object.keys(paymentInfo).length,
-      "|",
-      !masterInfoObject[QUICK_PAY_STORAGE_KEY].isFastPayEnabled,
-      "|",
-      !canSendPayment,
-      "|",
-      // paymentInfo.type === InputTypeVariant.LN_URL_PAY,
-      // '|',
-      !(
-        masterInfoObject[QUICK_PAY_STORAGE_KEY].fastPayThresholdSats >=
-        convertedSendAmount
-      ),
-      "|",
-      // paymentInfo.type === 'liquid' && !paymentInfo.data.isBip21,
-      "FAST PAY SETTINGS",
-      masterInfoObject[QUICK_PAY_STORAGE_KEY].fastPayThresholdSats,
-      convertedSendAmount
-    );
-
     if (!Object.keys(paymentInfo).length) return;
     if (!masterInfoObject[QUICK_PAY_STORAGE_KEY].isFastPayEnabled) return;
     if (!canSendPayment) return;
@@ -210,6 +199,8 @@ export default function SendPage() {
         sparkInformation,
         feeQuote: paymentInfo.feeQuote,
         usingZeroAmountInvoice: paymentInfo.usingZeroAmountInvoice,
+        seletctedToken: selectedLRC20Asset,
+        mnemonic: currentWalletMnemoinc,
       };
       // Shouuld be same for all paymetns
       const paymentResponse = await sparkPaymenWrapper(paymentObject);

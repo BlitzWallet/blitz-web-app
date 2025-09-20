@@ -8,11 +8,14 @@ export default async function processBolt11Invoice(input, context) {
     enteredPaymentInfo,
     fiatStats,
     paymentInfo,
+    currentWalletMnemoinc,
+    t,
   } = context;
+
   const currentTime = Math.floor(Date.now() / 1000);
   const expirationTime = input.invoice.timestamp + input.invoice.expiry;
   const isExpired = currentTime > expirationTime;
-  if (isExpired) throw new Error("This lightning invoice has expired");
+  if (isExpired) throw new Error("Invoice is expired");
 
   const amountMsat = comingFromAccept
     ? enteredPaymentInfo.amount * 1000
@@ -34,6 +37,7 @@ export default async function processBolt11Invoice(input, context) {
         amountSats: Math.round(amountMsat / 1000),
         paymentType: "lightning",
         masterInfoObject,
+        mnemonic: currentWalletMnemoinc,
       });
 
       if (!fee.didWork) throw new Error(fee.error);

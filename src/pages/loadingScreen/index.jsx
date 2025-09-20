@@ -39,7 +39,11 @@ export default function LoadingScreen() {
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
   const { textColor } = useThemeColors();
-  const { setStartConnectingToSpark, setNumberOfCachedTxs } = useSpark();
+  const {
+    setStartConnectingToSpark,
+    setNumberOfCachedTxs,
+    connectToSparkWallet,
+  } = useSpark();
   const { toggleMasterInfoObject, masterInfoObject, setMasterInfoObject } =
     useGlobalContextProvider();
   const { mnemoinc } = useAuth();
@@ -78,6 +82,7 @@ export default function LoadingScreen() {
   useEffect(() => {
     async function retriveExternalData() {
       try {
+        connectToSparkWallet();
         const [didOpen, posTransactions, sparkTxs] = await Promise.all([
           initializeDatabase(),
           initializePOSTransactionsDatabase(),
@@ -148,13 +153,12 @@ export default function LoadingScreen() {
 
     try {
       setStartConnectingToSpark(true);
+      console.log(txs, "CACHED TRANSACTIONS");
+      setNumberOfCachedTxs(txs?.length || 0);
       if (import.meta.env.MODE === "development") {
         navigate("/wallet", { replace: true });
         return;
       }
-
-      console.log(txs, "CACHED TRANSACTIONS");
-      setNumberOfCachedTxs(txs?.length || 0);
 
       if (didConnectToLiquidNode.isConnected) {
         const didSetLiquid = await setLiquidNodeInformationForSession(

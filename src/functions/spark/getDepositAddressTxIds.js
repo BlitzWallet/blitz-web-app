@@ -135,14 +135,10 @@ export function handleTxIdState(txId, didClaim, address) {
     return;
   }
 
-  // Update the txId state in the savedDepositTxids
-  const newState = savedTxIds.map((tx) => {
-    if (tx.txid === txId.txid) {
-      return { ...tx, didClaim };
-    }
-    return tx;
-  });
-  savedTxIds = newState;
+  if (savedTxIds.includes(txId.txid)) return;
+
+  savedTxIds.push(txId.txid);
   savedDepositTxids[address] = savedTxIds;
+
   Storage.setItem("depositAddressTxIds", savedDepositTxids);
 }

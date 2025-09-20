@@ -35,16 +35,47 @@ export const initializeSparkDatabase = async () => {
   }
 };
 
-export const getAllSparkTransactions = async (limit = null) => {
+// Helper: safely parse/normalize details to an object.
+const parseDetails = (details) => {
+  if (details === null || details === undefined || details === "") return {};
+
+  // If already an object (IDB may store structured objects), return as-is
+  if (typeof details === "object") return JSON.stringify(details);
+  else return details;
+};
+
+export const getAllSparkTransactions = async (limit = null, accountId) => {
   try {
     const db = await dbPromise;
     const all = await db.getAll(SPARK_TRANSACTIONS_TABLE_NAME);
-    const sorted = all.sort(
-      (a, b) => JSON.parse(b.details).time - JSON.parse(a.details).time
-    );
+
+    // Filter by accountId if provided
+    let filtered = all;
+    if (accountId) {
+      filtered = all.filter((transaction) => {
+        return transaction.accountId === String(accountId);
+      });
+    }
+
+    // Normalize details for all transactions (do not mutate DB records here)
+    const normalized = filtered.map((tx) => ({
+      ...tx,
+      details: parseDetails(tx.details),
+    }));
+
+    // Sort by time (newest first). Use numeric fallback 0 when missing.
+    const sorted = normalized.sort((a, b) => {
+      const aTime = JSON.parse(a.details).time;
+      const bTime = JSON.parse(b.details).time;
+
+      return bTime - aTime;
+    });
+
+    // Apply limit if provided
     if (limit) {
       return sorted.slice(0, limit);
     }
+
     return sorted;
   } catch (err) {
     console.error("getAllSparkTransactions error:", err);
@@ -52,16 +83,32 @@ export const getAllSparkTransactions = async (limit = null) => {
   }
 };
 
-export const getAllPendingSparkPayments = async () => {
+export const getAllPendingSparkPayments = async (accountId) => {
   try {
     const db = await dbPromise;
-    return await db.getAllFromIndex(
-      SPARK_TRANSACTIONS_TABLE_NAME,
-      "paymentStatus",
-      "pending"
+    const all = await db.getAll(SPARK_TRANSACTIONS_TABLE_NAME);
+
+    // Filter by paymentStatus = 'pending'
+    let filtered = all.filter(
+      (transaction) => transaction.paymentStatus === "pending"
     );
-  } catch (err) {
-    console.error("getAllPendingSparkPayments error:", err);
+
+    // Further filter by accountId if provided and valid
+    if (accountId !== undefined && accountId !== null && accountId !== "") {
+      filtered = filtered.filter(
+        (transaction) => transaction.accountId === String(accountId)
+      );
+    }
+
+    // Normalize details for all transactions (do not mutate DB records here)
+    const normalized = filtered.map((tx) => ({
+      ...tx,
+      details: parseDetails(tx.details),
+    }));
+
+    return normalized || [];
+  } catch (error) {
+    console.error("Error fetching pending spark payments:", error);
     return [];
   }
 };
@@ -78,6 +125,10 @@ export const getAllUnpaidSparkLightningInvoices = async () => {
 
 export const addSingleUnpaidSparkLightningTransaction = async (tx) => {
   try {
+    if (!tx || !tx.id) {
+      console.error("Invalid transaction object");
+      return false;
+    }
     const db = await dbPromise;
     await db.put(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
       sparkID: tx.id,
@@ -96,27 +147,27 @@ export const addSingleUnpaidSparkLightningTransaction = async (tx) => {
   }
 };
 
-export const updateSingleSparkTransaction = async (sparkID, updates) => {
-  try {
-    const db = await dbPromise;
-    const existing = await db.get(SPARK_TRANSACTIONS_TABLE_NAME, sparkID);
-    if (!existing) return false;
-    const updated = { ...existing, ...updates };
-    await db.put(SPARK_TRANSACTIONS_TABLE_NAME, updated);
+// export const updateSingleSparkTransaction = async (sparkID, updates) => {
+//   try {
+//     const db = await dbPromise;
+//     const existing = await db.get(SPARK_TRANSACTIONS_TABLE_NAME, sparkID);
+//     if (!existing) return false;
+//     const updated = { ...existing, ...updates };
+//     await db.put(SPARK_TRANSACTIONS_TABLE_NAME, updated);
 
-    await new Promise((res) => setTimeout(res, 1000));
-    handleEventEmitterPost(
-      sparkTransactionsEventEmitter,
-      SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
-    );
+//     await new Promise((res) => setTimeout(res, 1000));
+//     handleEventEmitterPost(
+//       sparkTransactionsEventEmitter,
+//       SPARK_TX_UPDATE_ENVENT_NAME,
+//       "transactions"
+//     );
 
-    return true;
-  } catch (err) {
-    console.error("updateSingleSparkTransaction error:", err);
-    return false;
-  }
-};
+//     return true;
+//   } catch (err) {
+//     console.error("updateSingleSparkTransaction error:", err);
+//     return false;
+//   }
+// };
 
 export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
   const [updateType = "transactions", fee = 0, passedBalance = 0] = data;
@@ -126,22 +177,29 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
   return addToBulkUpdateQueue(async () => {
     try {
       console.log("Running bulk updates", updateType);
+      console.log(transactions);
+
       const db = await dbPromise;
-      const tx = db.transaction([SPARK_TRANSACTIONS_TABLE_NAME], "readwrite");
+      const tx = db.transaction(SPARK_TRANSACTIONS_TABLE_NAME, "readwrite");
       const store = tx.objectStore(SPARK_TRANSACTIONS_TABLE_NAME);
 
+      // Step 1: Format and deduplicate transactions
       const processedTransactions = new Map();
 
-      for (const t of transactions) {
-        const finalSparkId = t.id;
-        const tempSparkId = t.useTempId ? t.tempId : t.id;
+      // First pass: collect and merge transactions by final sparkID
+      for (const txData of transactions) {
+        const finalSparkId = txData.id; // This is the final ID we want to use
+        const accountId = txData.accountId;
+        const tempSparkId = txData.useTempId ? txData.tempId : txData.id;
+        const removeDuplicateKey = `${finalSparkId}_${accountId}`;
 
-        if (processedTransactions.has(finalSparkId)) {
-          const existingTx = processedTransactions.get(finalSparkId);
-          const mergedDetails = { ...existingTx.details };
-
-          for (const key in t.details) {
-            const value = t.details[key];
+        if (processedTransactions.has(removeDuplicateKey)) {
+          // Merge with existing transaction
+          const existingTx = processedTransactions.get(removeDuplicateKey);
+          // Merge details - only override if new value is not empty
+          let mergedDetails = { ...existingTx.details };
+          for (const key in txData.details) {
+            const value = txData.details[key];
             if (
               value !== "" &&
               value !== null &&
@@ -151,125 +209,187 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
               mergedDetails[key] = value;
             }
           }
-          processedTransactions.set(finalSparkId, {
+          console.log("Existing details", existingTx.details);
+          console.log("merged detials", mergedDetails);
+
+          // Update the transaction with merged data
+          processedTransactions.set(removeDuplicateKey, {
             sparkID: finalSparkId,
-            tempSparkId: existingTx.tempSparkId || tempSparkId,
-            paymentStatus: t.paymentStatus || existingTx.paymentStatus,
-            paymentType: t.paymentType || existingTx.paymentType || "unknown",
-            accountId: t.accountId || existingTx.accountId || "unknown",
+            tempSparkId: existingTx.tempSparkId || tempSparkId, // Keep track of temp ID if it exists
+            paymentStatus: txData.paymentStatus || existingTx.paymentStatus,
+            paymentType:
+              txData.paymentType || existingTx.paymentType || "unknown",
+            accountId: txData.accountId || existingTx.accountId || "unknown",
             details: mergedDetails,
-            useTempId: t.useTempId || existingTx.useTempId,
+            useTempId: txData.useTempId || existingTx.useTempId,
           });
         } else {
-          processedTransactions.set(finalSparkId, {
+          // Add new transaction
+          processedTransactions.set(removeDuplicateKey, {
             sparkID: finalSparkId,
-            tempSparkId: t.useTempId ? tempSparkId : null,
-            paymentStatus: t.paymentStatus,
-            paymentType: t.paymentType || "unknown",
-            accountId: t.accountId || "unknown",
-            details: t.details,
-            useTempId: t.useTempId,
+            tempSparkId: txData.useTempId ? tempSparkId : null,
+            paymentStatus: txData.paymentStatus,
+            paymentType: txData.paymentType || "unknown",
+            accountId: txData.accountId || "unknown",
+            details: txData.details,
+            useTempId: txData.useTempId,
           });
         }
       }
 
-      for (const [
-        finalSparkId,
-        processedTx,
-      ] of processedTransactions.entries()) {
-        const existingTx = await store.get(finalSparkId);
+      let includedFailed = false;
+
+      // Step 2: Process each unique transaction
+      for (const [removeDuplicateKey, processedTx] of processedTransactions) {
+        const [finalSparkId, accountId] = removeDuplicateKey.split("_");
+
+        // Check if transaction exists by final sparkID
+        const allTransactions = await store.getAll();
+        const existingTx = allTransactions.find(
+          (tx) => tx.sparkID === finalSparkId && tx.accountId === accountId
+        );
+
+        // Also check if temp ID exists (if different from final ID)
         let existingTempTx = null;
         if (
           processedTx.tempSparkId &&
           processedTx.tempSparkId !== finalSparkId
         ) {
-          existingTempTx = await store.get(processedTx.tempSparkId);
+          existingTempTx = allTransactions.find(
+            (tx) =>
+              tx.sparkID === processedTx.tempSparkId &&
+              tx.accountId === accountId
+          );
         }
 
-        const mergeDetails = (existingDetails = {}, newDetails = {}) => {
-          const merged = { ...existingDetails };
-          for (const key in newDetails) {
-            const value = newDetails[key];
-            if (
-              value !== "" &&
-              value !== null &&
-              value !== undefined &&
-              value !== 0
-            ) {
-              merged[key] = value;
+        if (existingTx) {
+          // If new payment status is "failed", delete the existing payment
+          if (processedTx.paymentStatus === "failed") {
+            includedFailed = true;
+            await store.delete(finalSparkId);
+
+            // Also delete temp transaction if it exists and is different
+            if (existingTempTx && processedTx.tempSparkId !== finalSparkId) {
+              await store.delete(processedTx.tempSparkId);
+            }
+          } else {
+            // Update existing transaction with final ID
+            let existingDetails;
+            try {
+              existingDetails =
+                typeof existingTx.details === "string"
+                  ? JSON.parse(existingTx.details)
+                  : existingTx.details;
+            } catch {
+              existingDetails = {};
+            }
+
+            let mergedDetails = { ...existingDetails };
+            for (const key in processedTx.details) {
+              const value = processedTx.details[key];
+              if (
+                value !== "" &&
+                value !== null &&
+                value !== undefined &&
+                value !== 0
+              ) {
+                mergedDetails[key] = value;
+              }
+            }
+
+            const updatedTx = {
+              ...existingTx,
+              paymentStatus: processedTx.paymentStatus,
+              paymentType: processedTx.paymentType,
+              accountId: processedTx.accountId,
+              // Always store details as a JSON string for consistency
+              details: JSON.stringify(mergedDetails),
+            };
+
+            await store.put(updatedTx);
+
+            // Delete temp transaction if it exists and is different
+            if (existingTempTx && processedTx.tempSparkId !== finalSparkId) {
+              await store.delete(processedTx.tempSparkId);
             }
           }
-          return merged;
-        };
-
-        if (existingTx) {
-          let mergedDetails = {};
-          try {
-            mergedDetails = mergeDetails(
-              JSON.parse(existingTx.details),
-              processedTx.details
-            );
-          } catch {
-            mergedDetails = processedTx.details;
-          }
-
-          await store.put({
-            sparkID: finalSparkId,
-            paymentStatus: processedTx.paymentStatus,
-            paymentType: processedTx.paymentType,
-            accountId: processedTx.accountId,
-            details: JSON.stringify(mergedDetails),
-          });
-
-          if (existingTempTx && processedTx.tempSparkId !== finalSparkId) {
-            await store.delete(processedTx.tempSparkId);
-          }
         } else if (existingTempTx) {
-          let mergedDetails = {};
-          try {
-            mergedDetails = mergeDetails(
-              JSON.parse(existingTempTx.details),
-              processedTx.details
-            );
-          } catch {
-            mergedDetails = processedTx.details;
-          }
-
-          await store.put({
-            sparkID: finalSparkId,
-            paymentStatus: processedTx.paymentStatus,
-            paymentType: processedTx.paymentType,
-            accountId: processedTx.accountId,
-            details: JSON.stringify(mergedDetails),
-          });
-
-          if (processedTx.tempSparkId !== finalSparkId) {
+          // If new payment status is "failed", delete the existing temp payment
+          if (processedTx.paymentStatus === "failed") {
+            includedFailed = true;
             await store.delete(processedTx.tempSparkId);
+          } else {
+            // Update temp transaction to use final sparkID
+            let existingDetails;
+            try {
+              existingDetails =
+                typeof existingTempTx.details === "string"
+                  ? JSON.parse(existingTempTx.details)
+                  : existingTempTx.details;
+            } catch {
+              existingDetails = {};
+            }
+
+            let mergedDetails = { ...existingDetails };
+            for (const key in processedTx.details) {
+              const value = processedTx.details[key];
+              if (
+                value !== "" &&
+                value !== null &&
+                value !== undefined &&
+                value !== 0
+              ) {
+                mergedDetails[key] = value;
+              }
+            }
+
+            const updatedTx = {
+              ...existingTempTx,
+              sparkID: finalSparkId,
+              paymentStatus: processedTx.paymentStatus,
+              paymentType: processedTx.paymentType,
+              accountId: processedTx.accountId,
+              // Always store details as a JSON string for consistency
+              details: JSON.stringify(mergedDetails),
+            };
+
+            await store.put(updatedTx);
           }
         } else {
-          await store.put({
-            sparkID: finalSparkId,
-            paymentStatus: processedTx.paymentStatus,
-            paymentType: processedTx.paymentType,
-            accountId: processedTx.accountId,
-            details: JSON.stringify(processedTx.details),
-          });
+          // Only insert new transaction if payment status is not "failed"
+          if (processedTx.paymentStatus !== "failed") {
+            const newTx = {
+              sparkID: finalSparkId,
+              paymentStatus: processedTx.paymentStatus,
+              paymentType: processedTx.paymentType,
+              accountId: processedTx.accountId,
+              // Ensure new transactions store details as a JSON string
+              details: JSON.stringify(processedTx.details),
+            };
+
+            await store.add(newTx);
+          } else {
+            includedFailed = true;
+          }
         }
       }
 
+      // Wait for transaction to complete
       await tx.done;
-      await new Promise((res) => setTimeout(res, 1000));
+
+      console.log("committing transactions");
+      console.log("running sql event emitter");
       handleEventEmitterPost(
         sparkTransactionsEventEmitter,
         SPARK_TX_UPDATE_ENVENT_NAME,
-        updateType,
+        includedFailed ? "fullUpdate" : updateType,
         fee,
         passedBalance
       );
 
       return true;
-    } catch (err) {
-      console.error("bulkUpdateSparkTransactions error:", err);
+    } catch (error) {
+      console.error("Error upserting transactions batch:", error);
       return false;
     }
   });
@@ -277,6 +397,10 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
 
 export const addSingleSparkTransaction = async (tx) => {
   try {
+    if (!tx || !tx.id) {
+      console.error("Invalid transaction object");
+      return false;
+    }
     const db = await dbPromise;
     await db.put(SPARK_TRANSACTIONS_TABLE_NAME, {
       sparkID: tx.id,
@@ -285,7 +409,7 @@ export const addSingleSparkTransaction = async (tx) => {
       accountId: tx.accountId ?? "unknown",
       details: JSON.stringify(tx.details),
     });
-    await new Promise((res) => setTimeout(res, 1000));
+
     handleEventEmitterPost(
       sparkTransactionsEventEmitter,
       SPARK_TX_UPDATE_ENVENT_NAME,
@@ -303,7 +427,7 @@ export const deleteSparkTransaction = async (sparkID) => {
   try {
     const db = await dbPromise;
     await db.delete(SPARK_TRANSACTIONS_TABLE_NAME, sparkID);
-    await new Promise((res) => setTimeout(res, 1000));
+
     handleEventEmitterPost(
       sparkTransactionsEventEmitter,
       SPARK_TX_UPDATE_ENVENT_NAME,

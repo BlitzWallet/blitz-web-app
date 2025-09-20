@@ -6,13 +6,9 @@ import {
   getSparkLightningSendRequest,
   getSparkPaymentStatus,
   getSparkTransactions,
-  useSparkPaymentType,
+  sparkPaymentType,
 } from ".";
-import {
-  IS_BITCOIN_REQUEST_ID,
-  IS_SPARK_ID,
-  IS_SPARK_REQUEST_ID,
-} from "../../constants";
+import { SparkCoopExitRequestStatus } from "@buildonspark/spark-sdk/types";
 import Storage from "../localStorage";
 import {
   bulkUpdateSparkTransactions,
@@ -22,17 +18,24 @@ import {
   getAllUnpaidSparkLightningInvoices,
 } from "./transactions";
 import { transformTxToPaymentObject } from "./transformTxToPayment";
+import {
+  IS_BITCOIN_REQUEST_ID,
+  IS_SPARK_ID,
+  IS_SPARK_REQUEST_ID,
+} from "../../constants";
 
 export const restoreSparkTxState = async (
   BATCH_SIZE,
   savedTxs,
-  isSendingPayment
+  isSendingPayment,
+  mnemonic,
+  accountId
 ) => {
   const restoredTxs = [];
 
   try {
     const savedIds = new Set(savedTxs?.map((tx) => tx.sparkID) || []);
-    const pendingTxs = await getAllPendingSparkPayments();
+    const pendingTxs = await getAllPendingSparkPayments(accountId);
 
     const txsByType = {
       lightning: pendingTxs.filter((tx) => tx.paymentType === "lightning"),
@@ -41,10 +44,10 @@ export const restoreSparkTxState = async (
 
     let offset = 0;
     let localBatchSize = !savedIds.size ? 100 : BATCH_SIZE;
-    const donationPubKey = import.meta.env.VITE_BLITZ_SPARK_PUBKEY;
+    const donationPubKey = process.env.BLITZ_SPARK_PUBLICKEY;
 
     while (true) {
-      const txs = await getSparkTransactions(localBatchSize, offset);
+      const txs = await getSparkTransactions(localBatchSize, offset, mnemonic);
       const batchTxs = txs.transfers || [];
 
       if (!batchTxs.length) {
@@ -76,7 +79,7 @@ export const restoreSparkTxState = async (
         // This would cause a double transaction to be listed untill the pending items were clear
         if (tx.transferDirection === "OUTGOING" && isSendingPayment) continue;
 
-        const type = useSparkPaymentType(tx);
+        const type = sparkPaymentType(tx);
 
         if (type === "bitcoin") {
           const response = txsByType.bitcoin.find((item) => {
@@ -122,56 +125,136 @@ export const restoreSparkTxState = async (
     return { txs: [] };
   }
 };
+
+// Helper function to split array into chunks
+function chunkArray(array, chunkSize) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+// Process a single chunk of transactions
+async function processTransactionChunk(
+  txChunk,
+  sparkAddress,
+  unpaidInvoices,
+  identityPubKey,
+  numberOfRestoredTxs
+) {
+  const chunkPaymentObjects = [];
+
+  for (const tx of txChunk) {
+    try {
+      const paymentObject = await transformTxToPaymentObject(
+        tx,
+        sparkAddress,
+        undefined,
+        true,
+        unpaidInvoices,
+        identityPubKey,
+        numberOfRestoredTxs
+      );
+      if (paymentObject) {
+        chunkPaymentObjects.push(paymentObject);
+      }
+    } catch (err) {
+      console.error("Error transforming tx:", tx.id, err);
+    }
+  }
+
+  return chunkPaymentObjects;
+}
+
 export async function fullRestoreSparkState({
   sparkAddress,
   batchSize = 50,
+  chunkSize = 100,
+  maxConcurrentChunks = 3, // Reduced for better responsiveness
+  yieldInterval = 50, // Yield every N milliseconds
+  onProgress = null, // Optional progress callback
   isSendingPayment,
+  mnemonic,
+  identityPubKey,
 }) {
   try {
-    const savedTxs = await getCachedSparkTransactions();
-
+    console.log("running");
+    const savedTxs = await getCachedSparkTransactions(null, identityPubKey);
     const restored = await restoreSparkTxState(
       batchSize,
       savedTxs,
-      isSendingPayment
+      isSendingPayment,
+      mnemonic,
+      identityPubKey
     );
+
     const unpaidInvoices = await getAllUnpaidSparkLightningInvoices();
+    const txChunks = chunkArray(restored.txs, chunkSize);
 
-    const newPaymentObjects = [];
+    console.log(
+      `Processing ${restored.txs.length} transactions in ${txChunks.length} chunks`
+    );
 
-    for (const tx of restored.txs) {
-      try {
-        const paymentObject = await transformTxToPaymentObject(
-          tx,
+    const allPaymentObjects = [];
+    let processedChunks = 0;
+
+    // Process chunks in smaller batches with yields
+    for (let i = 0; i < txChunks.length; i += maxConcurrentChunks) {
+      const batchChunks = txChunks.slice(i, i + maxConcurrentChunks);
+
+      // Process this batch of chunks in parallel
+      const chunkPromises = batchChunks.map((chunk) =>
+        processTransactionChunk(
+          chunk,
           sparkAddress,
-          undefined,
-          true,
-          unpaidInvoices
-        );
-        if (paymentObject) {
-          newPaymentObjects.push(paymentObject);
+          unpaidInvoices,
+          identityPubKey,
+          restored.txs.length
+        )
+      );
+
+      try {
+        const batchResults = await Promise.all(chunkPromises);
+        allPaymentObjects.push(...batchResults.flat());
+        processedChunks += batchChunks.length;
+
+        // Call progress callback if provided
+        if (onProgress) {
+          onProgress({
+            processed: processedChunks,
+            total: txChunks.length,
+            percentage: Math.round((processedChunks / txChunks.length) * 100),
+          });
+        }
+
+        console.log(`Processed ${processedChunks}/${txChunks.length} chunks`);
+
+        // Yield control back to main thread between batches
+        if (i + maxConcurrentChunks < txChunks.length) {
+          await new Promise((resolve) => setTimeout(resolve, yieldInterval));
         }
       } catch (err) {
-        console.error("Error transforming tx:", tx.id, err);
+        console.error("Error processing chunk batch:", err);
       }
     }
 
     console.log(
-      `Transformed ${newPaymentObjects.length}/${restored.txs.length} transactions`
+      `Transformed ${allPaymentObjects.length}/${restored.txs.length} transactions`
     );
 
-    if (newPaymentObjects.length) {
-      // Update DB state of payments but dont hold up thread
-      bulkUpdateSparkTransactions(newPaymentObjects, "fullUpdate");
+    if (allPaymentObjects.length) {
+      bulkUpdateSparkTransactions(allPaymentObjects, "fullUpdate");
     }
 
-    return newPaymentObjects.length;
+    return allPaymentObjects.length;
   } catch (err) {
     console.log("full restore spark state error", err);
     return false;
   }
 }
-export const findSignleTxFromHistory = async (txid, BATCH_SIZE) => {
+
+export const findSignleTxFromHistory = async (txid, BATCH_SIZE, mnemonic) => {
   let restoredTx;
   try {
     // here we do not want to save any tx to be shown, we only want to flag that it came from restore and then when we get the actual notification of it we can block the navigation
@@ -180,7 +263,11 @@ export const findSignleTxFromHistory = async (txid, BATCH_SIZE) => {
     let foundOverlap = false;
 
     do {
-      const txs = await getSparkTransactions(start + BATCH_SIZE, start);
+      const txs = await getSparkTransactions(
+        start + BATCH_SIZE,
+        start,
+        mnemonic
+      );
       const batchTxs = txs.transfers || [];
 
       if (!batchTxs.length) {
@@ -210,7 +297,8 @@ export const findSignleTxFromHistory = async (txid, BATCH_SIZE) => {
   }
 };
 let isUpdatingSparkTxStatus = false;
-export const updateSparkTxStatus = async () => {
+
+export const updateSparkTxStatus = async (mnemoninc, accountId) => {
   try {
     if (isUpdatingSparkTxStatus) {
       console.log("updateSparkTxStatus skipped: already running");
@@ -219,8 +307,8 @@ export const updateSparkTxStatus = async () => {
     isUpdatingSparkTxStatus = true;
     // Get all saved transactions
     console.log("running pending payments");
-    const savedTxs = await getAllPendingSparkPayments();
-    console.log(savedTxs);
+    const savedTxs = await getAllPendingSparkPayments(accountId);
+
     if (!savedTxs.length) return { updated: [] };
     const txsByType = {
       lightning: savedTxs.filter((tx) => tx.paymentType === "lightning"),
@@ -247,8 +335,12 @@ export const updateSparkTxStatus = async () => {
 
     // Process different transaction types in parallel
     const [lightningUpdates, bitcoinUpdates, sparkUpdates] = await Promise.all([
-      processLightningTransactions(txsByType.lightning, unpaidInvoicesByAmount),
-      processBitcoinTransactions(txsByType.bitcoin),
+      processLightningTransactions(
+        txsByType.lightning,
+        unpaidInvoicesByAmount,
+        mnemoninc
+      ),
+      processBitcoinTransactions(txsByType.bitcoin, mnemoninc),
       processSparkTransactions(txsByType.spark),
     ]);
 
@@ -273,7 +365,8 @@ export const updateSparkTxStatus = async () => {
 
 async function processLightningTransactions(
   lightningTxs,
-  unpaidInvoicesByAmount
+  unpaidInvoicesByAmount,
+  mnemonic
 ) {
   const CONCURRENCY_LIMIT = 5;
   const updatedTxs = [];
@@ -283,10 +376,12 @@ async function processLightningTransactions(
     const batch = lightningTxs.slice(i, i + CONCURRENCY_LIMIT);
 
     const batchPromises = batch.map((tx) =>
-      processLightningTransaction(tx, unpaidInvoicesByAmount).catch((err) => {
-        console.error("Error processing lightning tx:", tx.sparkID, err);
-        return null;
-      })
+      processLightningTransaction(tx, unpaidInvoicesByAmount, mnemonic).catch(
+        (err) => {
+          console.error("Error processing lightning tx:", tx.sparkID, err);
+          return null;
+        }
+      )
     );
 
     const results = await Promise.all(batchPromises);
@@ -308,7 +403,8 @@ async function processLightningTransactions(
     const findTxResponse = await findTransactionTxFromTxHistory(
       result.id,
       transfersOffset,
-      cachedTransfers
+      cachedTransfers,
+      mnemonic
     );
 
     if (findTxResponse.offset && findTxResponse.foundTransfers) {
@@ -349,7 +445,8 @@ async function processLightningTransactions(
 
 async function processLightningTransaction(
   txStateUpdate,
-  unpaidInvoicesByAmount
+  unpaidInvoicesByAmount,
+  mnemonic
 ) {
   const details = JSON.parse(txStateUpdate.details);
 
@@ -373,7 +470,8 @@ async function processLightningTransaction(
       // Process invoice matching with retry logic
       const matchResult = await findMatchingInvoice(
         possibleOptions,
-        txStateUpdate.sparkID
+        txStateUpdate.sparkID,
+        mnemonic
       );
 
       if (matchResult.savedInvoice) {
@@ -415,14 +513,22 @@ async function processLightningTransaction(
       details.direction === "INCOMING"
         ? await getSparkLightningPaymentStatus({
             lightningInvoiceId: txStateUpdate.sparkID,
+            mnemonic,
           })
-        : await getSparkLightningSendRequest(txStateUpdate.sparkID);
+        : await getSparkLightningSendRequest(txStateUpdate.sparkID, mnemonic);
 
     if (
       details.direction === "OUTGOING" &&
-      sparkResponse.status === "LIGHTNING_PAYMENT_FAILED"
+      getSparkPaymentStatus(sparkResponse.status) === "failed"
     )
-      return null;
+      return {
+        ...txStateUpdate,
+        id: txStateUpdate.sparkID,
+        details: {
+          ...details,
+        },
+        paymentStatus: "failed",
+      };
 
     if (!sparkResponse?.transfer) return null;
     return {
@@ -442,14 +548,18 @@ async function processLightningTransaction(
   return null;
 }
 
-async function findMatchingInvoice(possibleOptions, sparkID) {
+async function findMatchingInvoice(possibleOptions, sparkID, mnemonic) {
   const BATCH_SIZE = 3;
 
   for (let i = 0; i < possibleOptions.length; i += BATCH_SIZE) {
     const batch = possibleOptions.slice(i, i + BATCH_SIZE);
 
     const batchPromises = batch.map(async (invoice) => {
-      const paymentDetails = await getPaymentDetailsWithRetry(invoice.sparkID);
+      const paymentDetails = await getPaymentDetailsWithRetry(
+        invoice.sparkID,
+        undefined,
+        mnemonic
+      );
       if (paymentDetails?.transfer?.sparkId === sparkID) {
         return { invoice, paymentDetails };
       }
@@ -470,11 +580,16 @@ async function findMatchingInvoice(possibleOptions, sparkID) {
   return { savedInvoice: null, matchedUnpaidInvoice: null };
 }
 
-async function getPaymentDetailsWithRetry(lightningInvoiceId, maxAttempts = 2) {
+async function getPaymentDetailsWithRetry(
+  lightningInvoiceId,
+  maxAttempts = 2,
+  mnemonic
+) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const result = await getSparkLightningPaymentStatus({
         lightningInvoiceId,
+        mnemonic,
       });
       if (result?.transfer !== undefined) {
         return result;
@@ -490,21 +605,21 @@ async function getPaymentDetailsWithRetry(lightningInvoiceId, maxAttempts = 2) {
   return null;
 }
 
-async function processBitcoinTransactions(bitcoinTxs) {
+async function processBitcoinTransactions(bitcoinTxs, mnemonic) {
   const lastRun = Storage.getItem("lastRunBitcoinTxUpdate");
 
   const now = Date.now();
   const cooldownPeriod = 1000 * 60; // 60 seconds
   let shouldBlockSendCheck = null;
 
-  if (lastRun && now - lastRun < cooldownPeriod) {
-    console.log("Blocking bitcoin transaction processing");
-    shouldBlockSendCheck = true;
-  } else {
-    console.log("Updating bitcoin transaction processing last run time");
-    shouldBlockSendCheck = false;
-    Storage.setItem("lastRunBitcoinTxUpdate", now);
-  }
+  // if (lastRun && now - JSON.parse(lastRun) < cooldownPeriod) {
+  //   console.log("Blocking bitcoin transaction processing");
+  //   shouldBlockSendCheck = true;
+  // } else {
+  //   console.log("Updating bitcoin transaction processing last run time");
+  //   shouldBlockSendCheck = false;
+  //   Storage.setItem("lastRunBitcoinTxUpdate", now);
+  // }
   const updatedTxs = [];
   let transfersOffset = 0;
   let cachedTransfers = [];
@@ -521,7 +636,8 @@ async function processBitcoinTransactions(bitcoinTxs) {
       const findTxResponse = await findTransactionTxFromTxHistory(
         txStateUpdate.sparkID,
         transfersOffset,
-        cachedTransfers
+        cachedTransfers,
+        mnemonic
       );
 
       if (findTxResponse.offset && findTxResponse.foundTransfers) {
@@ -546,7 +662,8 @@ async function processBitcoinTransactions(bitcoinTxs) {
     } else {
       if (shouldBlockSendCheck) continue;
       const sparkResponse = await getSparkBitcoinPaymentRequest(
-        txStateUpdate.sparkID
+        txStateUpdate.sparkID,
+        mnemonic
       );
 
       if (!sparkResponse?.transfer) {
@@ -570,8 +687,8 @@ async function processBitcoinTransactions(bitcoinTxs) {
         }
 
         if (
-          sparkResponse.status === "EXPIRED" ||
-          sparkResponse.status === "FAILED"
+          sparkResponse.status === SparkCoopExitRequestStatus.EXPIRED ||
+          sparkResponse.status === SparkCoopExitRequestStatus.FAILED
         ) {
           updatedTxs.push({
             id: txStateUpdate.sparkID,

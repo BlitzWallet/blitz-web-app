@@ -2,7 +2,7 @@ import { getSparkLightningPaymentStatus } from "../spark";
 import { sparkReceivePaymentWrapper } from "../spark/payments";
 
 export default async function processLNUrlWithdraw(input, context) {
-  const { setLoadingMessage } = context;
+  const { setLoadingMessage, currentWalletMnemoinc, t } = context;
 
   setLoadingMessage("Generating invoice for withdrawl");
 
@@ -12,6 +12,7 @@ export default async function processLNUrlWithdraw(input, context) {
     amountSats: Math.round(minAmount / 1000),
     memo: input.data.defaultDescription || "",
     paymentType: "lightning",
+    mnemoinc: currentWalletMnemoinc,
   });
 
   if (!invoice.didWork)
@@ -31,7 +32,7 @@ export default async function processLNUrlWithdraw(input, context) {
   await pollForResponse(invoice.data);
 }
 
-async function pollForResponse(invoiceData) {
+async function pollForResponse(invoiceData, currentWalletMnemoinc) {
   let didFind = false;
   let maxCount = 5;
   let currentCount = 0;
@@ -39,8 +40,8 @@ async function pollForResponse(invoiceData) {
     await new Promise((res) => setTimeout(res, 5000));
     const sparkReceiveResposne = await getSparkLightningPaymentStatus({
       lightningInvoiceId: invoiceData.id,
+      mnemonic: currentWalletMnemoinc,
     });
     if (sparkReceiveResposne.transfer) break;
   }
-  await new Promise((res) => setTimeout(res, 8000));
 }
