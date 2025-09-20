@@ -292,7 +292,7 @@ export const sparkReceivePaymentWrapper = async ({
       };
     } else {
       // No need to save address since it is constant
-      const sparkAddress = await getSparkAddress();
+      const sparkAddress = await getSparkAddress(mnemoinc);
       if (!sparkAddress.didWork) throw new Error(sparkAddress.error);
 
       const data = sparkAddress.response;
