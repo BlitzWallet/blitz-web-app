@@ -58,7 +58,6 @@ async function initializeSparkSession({
       getSparkIdentityPubKey(mnemonic),
     ]);
 
-    console.log(mnemonic);
     if (!balance.didWork)
       throw new Error("Unable to initialize spark from history");
 

@@ -28,7 +28,7 @@ export default function FormattedSatText({
   const { fiatStats } = useNodeContext();
   const localBalanceDenomination =
     globalBalanceDenomination || masterInfoObject.userBalanceDenomination;
-  const currencyText = fiatStats.coin || "USD";
+  const currencyText = fiatStats.coin?.toUpperCase() || "USD";
   const formattedBalance = useMemo(
     () =>
       useBalance
