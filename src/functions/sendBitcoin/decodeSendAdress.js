@@ -15,6 +15,7 @@ import { decodeBip21Address } from "../bip21AddressFormmating";
 import { decodeLNURL } from "../lnurl/bench32Formmater";
 import { formatLightningAddress } from "../lnurl";
 import { handleCryptoQRAddress, isSupportedPNPQR } from "./getMerchantAddress";
+import hanndleLNURLAddress from "./handleLNURLAddress";
 
 export default async function decodeSendAddress(props) {
   let {

@@ -36,7 +36,6 @@ export function ThemeContextProvider({ children }) {
       const darkModeType =
         savedDarkMode === null ? true : savedDarkMode === "dim";
       const theme = savedTheme === null ? false : savedTheme !== "dark";
-      console.log(theme, darkModeType, "SAVED ITEMS");
       setTheme(theme);
       setDarkModeType(darkModeType);
     }

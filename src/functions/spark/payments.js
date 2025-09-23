@@ -155,7 +155,7 @@ export const sparkPaymenWrapper = async ({
         deductFeeFromWithdrawalAmount: true,
         mnemonic,
       });
-      handleSupportPayment(masterInfoObject, supportFee);
+      handleSupportPayment(masterInfoObject, supportFee, mnemonic);
       if (!onChainPayResponse.didWork)
         throw new Error(
           onChainPayResponse.error || "Error when sending bitcoin payment"
@@ -308,13 +308,14 @@ export const sparkReceivePaymentWrapper = async ({
   }
 };
 
-async function handleSupportPayment(masterInfoObject, supportFee) {
+async function handleSupportPayment(masterInfoObject, supportFee, mnemonic) {
   try {
     if (masterInfoObject?.enabledDeveloperSupport?.isEnabled) {
       await new Promise((res) => setTimeout(res, 2000));
       await sendSparkPayment({
         receiverSparkAddress: import.meta.env.VITE_BLITZ_SPARK_ADDRESS,
         amountSats: supportFee,
+        mnemonic: mnemonic,
       });
 
       sparkTransactionsEventEmitter.emit(

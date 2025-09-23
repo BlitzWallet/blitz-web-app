@@ -384,6 +384,8 @@ export default function SendPage() {
         fromPage,
         publishMessageFunc,
         sparkInformation,
+        seletctedToken,
+        currentWalletMnemoinc,
       });
     } catch (err) {
       console.error("Error saving payment info", err);

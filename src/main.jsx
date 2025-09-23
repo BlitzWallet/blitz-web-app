@@ -62,7 +62,6 @@ import { GlobalContactsList } from "./contexts/globalContacts.jsx";
 import { AppStatusProvider } from "./contexts/appStatus.jsx";
 import { GLobalNodeContextProider } from "./contexts/nodeContext.jsx";
 import { LiquidEventProvider } from "./contexts/liquidEventContext.jsx";
-import { Colors } from "./constants/theme.js";
 import AnimatedRouteWrapper from "./components/animatedRouteWrapper.jsx";
 import ConfirmActionPage from "./components/confirmActionPage/confirmActionPage.jsx";
 import { GlobalRescanLiquidSwaps } from "./contexts/rescanLiquidSwaps.jsx";
@@ -95,15 +94,7 @@ function Root() {
   const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(1);
-  const { theme, darkModeType } = useThemeContext();
-  const { backgroundColor, backgroundOffset, textColor } = useThemeColors();
-  console.log(
-    backgroundColor,
-    backgroundOffset,
-    textColor,
-    theme,
-    darkModeType
-  );
+
   // Define paths where the bottom navigation should be visible
   const showBottomTabsRoutes = ["/wallet", "/contacts", "/store"];
   const shouldShowBottomTabs = showBottomTabsRoutes.includes(location.pathname);
