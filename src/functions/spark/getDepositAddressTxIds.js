@@ -1,5 +1,5 @@
 import fetchBackend from "../../../db/handleBackend";
-import Storage from "../localStorage";
+import { getLocalStorageItem, setLocalStorageItem } from "../localStorage";
 
 export default async function getDepositAddressTxIds(
   address,
@@ -20,7 +20,6 @@ export default async function getDepositAddressTxIds(
     savedTxIds.push(...ids);
     savedDepositTxids[address] = savedTxIds;
   }
-
   return savedDepositTxids[address] || [];
 }
 
@@ -82,6 +81,7 @@ async function fetchTxidsFromBlockstream(
           if (!isIncomingTx) {
             return null;
           }
+
           // Check if this transaction has any unspent outputs to our address
           const hasUnspentOutputs = tx.vout.some((vout, index) => {
             if (vout.scriptpubkey_address === address) {
@@ -92,15 +92,48 @@ async function fetchTxidsFromBlockstream(
           });
 
           if (!hasUnspentOutputs) return null;
+
           const isConfirmed = tx.status?.confirmed || false;
-          return { txid: tx.txid, didClaim: false, isConfirmed };
+
+          // Calculate the amount received to this address
+          const amount = tx.vout.reduce((total, vout, index) => {
+            if (vout.scriptpubkey_address === address) {
+              const utxoKey = `${tx.txid}:${index}`;
+              if (!spentUtxos.has(utxoKey)) {
+                return total + vout.value;
+              }
+            }
+            return total;
+          }, 0);
+
+          // Calculate transaction fee (total inputs - total outputs)
+          const totalInputValue = tx.vin.reduce((total, input) => {
+            return total + (input.prevout?.value || 0);
+          }, 0);
+
+          const totalOutputValue = tx.vout.reduce((total, output) => {
+            return total + output.value;
+          }, 0);
+
+          const fee = totalInputValue - totalOutputValue;
+
+          return hasUnspentOutputs
+            ? {
+                txid: tx.txid,
+                didClaim: false,
+                isConfirmed,
+                fee,
+                amount,
+              }
+            : null;
         })
         .filter(Boolean);
 
-      let savedDepositTxids = Storage.getItem("alreadyClaimedTxs") || {};
-
+      let savedDepositTxids =
+        JSON.parse(await getLocalStorageItem("alreadyClaimedTxs")) || {};
       let savedTxIds = savedDepositTxids[address] || [];
       let updatedExploraData = exploraData;
+
       if (savedTxIds.length) {
         updatedExploraData = exploraData.filter(
           (item) => !savedTxIds.includes(item.txid)
@@ -110,7 +143,6 @@ async function fetchTxidsFromBlockstream(
       return updatedExploraData;
     } catch (err) {
       console.log(`fetching data from ${api.name.toLowerCase()} failed`, err);
-
       // If this is the last API, return empty array or rethrow
       if (api === apis[apis.length - 1]) {
         console.log("All APIs failed, returning empty array");
@@ -125,11 +157,11 @@ export function handleTxIdState(txId, didClaim, address) {
 
   let savedTxIds = savedDepositTxids[address] || [];
 
-  if (!savedTxIds || !savedTxIds.length) return;
   if (!txId) {
     console.warn("No txId provided to handleTxIdState");
     return;
   }
+
   if (typeof didClaim !== "boolean") {
     console.warn("didClaim must be a boolean value");
     return;

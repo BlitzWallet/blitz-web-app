@@ -491,6 +491,20 @@ const SparkWalletProvider = ({ children, navigate }) => {
                 txid.txid,
                 currentWalletMnemoinc
               );
+            const hasAlreadySaved = savedTxMap.has(txid.txid);
+
+            if (!txid.isConfirmed) {
+              if (!hasAlreadySaved) {
+                await addPendingTransaction(
+                  {
+                    transactionId: txid.txid,
+                    creditAmountSats: txid.amount - txid.fee,
+                  },
+                  address,
+                  sparkInformation
+                );
+              }
+            }
 
             console.log("Deposit address quote:", quote);
 
@@ -506,16 +520,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
             if (claimedTxs?.includes(quote.signature)) {
               continue;
-            }
-
-            const hasAlreadySaved = savedTxMap.has(quote.transactionId);
-            console.log("Has already saved transaction:", hasAlreadySaved);
-
-            if (!txid.isConfirmed) {
-              if (!hasAlreadySaved) {
-                await addPendingTransaction(quote, address, sparkInformation);
-              }
-              continue; // Don't attempt claiming until confirmed
             }
 
             const {
