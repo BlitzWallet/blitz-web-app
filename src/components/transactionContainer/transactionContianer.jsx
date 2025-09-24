@@ -111,7 +111,7 @@ export default function TransactionContanier({ frompage }) {
           <ThemeText
             clickFunction={() => navigate("/viewAllTransactions")}
             className={"viewAllTxText"}
-            textContent={" View all transactions"}
+            textContent={"View all transactions"}
           />
         )}
     </div>

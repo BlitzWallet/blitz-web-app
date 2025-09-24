@@ -14,11 +14,13 @@ import { fullRestoreSparkState } from "../../../../functions/spark/restore";
 import { getAllSparkTransactions } from "../../../../functions/spark/transactions";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
+import useThemeColors from "../../../../hooks/useThemeColors";
 
 export default function WalletNavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useThemeContext();
+  const { backgroundColor } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { setSparkInformation, sparkInformation } = useSpark();
   const handleRefresh = useCallback(async () => {
@@ -36,13 +38,13 @@ export default function WalletNavBar() {
     setIsRefreshing(false);
     navigate("/error", {
       state: {
-        errorMessage: "Spark successfully refreshed.",
+        errorMessage: "Your wallet was successfully refreshed.",
         background: location,
       },
     });
   }, []);
   return (
-    <div className="walletNavBar">
+    <div style={{ backgroundColor }} className="walletNavBar">
       <ThemeImage
         clickFunction={() => toggleTheme(!theme)}
         lightModeIcon={darkMode}

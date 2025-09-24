@@ -12,36 +12,34 @@ export default function UserBalance() {
     useGlobalContextProvider();
   const saveTimeoutRef = useRef(null);
 
+  const handleBalanceClick = () => {
+    if (masterInfoObject.userBalanceDenomination === "sats")
+      handleDBStateChange(
+        { userBalanceDenomination: "fiat" },
+        setMasterInfoObject,
+        toggleMasterInfoObject,
+        saveTimeoutRef
+      );
+    else if (masterInfoObject.userBalanceDenomination === "fiat")
+      handleDBStateChange(
+        { userBalanceDenomination: "hidden" },
+        setMasterInfoObject,
+        toggleMasterInfoObject,
+        saveTimeoutRef
+      );
+    else
+      handleDBStateChange(
+        { userBalanceDenomination: "sats" },
+        setMasterInfoObject,
+        toggleMasterInfoObject,
+        saveTimeoutRef
+      );
+  };
+
   return (
     <div className="userBalanceContainer">
       <ThemeText textContent={"Total Balance"} />
-
-      <div
-        onClick={() => {
-          if (masterInfoObject.userBalanceDenomination === "sats")
-            handleDBStateChange(
-              { userBalanceDenomination: "fiat" },
-              setMasterInfoObject,
-              toggleMasterInfoObject,
-              saveTimeoutRef
-            );
-          else if (masterInfoObject.userBalanceDenomination === "fiat")
-            handleDBStateChange(
-              { userBalanceDenomination: "hidden" },
-              setMasterInfoObject,
-              toggleMasterInfoObject,
-              saveTimeoutRef
-            );
-          else
-            handleDBStateChange(
-              { userBalanceDenomination: "sats" },
-              setMasterInfoObject,
-              toggleMasterInfoObject,
-              saveTimeoutRef
-            );
-        }}
-        className="balanceContianer"
-      >
+      <div onClick={handleBalanceClick} className={`balanceContianer`}>
         <FormattedSatText
           styles={{ fontSize: "2rem" }}
           balance={sparkInformation.balance}
