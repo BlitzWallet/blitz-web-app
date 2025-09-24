@@ -11,6 +11,7 @@ import {
   sendSparkBitcoinPayment,
   sendSparkLightningPayment,
   sendSparkPayment,
+  sendSparkTokens,
   sparkWallet,
 } from ".";
 
