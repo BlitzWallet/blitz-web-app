@@ -1,34 +1,54 @@
-import * as bip21 from "bip21";
-import { SATSPERBITCOIN } from "../../constants";
-export function formatBip21SparkAddress({
+import { decode, encode } from "bip21";
+/**
+ * Formats a Liquid 'spark' BIP21 payment URI from an address, amount, and optional message.
+ *
+ *  Encodes into a BIP21 URI string using the 'spark' protocol.
+ * Also logs the process to Crashlytics for debugging purposes.
+ *
+ * @param {Object} params
+ * @param {string} params.address - The destination Liquid address.
+ * @param {number} params.amountSat - Amount in satoshis to include in the URI.
+ * @param {string} [params.message] - Optional message or label to include.
+ * @param {string} params.prefix - The prefix to the bip21 address.
+ * @returns {string} A formatted BIP21 spark URI (e.g., spark:address?amount=...&message=...), or an empty string if an error occurs.
+ */
+
+export function formatBip21Address({
   address = "",
-  amount = 0,
-  message = "",
+  amountSat = 0,
+  message,
+  prefix = "",
 }) {
   try {
-    console.log(
-      bip21.encode(
-        address,
-        {
-          amount: amount,
-          message: message,
-          label: "label",
-        },
-        "spark"
-      )
+    const formattedAmount = amountSat;
+    const liquidBip21 = encode(
+      address,
+      {
+        amount: formattedAmount,
+        message: message,
+        label: message,
+      },
+      prefix
     );
-    const liquidBip21 = `spark:${address}?amount=${(
-      amount / SATSPERBITCOIN
-    ).toFixed(8)}${message ? `&message=${message}` : ""}`;
+
     return liquidBip21;
   } catch (err) {
     console.log("format bip21 spark address error", err);
     return "";
   }
 }
-export function decodeBip21SparkAddress(address) {
+/**
+ * Decodes a Liquid 'spark' BIP21 payment URI into its parts.
+ *
+ * Logs the decoding action to Crashlytics.
+ *
+ * @param {string} address - The BIP21 spark URI to decode.
+ * @returns {Object|string} Decoded object containing address, amount, and parameters, or an empty string if an error occurs.
+ */
+
+export function decodeBip21Address(address, prefix) {
   try {
-    return bip21.decode(address, "spark");
+    return decode(address, prefix);
   } catch (err) {
     console.log("format bip21 spark address error", err);
     return "";

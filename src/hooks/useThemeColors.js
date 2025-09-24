@@ -2,7 +2,6 @@ import { Colors } from "../constants/theme";
 import { useThemeContext } from "../contexts/themeContext";
 export default function useThemeColors() {
   const { theme, darkModeType } = useThemeContext();
-  console.log(theme, darkModeType, "USE THEME COLORS TEST");
   const themeText = theme ? Colors.dark.text : Colors.light.text;
   const backgroundColor = theme
     ? darkModeType
@@ -20,13 +19,6 @@ export default function useThemeColors() {
   const textInputColor =
     !theme || darkModeType ? Colors.light.text : Colors.dark.text;
 
-  console.log({
-    textColor: themeText,
-    backgroundOffset: themeBackgroundOffset,
-    backgroundColor,
-    textInputBackground,
-    textInputColor,
-  });
   return {
     textColor: themeText,
     backgroundOffset: themeBackgroundOffset,

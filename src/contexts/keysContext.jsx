@@ -7,6 +7,7 @@ import {
   useCallback,
 } from "react";
 import { getPublicKey } from "../functions/seed";
+import { useAuth } from "./authContext";
 // Initiate context
 const KeysContextManager = createContext(null);
 
@@ -16,6 +17,9 @@ const KeysContextProvider = ({ children }) => {
     () => (contactsPrivateKey ? getPublicKey(contactsPrivateKey) : null),
     [contactsPrivateKey]
   );
+  const { mnemoinc } = useAuth();
+
+  const accountMnemoinc = mnemoinc;
 
   const toggleContactsPrivateKey = useCallback((newKey) => {
     setContactsPrivateKey(newKey);
@@ -26,8 +30,9 @@ const KeysContextProvider = ({ children }) => {
       contactsPrivateKey,
       publicKey,
       toggleContactsPrivateKey,
+      accountMnemoinc,
     }),
-    [contactsPrivateKey, publicKey, toggleContactsPrivateKey]
+    [contactsPrivateKey, publicKey, toggleContactsPrivateKey, accountMnemoinc]
   );
 
   return (

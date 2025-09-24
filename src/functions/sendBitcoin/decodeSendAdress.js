@@ -11,11 +11,11 @@ import displayCorrectDenomination from "../displayCorrectDenomination";
 import getLiquidAddressFromSwap from "../boltz/magicRoutingHints";
 import { LIQUID_TYPES, SATSPERBITCOIN } from "../../constants";
 import processSparkAddress from "./processSparkAddress";
-import { decodeBip21SparkAddress } from "../spark/handleBip21SparkAddress";
 import { decodeBip21Address } from "../bip21AddressFormmating";
 import { decodeLNURL } from "../lnurl/bench32Formmater";
 import { formatLightningAddress } from "../lnurl";
 import { handleCryptoQRAddress, isSupportedPNPQR } from "./getMerchantAddress";
+import hanndleLNURLAddress from "./handleLNURLAddress";
 
 export default async function decodeSendAddress(props) {
   let {
@@ -26,7 +26,7 @@ export default async function decodeSendAddress(props) {
     masterInfoObject,
     // webViewRef,
     navigate,
-    maxZeroConf,
+    // maxZeroConf,
     comingFromAccept,
     enteredPaymentInfo,
     setLoadingMessage,
@@ -35,6 +35,10 @@ export default async function decodeSendAddress(props) {
     fiatStats,
     fromPage,
     publishMessageFunc,
+    sparkInformation,
+    seletctedToken,
+    currentWalletMnemoinc,
+    t,
   } = props;
 
   try {
@@ -50,11 +54,12 @@ export default async function decodeSendAddress(props) {
     }
 
     if (
-      btcAdress.toLowerCase().startsWith("spark:") ||
-      btcAdress.toLowerCase().startsWith("sp1p")
+      btcAdress?.toLowerCase()?.startsWith("spark:") ||
+      btcAdress?.toLowerCase()?.startsWith("sp1p") ||
+      btcAdress?.toLowerCase()?.startsWith("spark1")
     ) {
       if (btcAdress.toLowerCase().startsWith("spark:")) {
-        const processedAddress = decodeBip21SparkAddress(btcAdress);
+        const processedAddress = decodeBip21Address(btcAdress, "spark");
         parsedInvoice = {
           type: "Spark",
           address: {
@@ -79,34 +84,28 @@ export default async function decodeSendAddress(props) {
       }
     }
 
+    // handle bip21 qrs
     if (
       btcAdress.toLowerCase().startsWith("lightning") ||
-      btcAdress.toLowerCase().startsWith("bitcoin") ||
-      btcAdress.toLowerCase().startsWith("lnurl")
+      btcAdress.toLowerCase().startsWith("bitcoin")
     ) {
-      const decodedAddress = btcAdress.toLowerCase().startsWith("lnurl")
-        ? btcAdress
-        : decodeBip21Address(
-            btcAdress,
-            btcAdress.toLowerCase().startsWith("lightning")
-              ? "lightning"
-              : "bitcoin"
-          );
-      const lnurl = btcAdress.toLowerCase().startsWith("lnurl")
-        ? decodedAddress
-        : btcAdress.toLowerCase().startsWith("lightning")
+      const decodedAddress = decodeBip21Address(
+        btcAdress,
+        btcAdress.toLowerCase().startsWith("lightning")
+          ? "lightning"
+          : "bitcoin"
+      );
+
+      const lightningInvoice = btcAdress.toLowerCase().startsWith("lightning")
         ? decodedAddress.address.toUpperCase()
-        : decodedAddress.options.lightning.toUpperCase();
+        : decodedAddress.options.lightning?.toUpperCase();
 
-      const decodedLNULR = decodeLNURL(lnurl);
-      if (!decodedLNULR)
-        throw new Error(
-          "Not able to get lightning address from lightning link."
-        );
+      if (lightningInvoice)
+        btcAdress = await hanndleLNURLAddress(lightningInvoice);
+    }
 
-      const lightningAddress = formatLightningAddress(decodedLNULR);
-
-      btcAdress = lightningAddress;
+    if (btcAdress.toLowerCase().startsWith("lnurl")) {
+      btcAdress = await hanndleLNURLAddress(btcAdress);
     }
 
     const chosenPath = parsedInvoice
@@ -130,7 +129,7 @@ export default async function decodeSendAddress(props) {
         masterInfoObject,
         navigate,
         goBackFunction,
-        maxZeroConf,
+        // maxZeroConf,
         comingFromAccept,
         enteredPaymentInfo,
         setPaymentInfo,
@@ -138,7 +137,9 @@ export default async function decodeSendAddress(props) {
         setLoadingMessage,
         paymentInfo,
         fromPage,
-        publishMessageFunc,
+        seletctedToken,
+        currentWalletMnemoinc,
+        t,
       });
     } catch (err) {
       console.error(err);
@@ -147,8 +148,49 @@ export default async function decodeSendAddress(props) {
 
     console.log(processedPaymentInfo, "proceessed info");
     if (processedPaymentInfo) {
+      if (
+        comingFromAccept &&
+        (seletctedToken?.tokenMetadata?.tokenTicker === "Bitcoin" ||
+          seletctedToken?.tokenMetadata?.tokenTicker === undefined) &&
+        sparkInformation.balance <
+          processedPaymentInfo.paymentFee +
+            processedPaymentInfo.supportFee +
+            enteredPaymentInfo.amount
+      ) {
+        // navigate.navigate("ErrorScreen", {
+        //   errorMessage: t(
+        //     "wallet.sendPages.handlingAddressErrors.tooLowSendingAmount",
+        //     {
+        //       amount: displayCorrectDenomination({
+        //         amount: Math.max(
+        //           sparkInformation.balance -
+        //             (processedPaymentInfo.paymentFee +
+        //               processedPaymentInfo.supportFee),
+        //           0
+        //         ),
+        //         masterInfoObject,
+        //         fiatStats,
+        //       }),
+        //     }
+        //   ),
+        // });
+
+        if (fromPage !== "contacts") return;
+      }
       setPaymentInfo({ ...processedPaymentInfo, decodedInput: input });
     } else {
+      if (input.type === LIQUID_TYPES.LnUrlAuth) return;
+
+      if (input.type === LIQUID_TYPES.LnUrlWithdraw) {
+        // navigate.navigate("ErrorScreen", {
+        //   errorMessage: t(
+        //     "wallet.sendPages.handlingAddressErrors.lnurlWithdrawlSuccess"
+        //   ),
+        //   customNavigator: () =>
+        //     navigate.popTo("HomeAdmin", { screen: "home" }),
+        // });
+        return;
+      }
       return goBackFunction("Unable to process input");
     }
   } catch (err) {

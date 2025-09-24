@@ -28,6 +28,8 @@ export default function DisplayOptions() {
   });
   const currencySymbol = formattedCurrency[2];
   const saveTimeoutRef = useRef(null);
+
+  console.log(currencySymbol, formattedCurrency, currencyText);
   return (
     <div id="displayOptionsContainer">
       <ThemeText textContent={"Theme"} />
