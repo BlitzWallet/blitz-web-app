@@ -14,9 +14,11 @@ import ThemeText from "../../components/themeText/themeText";
 import ThemeImage from "../../components/ThemeImage/themeImage";
 import aboutIcon from "../../assets/aboutIcon.png";
 import aboutIconWhite from "../../assets/aboutIconWhite.png";
+import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 
 export default function ReceiveQRPage() {
   const { globalContactsInformation } = useGlobalContacts();
+  const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,6 +71,7 @@ export default function ReceiveQRPage() {
       setAddressState,
       selectedRecieveOption,
       navigate,
+      currentWalletMnemoinc,
     });
   }, [initialSendAmount, paymentDescription, selectedRecieveOption, navigate]);
 

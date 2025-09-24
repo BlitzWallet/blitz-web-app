@@ -26,8 +26,6 @@ export default function ThemeImage({
       : lightModeIcon;
   }, [theme, darkModeType, lightsOutIcon, darkModeIcon, lightModeIcon]);
 
-  console.log(theme, darkModeType, imageSource);
-
   return (
     <img
       className={className}

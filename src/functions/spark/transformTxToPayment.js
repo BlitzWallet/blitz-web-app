@@ -1,16 +1,19 @@
-import { useSparkPaymentType } from ".";
+import { decode } from "bolt11";
+import { getSparkPaymentStatus, sparkPaymentType } from ".";
 
 export async function transformTxToPaymentObject(
   tx,
   sparkAddress,
   forcePaymentType,
   isRestore,
-  unpaidLNInvoices
+  unpaidLNInvoices,
+  identityPubKey,
+  numTxsBeingRestored = 1
 ) {
   // Defer all payments to the 10 second interval to be updated
   const paymentType = forcePaymentType
     ? forcePaymentType
-    : useSparkPaymentType(tx);
+    : sparkPaymentType(tx);
 
   if (paymentType === "lightning") {
     const foundInvoice = unpaidLNInvoices.find((item) => {
@@ -22,21 +25,44 @@ export async function transformTxToPaymentObject(
       );
     });
 
+    const status = getSparkPaymentStatus(tx.status);
+    const userRequest = tx.userRequest;
+    const isSendRequest = userRequest?.typename === "LightningSendRequest";
+    const invoice = userRequest
+      ? isSendRequest
+        ? userRequest?.encodedInvoice
+        : userRequest.invoice?.encodedInvoice
+      : "";
+
+    const description =
+      numTxsBeingRestored < 20
+        ? invoice
+          ? decode(invoice).tags.find((tag) => tag.tagName === "description")
+              ?.data ||
+            foundInvoice?.description ||
+            ""
+          : foundInvoice?.description || ""
+        : "";
+
     return {
-      id: tx.id,
-      paymentStatus: "pending",
+      id: tx.transfer ? tx.transfer.sparkId : tx.id,
+      paymentStatus: status,
       paymentType: "lightning",
-      accountId: tx.receiverIdentityPublicKey,
+      accountId: identityPubKey,
       details: {
         fee: 0,
         amount: tx.totalValue,
-        address: "",
+        address: userRequest
+          ? isSendRequest
+            ? userRequest?.encodedInvoice
+            : userRequest.invoice?.encodedInvoice
+          : "",
         time: tx.updatedTime
           ? new Date(tx.updatedTime).getTime()
           : new Date().getTime(),
         direction: tx.transferDirection,
-        description: foundInvoice?.description || "",
-        preimage: "",
+        description: description,
+        preimage: userRequest ? userRequest?.paymentPreimage || "" : "",
         isRestore,
         isBlitzContactPayment: foundInvoice
           ? JSON.parse(foundInvoice.details)?.isBlitzContactPayment
@@ -52,7 +78,7 @@ export async function transformTxToPaymentObject(
       id: tx.id,
       paymentStatus: "completed",
       paymentType: "spark",
-      accountId: tx.receiverIdentityPublicKey,
+      accountId: identityPubKey,
       details: {
         fee: 0,
         amount: tx.totalValue,
@@ -67,16 +93,28 @@ export async function transformTxToPaymentObject(
       },
     };
   } else {
+    const status = getSparkPaymentStatus(tx.status);
+    const userRequest = tx.userRequest;
+
+    let fee = 0;
+
+    if (
+      tx.transferDirection === "OUTGOING" &&
+      userRequest?.fee &&
+      userRequest?.l1BroadcastFee
+    ) {
+      fee =
+        userRequest.fee.originalValue +
+        userRequest.l1BroadcastFee.originalValue;
+    }
+
     return {
       id: tx.id,
-      paymentStatus: "pending",
+      paymentStatus: status,
       paymentType: "bitcoin",
-      accountId:
-        tx.transferDirection === "OUTGOING"
-          ? tx.senderIdentityPublicKey
-          : tx.receiverIdentityPublicKey,
+      accountId: identityPubKey,
       details: {
-        fee: 0,
+        fee,
         amount: tx.totalValue,
         address: tx.address || "",
         time: tx.updatedTime
@@ -84,8 +122,11 @@ export async function transformTxToPaymentObject(
           : new Date().getTime(),
         direction: tx.transferDirection,
         description: "",
-        onChainTxid: tx.txid,
-        refundTx: tx.refundTx,
+        onChainTxid:
+          tx.transferDirection === "OUTGOING"
+            ? userRequest?.coopExitTxid || ""
+            : userRequest?.transactionId || "",
+        refundTx: tx.refundTx || "",
         isRestore,
       },
     };

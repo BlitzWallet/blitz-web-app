@@ -12,18 +12,19 @@ export async function initWallet({
   setSparkInformation,
   // toggleGlobalContactsInformation,
   // globalContactsInformation,
-  mnemoinc,
+  mnemonic,
 }) {
   console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
 
   try {
-    const didConnectToSpark = await initializeSparkWallet(mnemoinc);
+    const didConnectToSpark = await initializeSparkWallet(mnemonic);
 
     if (didConnectToSpark.isConnected) {
       const didSetSpark = await initializeSparkSession({
         setSparkInformation,
         // globalContactsInformation,
         // toggleGlobalContactsInformation,
+        mnemonic,
       });
 
       if (!didSetSpark)
@@ -46,19 +47,23 @@ async function initializeSparkSession({
   setSparkInformation,
   // globalContactsInformation,
   // toggleGlobalContactsInformation,
+  mnemonic,
 }) {
   try {
     // Clean DB state but do not hold up process
     cleanStalePendingSparkLightningTransactions();
-    const [balance, transactions, sparkAddress, identityPubKey] =
-      await Promise.all([
-        getSparkBalance(),
-        getCachedSparkTransactions(),
-        getSparkAddress(),
-        getSparkIdentityPubKey(),
-      ]);
+    const [balance, sparkAddress, identityPubKey] = await Promise.all([
+      getSparkBalance(mnemonic),
+      getSparkAddress(mnemonic),
+      getSparkIdentityPubKey(mnemonic),
+    ]);
 
-    if (!balance.didWork || transactions === undefined)
+    if (!balance.didWork)
+      throw new Error("Unable to initialize spark from history");
+
+    const transactions = await getCachedSparkTransactions(null, identityPubKey);
+
+    if (transactions === undefined)
       throw new Error("Unable to initialize spark from history");
 
     // if (
@@ -79,6 +84,7 @@ async function initializeSparkSession({
 
     const storageObject = {
       balance: Number(balance.balance),
+      tokens: balance.tokensObj,
       transactions: transactions,
       identityPubKey,
       sparkAddress: sparkAddress.response,

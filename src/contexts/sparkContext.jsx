@@ -49,6 +49,8 @@ import EventEmitter from "events";
 import { transformTxToPaymentObject } from "../functions/spark/transformTxToPayment";
 import { useKeysContext } from "./keysContext";
 import liquidToSparkSwap from "../functions/spark/liquidToSparkSwap";
+import { useActiveCustodyAccount } from "./activeAccount";
+import sha256Hash from "../functions/hash";
 
 export const isSendingPayingEventEmiiter = new EventEmitter();
 export const SENDING_PAYMENT_EVENT_NAME = "SENDING_PAYMENT_EVENT";
@@ -58,11 +60,16 @@ const SparkWalletManager = createContext(null);
 const sessionTime = new Date().getTime();
 
 const SparkWalletProvider = ({ children, navigate }) => {
+  const { accountMnemoinc, contactsPrivateKey, publicKey } = useKeysContext();
+  const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { didGetToHomepage, minMaxLiquidSwapAmounts, appState } =
     useAppStatus();
-  const { contactsPrivateKey, publicKey } = useKeysContext();
   const { liquidNodeInformation } = useNodeContext();
-  const { mnemoinc } = useAuth();
+  const [isSendingPayment, setIsSendingPayment] = useState(false);
+  const { toggleGlobalContactsInformation, globalContactsInformation } =
+    useGlobalContacts();
+  const prevAccountMnemoincRef = useRef(null);
+  const [sparkConnectionError, setSparkConnectionError] = useState(null);
   const [sparkInformation, setSparkInformation] = useState({
     balance: 0,
     transactions: [],
@@ -70,25 +77,27 @@ const SparkWalletProvider = ({ children, navigate }) => {
     sparkAddress: "",
     didConnect: null,
   });
-  const [isSendingPayment, setIsSendingPayment] = useState(false);
-  const { toggleGlobalContactsInformation, globalContactsInformation } =
-    useGlobalContacts();
-  const [numberOfIncomingLNURLPayments, setNumberOfIncomingLNURLPayments] =
-    useState(0);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [pendingLiquidPayment, setPendingLiquidPayment] = useState(null);
   const depositAddressIntervalRef = useRef(null);
-  const restoreOffllineStateRef = useRef(null);
-  const sparkPaymentActionsRef = useRef(null);
-  const handlePaymentUpdatedDbounceTimeoutRef = useRef(null);
+  const sparkDBaddress = useRef(null);
   const updatePendingPaymentsIntervalRef = useRef(null);
   const isInitialRestore = useRef(true);
+  const isInitialLRC20Run = useRef(true);
   const didInitializeSendingPaymentEvent = useRef(false);
-  const isFirstSparkUpdateStateInterval = useRef(true);
-  const sparkDBaddress = useRef(null);
   const initialBitcoinIntervalRun = useRef(null);
   const [numberOfCachedTxs, setNumberOfCachedTxs] = useState(0);
+  // dont need any more velow
+
+  const [numberOfIncomingLNURLPayments, setNumberOfIncomingLNURLPayments] =
+    useState(0);
   const [numberOfConnectionTries, setNumberOfConnectionTries] = useState(0);
   const [startConnectingToSpark, setStartConnectingToSpark] = useState(false);
+
+  const sessionTime = useMemo(() => {
+    return Date.now();
+  }, [currentWalletMnemoinc]);
+
   // Debounce refs
   const debounceTimeoutRef = useRef(null);
   const pendingTransferIds = useRef(new Set());
@@ -123,7 +132,11 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
       if (!selectedSparkTransaction) {
         console.log("Running full history sweep");
-        const singleTxResponse = await findSignleTxFromHistory(recevedTxId, 50);
+        const singleTxResponse = await findSignleTxFromHistory(
+          recevedTxId,
+          50,
+          currentWalletMnemoinc
+        );
         if (!singleTxResponse.tx)
           throw new Error("Unable to find tx in all of history");
         selectedSparkTransaction = singleTxResponse.tx;
@@ -142,7 +155,8 @@ const SparkWalletProvider = ({ children, navigate }) => {
         sparkInformation.sparkAddress,
         undefined,
         false,
-        unpaidInvoices
+        unpaidInvoices,
+        sparkInformation.identityPubKey
       );
 
       if (paymentObject) {
@@ -153,7 +167,10 @@ const SparkWalletProvider = ({ children, navigate }) => {
           balance
         );
       }
-      const savedTxs = await getAllSparkTransactions();
+      const savedTxs = await getAllSparkTransactions(
+        5,
+        sparkInformation.identityPubKey
+      );
       return {
         txs: savedTxs,
         paymentObject: paymentObject || {},
@@ -165,7 +182,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       console.log("Handle incoming transaction error", err);
     }
   };
-
+  console.log(sparkInformation);
   const handleIncomingPayment = async (transferId, transactions, balance) => {
     let storedTransaction = await handleTransactionUpdate(
       transferId,
@@ -178,13 +195,13 @@ const SparkWalletProvider = ({ children, navigate }) => {
         ...prev,
         balance: balance,
       }));
-
       return;
     }
 
     const selectedStoredPayment = storedTransaction.txs.find(
       (tx) => tx.sparkID === transferId
     );
+    if (!selectedStoredPayment) return;
     console.log(selectedStoredPayment, "seleceted stored transaction");
 
     const details = JSON.parse(selectedStoredPayment.details);
@@ -202,26 +219,37 @@ const SparkWalletProvider = ({ children, navigate }) => {
     });
   };
 
-  const debouncedHandleIncomingPayment = useCallback(async (balance) => {
-    if (pendingTransferIds.current.size === 0) return;
+  const debouncedHandleIncomingPayment = useCallback(
+    async (balance) => {
+      if (pendingTransferIds.current.size === 0) return;
 
-    const transferIdsToProcess = Array.from(pendingTransferIds.current);
-    pendingTransferIds.current.clear();
+      const transferIdsToProcess = Array.from(pendingTransferIds.current);
+      pendingTransferIds.current.clear();
 
-    console.log(
-      "Processing debounced incoming payments:",
-      transferIdsToProcess
-    );
-    const transactions = await getSparkTransactions(5, undefined);
-    // Process all pending transfer IDs
-    for (const transferId of transferIdsToProcess) {
-      try {
-        await handleIncomingPayment(transferId, transactions, balance);
-      } catch (error) {
-        console.error("Error processing incoming payment:", transferId, error);
+      console.log(
+        "Processing debounced incoming payments:",
+        transferIdsToProcess
+      );
+      const transactions = await getSparkTransactions(
+        1,
+        undefined,
+        currentWalletMnemoinc
+      );
+      // Process all pending transfer IDs
+      for (const transferId of transferIdsToProcess) {
+        try {
+          await handleIncomingPayment(transferId, transactions, balance);
+        } catch (error) {
+          console.error(
+            "Error processing incoming payment:",
+            transferId,
+            error
+          );
+        }
       }
-    }
-  }, []);
+    },
+    [currentWalletMnemoinc, sparkInformation.identityPubKey]
+  );
 
   const handleUpdate = async (...args) => {
     try {
@@ -231,7 +259,10 @@ const SparkWalletProvider = ({ children, navigate }) => {
         updateType
       );
 
-      const txs = await getAllSparkTransactions();
+      const txs = await getAllSparkTransactions(
+        null,
+        sparkInformation.identityPubKey
+      );
       if (
         updateType === "supportTx" ||
         updateType === "restoreTxs" ||
@@ -251,7 +282,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
         }));
         return;
       }
-      const balance = await getSparkBalance();
+      const balance = await getSparkBalance(currentWalletMnemoinc);
 
       if (updateType === "paymentWrapperTx") {
         setSparkInformation((prev) => {
@@ -261,6 +292,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
             balance: Math.round(
               (balance.didWork ? Number(balance.balance) : prev.balance) - fee
             ),
+            tokens: balance.tokensObj,
           };
         });
       } else if (updateType === "fullUpdate") {
@@ -269,6 +301,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
             ...prev,
             balance: balance.didWork ? Number(balance.balance) : prev.balance,
             transactions: txs || prev.transactions,
+            tokens: balance.tokensObj,
           };
         });
       }
@@ -300,10 +333,16 @@ const SparkWalletProvider = ({ children, navigate }) => {
     sparkTransactionsEventEmitter.removeAllListeners(
       SPARK_TX_UPDATE_ENVENT_NAME
     );
-    sparkWallet.removeAllListeners("transfer:claimed");
+    console.log(currentWalletMnemoinc, "tset");
+    sparkWallet[sha256Hash(currentWalletMnemoinc)].removeAllListeners(
+      "transfer:claimed"
+    );
     sparkTransactionsEventEmitter.on(SPARK_TX_UPDATE_ENVENT_NAME, handleUpdate);
 
-    sparkWallet.on("transfer:claimed", transferHandler);
+    sparkWallet[sha256Hash(currentWalletMnemoinc)].on(
+      "transfer:claimed",
+      transferHandler
+    );
     // sparkWallet.on("deposit:confirmed", transferHandler);
     if (isInitialRestore.current) {
       isInitialRestore.current = false;
@@ -313,8 +352,13 @@ const SparkWalletProvider = ({ children, navigate }) => {
       sparkAddress: sparkInformation.sparkAddress,
       batchSize: isInitialRestore.current ? 15 : 5,
       isSendingPayment: isSendingPayment,
+      mnemonic: currentWalletMnemoinc,
+      identityPubKey: sparkInformation.identityPubKey,
     });
-    await updateSparkTxStatus();
+    await updateSparkTxStatus(
+      currentWalletMnemoinc,
+      sparkInformation.identityPubKey
+    );
 
     if (updatePendingPaymentsIntervalRef.current) {
       console.log("BLOCKING TRYING TO SET INTERVAL AGAIN");
@@ -322,7 +366,16 @@ const SparkWalletProvider = ({ children, navigate }) => {
     }
     updatePendingPaymentsIntervalRef.current = setInterval(async () => {
       try {
-        await updateSparkTxStatus();
+        await updateSparkTxStatus(
+          currentWalletMnemoinc,
+          sparkInformation.identityPubKey
+        );
+        // await getLRC20Transactions({
+        //   ownerPublicKeys: [sparkInformation.identityPubKey],
+        //   sparkAddress: sparkInformation.sparkAddress,
+        //   isInitialRun: isInitialLRC20Run.current,
+        //   mnemonic: currentWalletMnemoinc,
+        // });
       } catch (err) {
         console.error("Error during periodic restore:", err);
       }
@@ -336,7 +389,9 @@ const SparkWalletProvider = ({ children, navigate }) => {
       "Nymber of event emiitter litsenrs"
     );
     console.log(
-      sparkWallet.listenerCount("transfer:claimed"),
+      sparkWallet[sha256Hash(prevAccountMnemoincRef.current)]?.listenerCount(
+        "transfer:claimed"
+      ),
       "number of spark wallet listenre"
     );
     if (
@@ -346,9 +401,17 @@ const SparkWalletProvider = ({ children, navigate }) => {
         SPARK_TX_UPDATE_ENVENT_NAME
       );
     }
-    if (sparkWallet.listenerCount("transfer:claimed")) {
-      sparkWallet?.removeAllListeners("transfer:claimed");
+    if (
+      sparkWallet[sha256Hash(prevAccountMnemoincRef.current)]?.listenerCount(
+        "transfer:claimed"
+      )
+    ) {
+      sparkWallet[
+        sha256Hash(prevAccountMnemoincRef.current)
+      ]?.removeAllListeners("transfer:claimed");
     }
+
+    prevAccountMnemoincRef.current = currentWalletMnemoinc;
     // sparkWallet?.removeAllListeners('deposit:confirmed');
 
     // Clear debounce timeout when removing listeners
@@ -373,6 +436,8 @@ const SparkWalletProvider = ({ children, navigate }) => {
     const shouldHaveListeners = appState === "active" && !isSendingPayment;
     const shouldHaveSparkEventEmitter = appState === "active";
 
+    removeListeners();
+
     if (shouldHaveListeners) {
       addListeners();
     } else if (shouldHaveSparkEventEmitter && isSendingPayment) {
@@ -394,9 +459,14 @@ const SparkWalletProvider = ({ children, navigate }) => {
     const handleDepositAddressCheck = async () => {
       try {
         console.log("l1Deposit check running....");
-        const allTxs = await getAllSparkTransactions();
+        const allTxs = await getAllSparkTransactions(
+          null,
+          sparkInformation.identityPubKey
+        );
         const savedTxMap = new Map(allTxs.map((tx) => [tx.sparkID, tx]));
-        const depoistAddress = await queryAllStaticDepositAddresses();
+        const depoistAddress = await queryAllStaticDepositAddresses(
+          currentWalletMnemoinc
+        );
 
         // Loop through deposit addresses and check if they have been paid
         for (const address of depoistAddress) {
@@ -417,7 +487,10 @@ const SparkWalletProvider = ({ children, navigate }) => {
           for (const txid of unpaidTxids) {
             // get quote for the txid
             const { didwork, quote, error } =
-              await getSparkStaticBitcoinL1AddressQuote(txid.txid);
+              await getSparkStaticBitcoinL1AddressQuote(
+                txid.txid,
+                currentWalletMnemoinc
+              );
 
             console.log("Deposit address quote:", quote);
 
@@ -452,6 +525,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
             } = await claimnSparkStaticDepositAddress({
               ...quote,
               sspSignature: quote.signature,
+              mnemonic: currentWalletMnemoinc,
             });
 
             if (!claimTx || !didWork) {
@@ -481,11 +555,11 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
             const findBitcoinTxResponse = await findSignleTxFromHistory(
               claimTx.transferId,
-              5
+              5,
+              currentWalletMnemoinc
             );
 
             let updatedTx = {};
-
             if (!findBitcoinTxResponse.tx) {
               updatedTx = {
                 useTempId: true,
@@ -568,22 +642,24 @@ const SparkWalletProvider = ({ children, navigate }) => {
   }, [didGetToHomepage, sparkInformation.didConnect, isSendingPayment]);
 
   // This function connects to the spark node and sets the session up
-  useEffect(() => {
-    async function initProcess() {
-      const { didWork } = await initWallet({
-        setSparkInformation,
-        // toggleGlobalContactsInformation,
-        // globalContactsInformation,
-        mnemoinc,
-      });
 
-      if (didWork) return;
-      // setNumberOfConnectionTries((prev) => (prev += 1));
-      // await new Promise(() => initProcess(), 2000);
+  const connectToSparkWallet = useCallback(async () => {
+    console.log(accountMnemoinc, "acc me");
+    const { didWork, error } = await initWallet({
+      setSparkInformation,
+      // toggleGlobalContactsInformation,
+      // globalContactsInformation,
+      mnemonic: accountMnemoinc,
+    });
+
+    console.log(didWork, "did Connect to spark");
+    if (!didWork) {
+      setSparkInformation((prev) => ({ ...prev, didConnect: false }));
+      setSparkConnectionError(error);
+      console.log("Error connecting to spark wallet:", error);
+      return;
     }
-    if (!startConnectingToSpark) return;
-    initProcess();
-  }, [startConnectingToSpark]);
+  }, [accountMnemoinc]);
 
   // Function to update db when all reqiured information is loaded
   useEffect(() => {
@@ -615,6 +691,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
     async function swapLiquidToSpark() {
       try {
         if (liquidNodeInformation.userBalance > minMaxLiquidSwapAmounts.min) {
+          setPendingLiquidPayment(true);
           await liquidToSparkSwap(
             globalContactsInformation.myProfile.uniqueName
           );
@@ -647,6 +724,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       numberOfCachedTxs,
       setNumberOfCachedTxs,
       setStartConnectingToSpark,
+      connectToSparkWallet,
     }),
     [
       sparkInformation,
@@ -659,6 +737,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       numberOfCachedTxs,
       setNumberOfCachedTxs,
       setStartConnectingToSpark,
+      connectToSparkWallet,
     ]
   );
 

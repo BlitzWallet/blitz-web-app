@@ -9,6 +9,8 @@ export default async function processLNUrlPay(input, context) {
     enteredPaymentInfo,
     fiatStats,
     paymentInfo,
+    currentWalletMnemoinc,
+    t,
   } = context;
 
   const amountMsat = comingFromAccept
@@ -54,10 +56,7 @@ export default async function processLNUrlPay(input, context) {
       }
     }
 
-    if (!invoice)
-      throw new Error(
-        "Unable to retrive invoice from LNURL, please try again."
-      );
+    if (!invoice) throw new Error("Error loading invoice");
     if (paymentInfo.paymentFee && paymentInfo.supportFee) {
       paymentFee = paymentInfo.paymentFee;
       supportFee = paymentInfo.supportFee;
@@ -68,6 +67,7 @@ export default async function processLNUrlPay(input, context) {
         amountSats: Number(enteredPaymentInfo.amount),
         paymentType: "lightning",
         masterInfoObject,
+        mnemonic: currentWalletMnemoinc,
       });
 
       if (!fee.didWork) throw new Error(fee.error);

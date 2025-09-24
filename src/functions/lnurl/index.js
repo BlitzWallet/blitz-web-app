@@ -40,11 +40,11 @@ export function formatLightningAddress(url) {
     const pathname = urlObj.pathname;
     console.log(urlObj, hostname, pathname);
 
-    const pathParts = pathname.split('/').filter(part => part !== '');
+    const pathParts = pathname.split("/").filter((part) => part !== "");
     const username = pathParts[pathParts.length - 1];
 
     if (!username) {
-      throw new Error('Could not extract username from URL');
+      throw new Error("Could not extract username from URL");
     }
 
     return `${username}@${hostname}`;
