@@ -44,7 +44,7 @@ export const restoreSparkTxState = async (
 
     let offset = 0;
     let localBatchSize = !savedIds.size ? 100 : BATCH_SIZE;
-    const donationPubKey = process.env.BLITZ_SPARK_PUBLICKEY;
+    const donationPubKey = import.meta.env.VITE_BLITZ_SPARK_PUBKEY;
 
     while (true) {
       const txs = await getSparkTransactions(localBatchSize, offset, mnemonic);

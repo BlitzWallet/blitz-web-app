@@ -354,6 +354,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
             };
 
             await store.put(updatedTx);
+            await store.delete(existingTempTx.sparkID);
           }
         } else {
           // Only insert new transaction if payment status is not "failed"
