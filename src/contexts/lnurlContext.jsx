@@ -29,7 +29,7 @@ export default function HandleLNURLPayments() {
   const deleteActiveLNURLPaymentsRef = useRef([]);
 
   useEffect(() => {
-    if (!sparkAddress || loadListener.current) return;
+    if (!sparkAddress || loadListener.current || !masterInfoObject.uuid) return;
 
     loadListener.current = true;
 
