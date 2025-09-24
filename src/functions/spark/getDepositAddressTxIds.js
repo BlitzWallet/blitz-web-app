@@ -1,5 +1,5 @@
 import fetchBackend from "../../../db/handleBackend";
-import { getLocalStorageItem, setLocalStorageItem } from "../localStorage";
+import Storage from "../localStorage";
 
 export default async function getDepositAddressTxIds(
   address,
@@ -129,8 +129,7 @@ async function fetchTxidsFromBlockstream(
         })
         .filter(Boolean);
 
-      let savedDepositTxids =
-        JSON.parse(await getLocalStorageItem("alreadyClaimedTxs")) || {};
+      let savedDepositTxids = Storage.getItem("alreadyClaimedTxs") || {};
       let savedTxIds = savedDepositTxids[address] || [];
       let updatedExploraData = exploraData;
 
