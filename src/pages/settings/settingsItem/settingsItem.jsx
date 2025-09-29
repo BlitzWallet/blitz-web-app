@@ -12,7 +12,7 @@ import FastPay from "../pages/fastPay/fastPay";
 import BlitzFeeInformation from "../pages/feeDetails/feeInformation";
 import ExploreUsers from "../pages/exploreUsers/exploreUsers";
 
-export default function SettingsContentIndex() {
+export default function SettingsContentIndex({ openOverlay }) {
   const location = useLocation();
   const props = location.state;
   const selectedPage = props.for?.toLowerCase();
@@ -40,7 +40,9 @@ export default function SettingsContentIndex() {
 
         {selectedPage === "blitz fee details" && <BlitzFeeInformation />}
 
-        {selectedPage === "backup wallet" && <ViewMnemoinc props={props} />}
+        {selectedPage === "backup wallet" && (
+          <ViewMnemoinc openOverlay={openOverlay} />
+        )}
         {selectedPage === "spark info" && <SparkInformation />}
       </div>
     </SafeAreaComponent>

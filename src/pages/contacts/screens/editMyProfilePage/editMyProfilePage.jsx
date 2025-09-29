@@ -24,7 +24,7 @@ import { VALID_USERNAME_REGEX } from "../../../../constants";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 
-export default function EditMyProfilePage(navProps) {
+export default function EditMyProfilePage({ navProps, openOverlay }) {
   const navigate = useNavigate();
   const {
     decodedAddedContacts,
@@ -80,6 +80,7 @@ export default function EditMyProfilePage(navProps) {
         selectedAddedContact={selectedAddedContact}
         fromInitialAdd={props.fromInitialAdd}
         fromSettings={fromSettings}
+        openOverlay={openOverlay}
       />
     </div>
   );
@@ -90,6 +91,7 @@ function InnerContent({
   selectedAddedContact,
   fromInitialAdd,
   fromSettings,
+  openOverlay,
 }) {
   const location = useLocation();
   const { contactsPrivateKey, publicKey } = useKeysContext();
@@ -191,11 +193,9 @@ function InnerContent({
         <div
           className="profileImageContainer"
           onClick={() => {
-            navigate("/error", {
-              state: {
-                errorMessage: "Feature coming soon...",
-                background: location,
-              },
+            openOverlay({
+              for: "error",
+              errorMessage: "Feature coming soon...",
             });
             return;
             if (!isEditingMyProfile && !selectedAddedContact.isLNURL) return;
@@ -428,12 +428,10 @@ function InnerContent({
       } else {
         console.log(uniqueName, "testing");
         if (!VALID_USERNAME_REGEX.test(uniqueName)) {
-          navigate("/error", {
-            state: {
-              errorMessage:
-                "You can only have letters, numbers, or underscores in your username, and must contain at least 1 letter.",
-              background: location,
-            },
+          openOverlay({
+            for: "error",
+            errorMessage:
+              "You can only have letters, numbers, or underscores in your username, and must contain at least 1 letter.",
           });
           return;
         }
@@ -444,11 +442,9 @@ function InnerContent({
             inputs.uniquename.trim()
           );
           if (!isFreeUniqueName) {
-            navigate("/error", {
-              state: {
-                errorMessage: "Username already taken, try again!",
-                background: location,
-              },
+            openOverlay({
+              for: "error",
+              errorMessage: "Username already taken, try again!",
             });
             return;
           }

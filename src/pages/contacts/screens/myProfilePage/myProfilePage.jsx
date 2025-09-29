@@ -16,7 +16,7 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 
-export default function MyProfilePage() {
+export default function MyProfilePage({ openOverlay }) {
   const { cache } = useImageCache();
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset } = useThemeColors();
@@ -86,11 +86,9 @@ export default function MyProfilePage() {
       </div>
       <div
         onClick={() => {
-          navigate("/error", {
-            state: {
-              errorMessage: "Feature coming soon...",
-              background: location,
-            },
+          openOverlay({
+            for: "error",
+            errorMessage: "Feature coming soon...",
           });
         }}
         className="profileImageBackground"

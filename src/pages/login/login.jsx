@@ -10,7 +10,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 
-function Login() {
+function Login({ openOverlay }) {
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, textInputBackground, textInputColor, textColor } =
     useThemeColors();
@@ -31,8 +31,9 @@ function Login() {
 
     const decryted = decrypt(storedKey, password);
     if (!decryted) {
-      navigate("/error", {
-        state: { errorMessage: "Incorrect password", background: location },
+      openOverlay({
+        for: "Incorrect password",
+        errorMessage: err.message,
       });
       return;
     }
@@ -67,11 +68,9 @@ function Login() {
         }, 800);
       } catch (err) {
         console.log("Error deleting account", err);
-        navigate("/error", {
-          state: {
-            errorMessage: "Error deleting account",
-            background: location,
-          },
+        openOverlay({
+          for: "Error deleting account",
+          errorMessage: err.message,
         });
       }
     }

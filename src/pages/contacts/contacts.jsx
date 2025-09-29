@@ -16,7 +16,7 @@ import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 
-export default function Contacts() {
+export default function Contacts({ openOverlay }) {
   const { masterInfoObject } = useGlobalContextProvider();
   const { decodedAddedContacts, globalContactsInformation, contactsMessags } =
     useGlobalContacts();
@@ -186,22 +186,18 @@ export default function Contacts() {
           }}
           actionFunction={() => {
             if (!isConnectedToTheInternet) {
-              navigate("/error", {
-                state: {
-                  errorMessage:
-                    "Please connect to the internet to use this feature",
-                  background: location,
-                },
+              openOverlay({
+                for: "error",
+                errorMessage:
+                  "Please connect to the internet to use this feature.",
               });
               return;
             }
             if (didEditProfile) {
               //navigate to add contacts popup
-              navigate("/error", {
-                state: {
-                  errorMessage: "Feature coming soon...",
-                  background: location,
-                },
+              openOverlay({
+                for: "error",
+                errorMessage: "Feature coming soon...",
               });
             } else {
               navigate("/edit-profile", {

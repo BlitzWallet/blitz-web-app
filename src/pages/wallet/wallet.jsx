@@ -6,7 +6,7 @@ import WalletNavBar from "./components/nav/nav";
 import SendAndRequestBtns from "./components/sendAndRequestBTNS/sendAndRequstBtns";
 import "./wallet.css";
 
-export default function WalletHome() {
+export default function WalletHome({ openOverlay }) {
   const { toggleDidGetToHomepage } = useAppStatus();
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function WalletHome() {
   }, []);
   return (
     <div id="walletHomeContainer">
-      <WalletNavBar />
+      <WalletNavBar openOverlay={openOverlay} />
       <UserBalance />
       <SendAndRequestBtns />
       <TransactionContanier frompage={"home"} />

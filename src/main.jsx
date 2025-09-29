@@ -2,7 +2,14 @@ import "./fonts.css";
 import "./index.css";
 import App from "./App.jsx";
 import "../pollyfills.js";
-import { StrictMode, Suspense, lazy, useContext, useState } from "react";
+import {
+  StrictMode,
+  Suspense,
+  lazy,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
@@ -85,7 +92,8 @@ const ViewMnemoinc = lazy(() => import("./pages/viewkey/viewKey.jsx"));
 const RestoreWallet = lazy(() =>
   import("./pages/restoreWallet/restoreWallet.jsx")
 );
-const ErrorScreen = lazy(() => import("./pages/error/error.jsx"));
+
+import ErrorScreen from "./pages/error/error.jsx";
 const ViewAllTxsPage = lazy(() =>
   import("./pages/viewAllTx/viewAllTxPage.jsx")
 );
@@ -94,6 +102,18 @@ function Root() {
   const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(1);
+  const [overlays, setOverlays] = useState([]);
+
+  const openOverlay = useCallback(
+    (type) => {
+      setOverlays([...overlays, type]);
+    },
+    [overlays]
+  );
+
+  const closeOverlay = useCallback(() => {
+    setOverlays(overlays.slice(0, -1));
+  }, [overlays]);
 
   // Define paths where the bottom navigation should be visible
   const showBottomTabsRoutes = ["/wallet", "/contacts", "/store"];
@@ -158,7 +178,9 @@ function Root() {
                                           path="/createAccount"
                                           element={
                                             <SafeAreaComponent>
-                                              <CreateSeed />
+                                              <CreateSeed
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -174,7 +196,9 @@ function Root() {
                                           path="/login"
                                           element={
                                             <SafeAreaComponent>
-                                              <Login />
+                                              <Login
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -182,7 +206,9 @@ function Root() {
                                           path="/wallet"
                                           element={
                                             <SafeAreaComponent>
-                                              <WalletHome />
+                                              <WalletHome
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -190,7 +216,9 @@ function Root() {
                                           path="/contacts"
                                           element={
                                             <SafeAreaComponent>
-                                              <Contacts />
+                                              <Contacts
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -198,7 +226,9 @@ function Root() {
                                           path="/edit-profile"
                                           element={
                                             <SafeAreaComponent>
-                                              <EditMyProfilePage />
+                                              <EditMyProfilePage
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -211,7 +241,9 @@ function Root() {
                                               exitAnimation={{ x: "100%" }}
                                             >
                                               <SafeAreaComponent>
-                                                <MyProfilePage />
+                                                <MyProfilePage
+                                                  openOverlay={openOverlay}
+                                                />
                                               </SafeAreaComponent>
                                             </AnimatedRouteWrapper>
                                           }
@@ -236,7 +268,9 @@ function Root() {
                                           path="/receive"
                                           element={
                                             <SafeAreaComponent>
-                                              <ReceiveQRPage />
+                                              <ReceiveQRPage
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -244,7 +278,9 @@ function Root() {
                                           path="/send"
                                           element={
                                             <SafeAreaComponent>
-                                              <SendPage />
+                                              <SendPage
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -285,14 +321,18 @@ function Root() {
                                               exitAnimation={{ y: "100%" }}
                                             >
                                               <SafeAreaComponent>
-                                                <TechnicalDetailsPage />
+                                                <TechnicalDetailsPage
+                                                  openOverlay={openOverlay}
+                                                />
                                               </SafeAreaComponent>
                                             </AnimatedRouteWrapper>
                                           }
                                         />
                                         <Route
                                           path="/camera"
-                                          element={<Camera />}
+                                          element={
+                                            <Camera openOverlay={openOverlay} />
+                                          }
                                         />
                                         <Route
                                           path="/confirm-page"
@@ -330,7 +370,9 @@ function Root() {
                                               animate={{ x: 0 }}
                                               exitAnimation={{ x: "100%" }}
                                             >
-                                              <SettingsContentIndex />
+                                              <SettingsContentIndex
+                                                openOverlay={openOverlay}
+                                              />
                                             </AnimatedRouteWrapper>
                                           }
                                         />
@@ -338,7 +380,9 @@ function Root() {
                                           path="/key"
                                           element={
                                             <SafeAreaComponent>
-                                              <ViewMnemoinc />
+                                              <ViewMnemoinc
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -346,7 +390,9 @@ function Root() {
                                           path="/restore"
                                           element={
                                             <SafeAreaComponent>
-                                              <RestoreWallet />
+                                              <RestoreWallet
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
@@ -366,19 +412,42 @@ function Root() {
                                             </SafeAreaComponent>
                                           }
                                         />
-                                        {/* <Route
-                                    path="/error"
-                                    element={<ErrorScreen />}
-                                  /> */}
                                       </Routes>
 
-                                      {location.pathname ===
+                                      {/* Render Overlays */}
+
+                                      {overlays.map((overlay, index) => (
+                                        <div
+                                          key={index}
+                                          initial={{ opacity: 0 }}
+                                          animate={{ opacity: 1 }}
+                                          exit={{ opacity: 0 }}
+                                          transition={{ duration: 0.3 }}
+                                        >
+                                          {overlay.for === "confirm-action" && (
+                                            <ConfirmActionPage
+                                              onClose={closeOverlay}
+                                              onOpenAnother={() =>
+                                                openOverlay("modal2")
+                                              }
+                                            />
+                                          )}
+                                          {overlay.for === "error" && (
+                                            <ErrorScreen
+                                              onClose={closeOverlay}
+                                              overlay={overlay}
+                                            />
+                                          )}
+                                        </div>
+                                      ))}
+
+                                      {/* {location.pathname ===
                                         "/confirm-action" && (
                                         <ConfirmActionPage />
-                                      )}
-                                      {location.pathname === "/error" && (
+                                      )} */}
+                                      {/* {location.pathname === "/error" && (
                                         <ErrorScreen />
-                                      )}
+                                      )} */}
                                     </Suspense>
                                   </AnimatePresence>
                                   {shouldShowBottomTabs && (

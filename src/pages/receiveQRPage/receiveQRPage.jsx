@@ -16,7 +16,7 @@ import aboutIcon from "../../assets/aboutIcon.png";
 import aboutIconWhite from "../../assets/aboutIconWhite.png";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 
-export default function ReceiveQRPage() {
+export default function ReceiveQRPage({ openOverlay }) {
   const { globalContactsInformation } = useGlobalContacts();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { theme, darkModeType } = useThemeContext();
@@ -115,17 +115,16 @@ export default function ReceiveQRPage() {
           generatedAddress={addressState.generatedAddress}
           theme={theme}
           darkModeType={darkModeType}
+          openOverlay={openOverlay}
         />
         <div style={{ marginBottom: "auto" }}></div>
         <div
           onClick={() => {
             if (selectedRecieveOption.toLowerCase() !== "bitcoin") return;
-            navigate("/error", {
-              state: {
-                errorMessage:
-                  "On-chain payments have a network fee and 0.1% Spark fee.\n\nIf you send money to yourself, you’ll pay the network fee twice — once to send it and once to claim it.\n\nIf someone else sends you money, you’ll only pay the network fee once to claim it.",
-                background: location,
-              },
+            openOverlay({
+              for: "error",
+              errorMessage:
+                "On-chain payments have a network fee and 0.1% Spark fee.\n\nIf you send money to yourself, you’ll pay the network fee twice — once to send it and once to claim it.\n\nIf someone else sends you money, you’ll only pay the network fee once to claim it.",
             });
           }}
           style={{
@@ -186,7 +185,7 @@ function QrCode({ addressState, navigate, location, theme, darkModeType }) {
     <div
       style={{ backgroundColor: backgroundOffset, cursor: "pointer" }}
       onClick={() =>
-        copyToClipboard(addressState.generatedAddress, navigate, location)
+        copyToClipboard(addressState.generatedAddress, openOverlay, location)
       }
       className="qrCodeContainerReceivePage"
     >

@@ -13,7 +13,7 @@ import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
 
-export default function ViewMnemoinc() {
+export default function ViewMnemoinc({ openOverlay }) {
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
@@ -126,17 +126,11 @@ export default function ViewMnemoinc() {
       </div>
       <CustomButton
         actionFunction={() => {
-          const response = copyToClipboard(
-            showSeedAsWords ? mnemoinc : seedQRCalculation
+          console.log(openOverlay);
+          copyToClipboard(
+            showSeedAsWords ? mnemoinc : seedQRCalculation,
+            openOverlay
           );
-          navigate("/error", {
-            state: {
-              errorMessage: response
-                ? "Copied to clipboard!"
-                : "Error with copy",
-              background: location,
-            },
-          });
         }}
         buttonClassName={"copySeedBTNContainer"}
         textContent={"Copy"}

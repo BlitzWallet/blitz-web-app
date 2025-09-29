@@ -14,6 +14,7 @@ export default function ReceiveButtonsContainer({
   receiveOption,
   initialSendAmount,
   description,
+  openOverlay,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,7 +38,7 @@ export default function ReceiveButtonsContainer({
         buttonStyles={{ opacity: generatingInvoiceQRCode ? 0.5 : 1 }}
         actionFunction={() => {
           if (!generatedAddress) return;
-          copyToClipboard(generatedAddress, navigate, location);
+          copyToClipboard(generatedAddress, openOverlay, location);
         }}
         textContent={"Copy"}
       />

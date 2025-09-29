@@ -3,7 +3,7 @@ import BackArrow from "../../components/backArrow/backArrow";
 import ThemeText from "../../components/themeText/themeText";
 import copyToClipboard from "../../functions/copyToClipboard";
 import "./style.css";
-export default function TechnicalDetailsPage() {
+export default function TechnicalDetailsPage({ openOverlay }) {
   const location = useLocation();
   const navigate = useNavigate();
   const props = location.state;
@@ -42,7 +42,7 @@ export default function TechnicalDetailsPage() {
         <div
           className="itemContainer"
           onClick={() => {
-            copyToClipboard(txItem, navigate, location);
+            copyToClipboard(txItem, openOverlay, location);
           }}
         >
           <ThemeText textContent={txItem || "N/A"} />

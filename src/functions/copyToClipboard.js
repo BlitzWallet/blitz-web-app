@@ -1,20 +1,16 @@
-export default async function copyToClipboard(data, navigate, location) {
+export default async function copyToClipboard(data, openOverlay, location) {
   try {
     await navigator.clipboard.writeText(data);
     // alert("Copied to clipboard!");
-    navigate("/error", {
-      state: {
-        errorMessage: "Copied to clipboard!",
-        background: location,
-      },
+    openOverlay({
+      for: "error",
+      errorMessage: "Copied to clipboard!",
     });
   } catch (err) {
     console.error("Failed to copy: ", err);
-    navigate("/error", {
-      state: {
-        errorMessage: "Error with copy.",
-        background: location,
-      },
+    openOverlay({
+      for: "error",
+      errorMessage: "Error with copy.",
     });
   }
 }
