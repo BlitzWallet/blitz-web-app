@@ -16,7 +16,7 @@ export default function WalletHome({ openOverlay }) {
     <div id="walletHomeContainer">
       <WalletNavBar openOverlay={openOverlay} />
       <UserBalance />
-      <SendAndRequestBtns />
+      <SendAndRequestBtns openOverlay={openOverlay} />
       <TransactionContanier frompage={"home"} />
     </div>
   );

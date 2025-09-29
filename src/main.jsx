@@ -94,6 +94,7 @@ const RestoreWallet = lazy(() =>
 );
 
 import ErrorScreen from "./pages/error/error.jsx";
+import CustomHalfModal from "./pages/customHalfModal/index.jsx";
 const ViewAllTxsPage = lazy(() =>
   import("./pages/viewAllTx/viewAllTxPage.jsx")
 );
@@ -436,6 +437,14 @@ function Root() {
                                             <ErrorScreen
                                               onClose={closeOverlay}
                                               overlay={overlay}
+                                            />
+                                          )}
+                                          {overlay.for === "halfModal" && (
+                                            <CustomHalfModal
+                                              onClose={closeOverlay}
+                                              openOverlay={openOverlay}
+                                              contentType={overlay.contentType}
+                                              params={overlay.params}
                                             />
                                           )}
                                         </div>
