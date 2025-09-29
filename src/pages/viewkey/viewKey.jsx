@@ -36,22 +36,19 @@ export default function ViewMnemoinc({ openOverlay }) {
 
   const toggleSeedAsWords = () => {
     if (showSeedAsWords && !props?.confirmed) {
-      navigate("/confirm-action", {
-        state: {
-          confirmHeader: "Are you sure you want to show this QR Code?",
-          confirmDescription:
-            "Scanning your seed is convenient, but be sure you're using a secure and trusted device. This helps keep your wallet safe.",
-          useCustomProps: true,
-          customProps: {
-            confirmed: true,
-            for: "backup wallet",
-          },
-          useProps: true,
-          navigateBack: "settings-item",
-          fromRoute: "settings-item",
-          background: location,
+      openOverlay({
+        for: "confirm-action",
+        confirmHeader: "Are you sure you want to show this QR Code?",
+        confirmDescription:
+          "Scanning your seed is convenient, but be sure you're using a secure and trusted device. This helps keep your wallet safe.",
+        useCustomProps: true,
+        customProps: {
+          confirmed: true,
+          for: "backup wallet",
         },
-        replace: true,
+        useProps: true,
+        navigateBack: "settings-item",
+        fromRoute: "settings-item",
       });
       return;
     }

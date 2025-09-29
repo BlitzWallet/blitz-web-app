@@ -357,7 +357,9 @@ function Root() {
                                               exitAnimation={{ x: "100%" }}
                                             >
                                               <SafeAreaComponent>
-                                                <SettingsHome />
+                                                <SettingsHome
+                                                  openOverlay={openOverlay}
+                                                />
                                               </SafeAreaComponent>
                                             </AnimatedRouteWrapper>
                                           }
@@ -427,9 +429,7 @@ function Root() {
                                           {overlay.for === "confirm-action" && (
                                             <ConfirmActionPage
                                               onClose={closeOverlay}
-                                              onOpenAnother={() =>
-                                                openOverlay("modal2")
-                                              }
+                                              overlay={overlay}
                                             />
                                           )}
                                           {overlay.for === "error" && (

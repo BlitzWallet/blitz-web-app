@@ -9,7 +9,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../themeText/themeText";
 
-export default function ConfirmActionPage() {
+export default function ConfirmActionPage({ overlay, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [visible, setVisible] = useState(true); // controls animation
@@ -17,6 +17,7 @@ export default function ConfirmActionPage() {
   const { theme } = useThemeContext();
   const { backgroundOffset } = useThemeColors();
 
+  console.log(onClose);
   const {
     confirmHeader,
     confirmDescription: confirmMessage,
@@ -25,9 +26,15 @@ export default function ConfirmActionPage() {
     customProps,
     useCustomProps,
     useProps,
-  } = location.state;
+  } = overlay || location.state;
 
   const handleExitComplete = () => {
+    console.log("running here");
+    if (onClose) {
+      console.log("CLOSING");
+      onClose();
+    }
+
     switch (navigateBack) {
       case "wallet":
         navigate("/wallet");
@@ -97,6 +104,9 @@ export default function ConfirmActionPage() {
             >
               <CustomButton
                 actionFunction={() => {
+                  if (onClose) {
+                    onClose();
+                  }
                   if (fromRoute) {
                     if (useProps) {
                       navigate(

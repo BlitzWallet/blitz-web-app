@@ -139,7 +139,7 @@ const DOOMSDAYSETTINGS = [
   ],
 ];
 
-export default function SettingsHome() {
+export default function SettingsHome({ openOverlay }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -164,14 +164,12 @@ export default function SettingsHome() {
           key={id}
           onClick={() => {
             if (settingsElement.name === "Delete Wallet") {
-              navigate("/confirm-action", {
-                state: {
-                  confirmHeader: "Are you sure you want to delete your wallet?",
-                  confirmDescription:
-                    "Your wallet seed will be permanently deleted from this device. Without your wallet seed, your Bitcoin will be lost forever.",
-                  fromRoute: "settings",
-                  background: location,
-                },
+              openOverlay({
+                for: "confirm-action",
+                confirmHeader: "Are you sure you want to delete your wallet?",
+                confirmDescription:
+                  "Your wallet seed will be permanently deleted from this device. Without your wallet seed, your Bitcoin will be lost forever.",
+                fromRoute: "settings",
               });
             } else {
               navigate("/settings-item", {

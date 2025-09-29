@@ -117,14 +117,12 @@ function Login({ openOverlay }) {
 
         <ThemeText
           clickFunction={() => {
-            navigate("/confirm-action", {
-              state: {
-                confirmHeader: "Are you sure you want to reset your wallet?",
-                confirmDescription:
-                  "If you forget your password, your wallet key will be permanently deleted from this device. Without your key, your Bitcoin will be lost forever.",
-                fromRoute: "login",
-                background: location,
-              },
+            openOverlay({
+              for: "confirm-action",
+              confirmHeader: "Are you sure you want to reset your wallet?",
+              confirmDescription:
+                "If you forget your password, your wallet key will be permanently deleted from this device. Without your key, your Bitcoin will be lost forever.",
+              fromRoute: "login",
             });
           }}
           className="forgotPassword"
