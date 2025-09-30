@@ -30,10 +30,11 @@ function Login({ openOverlay }) {
     const storedKey = Storage.getItem("walletKey");
 
     const decryted = decrypt(storedKey, password);
+
     if (!decryted) {
       openOverlay({
-        for: "Incorrect password",
-        errorMessage: err.message,
+        for: "error",
+        errorMessage: "Incorrect password",
       });
       return;
     }

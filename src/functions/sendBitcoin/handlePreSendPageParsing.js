@@ -22,7 +22,7 @@ export default function handlePreSendPageParsing(data) {
 
     const merchantLNAddress = convertMerchantQRToLightningAddress({
       qrContent: data,
-      network: process.env.BOLTZ_ENVIRONMENT,
+      network: import.meta.env.BOLTZ_ENVIRONMENT,
     });
 
     return {

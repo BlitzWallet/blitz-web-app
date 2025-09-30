@@ -106,6 +106,7 @@ export default function ReceiveQRPage({ openOverlay }) {
           location={location}
           theme={theme}
           darkModeType={darkModeType}
+          openOverlay={openOverlay}
         />
         <ReceiveButtonsContainer
           initialSendAmount={initialSendAmount}
@@ -157,7 +158,14 @@ export default function ReceiveQRPage({ openOverlay }) {
   );
 }
 
-function QrCode({ addressState, navigate, location, theme, darkModeType }) {
+function QrCode({
+  addressState,
+  navigate,
+  location,
+  theme,
+  darkModeType,
+  openOverlay,
+}) {
   const { backgroundOffset } = useThemeColors();
   if (addressState.isGeneratingInvoice) {
     return (
