@@ -1,16 +1,34 @@
-import { createContext, useCallback, useContext, useRef } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import startLiquidUpdateInterval from "../functions/liquidBackupUpdate";
 import { useNodeContext } from "./nodeContext";
 const LiquidEventContext = createContext(null);
 
 // Create a context for the WebView ref
 export function LiquidEventProvider({ children }) {
-  const { toggleLiquidNodeInformation } = useNodeContext();
+  const { toggleLiquidNodeInformation, liquidNodeInformation } =
+    useNodeContext();
+  const initialLiquidRun = useRef(null);
   const intervalId = useRef(null);
   const debounceTimer = useRef(null);
 
   const isInitialSync = useRef(true);
   const syncRunCounter = useRef(1);
+
+  useEffect(() => {
+    if (!liquidNodeInformation.didConnectToNode) return;
+    if (initialLiquidRun.current) return;
+    initialLiquidRun.current = true;
+    intervalId.current = startLiquidUpdateInterval(
+      toggleLiquidNodeInformation,
+      3
+    );
+  }, [liquidNodeInformation.didConnectToNode]);
 
   const debouncedStartInterval = (intervalCount) => {
     if (debounceTimer.current) {
