@@ -11,32 +11,42 @@ import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import Icon from "../../../../components/customIcon/customIcon";
 import { useThemeContext } from "../../../../contexts/themeContext";
 
-import imagesIcon from "../../../../assets/imagesDark.png";
-import clipbardIconLight from "../../../../assets/clipboardLight.png";
-import editIcon from "../../../../assets/edit.png";
 import "./style.css";
+import {
+  clipboardDark,
+  clipboardLight,
+  contactsIcon,
+  contactsIconLight,
+  editIcon,
+  ImagesIcon,
+  ImagesIconDark,
+} from "../../../../constants/icons";
+import {
+  getQRImage,
+  navigateToSendUsingClipboard,
+} from "../../../../functions/sendBitcoin/halfModalFunctions";
 
 export default function HalfModalSendOptions({ openOverlay, onClose }) {
   const navigate = useNavigate();
   const { theme } = useThemeContext();
-
+  const fileInput = document.getElementById("file-selector");
   const { decodedAddedContacts } = useGlobalContacts();
   const { t } = useTranslation();
 
   const sendOptionElements = ["img", "clipboard", "manual"].map((item, key) => {
     const lightIcon =
       item === "img"
-        ? imagesIcon
+        ? ImagesIcon
         : item === "clipboard"
-        ? clipbardIconLight
+        ? clipboardLight
         : editIcon;
 
-    const darkIcon = lightIcon;
-    //   item === "img"
-    //     ? ICONS.ImagesIconDark
-    //     : item === "clipboard"
-    //     ? ICONS.clipboardDark
-    //     : ICONS.editIcon;
+    const darkIcon =
+      item === "img"
+        ? ImagesIconDark
+        : item === "clipboard"
+        ? clipboardDark
+        : editIcon;
 
     const itemText =
       item === "img"
@@ -47,22 +57,43 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
 
     const handlePress = async () => {
       if (item === "img") {
-        const response = await getQRImage();
+        const response = await getQRImage(fileInput);
+        console.log(response);
         if (response.error) {
-          navigate("ErrorScreen", { errorMessage: t(response.error) });
+          openOverlay({
+            for: "error",
+            errorMessage: t(response.error),
+          });
+
           return;
         }
+        console.log(
+          !response.didWork || !response.btcAdress,
+          !response.didWork,
+          !response.btcAdress
+        );
         if (!response.didWork || !response.btcAdress) return;
-        navigate("ConfirmPaymentScreen", {
-          btcAdress: response.btcAdress,
-          fromPage: "",
-        });
+        onClose();
+        navigate("/send", { state: { btcAddress: response.btcAdress } });
       } else if (item === "clipboard") {
-        navigateToSendUsingClipboard(navigate, "modal", undefined, t);
+        const response = await navigateToSendUsingClipboard();
+
+        if (!response.didWork) {
+          openOverlay({
+            for: "error",
+            errorMessage:
+              response.errorMessage || t("errormessages.genericError"),
+          });
+          return;
+        }
+        onClose();
+        navigate("/send", { state: { btcAddress: response.data } });
       } else {
-        navigate("CustomHalfModal", {
-          wantedContent: "manualEnterSendAddress",
-          sliderHeight: 0.5,
+        onClose();
+        openOverlay({
+          for: "halfModal",
+          contentType: "manualEnterSendAddress",
+          params: {},
         });
       }
     };
@@ -89,7 +120,12 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
                 justifyContent: "center",
               }}
             >
-              <Icon color={"blue"} height={30} width={30} name={"editIcon"} />
+              <Icon
+                color={theme ? "white" : "black"}
+                height={30}
+                width={30}
+                name={"editIcon"}
+              />
             </div>
           ) : (
             <ThemeImage
@@ -99,7 +135,7 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
               lightsOutIcon={lightIcon}
             />
           )}
-          <ThemeText styles={styles.optionText} content={itemText} />
+          <ThemeText textStyles={styles.optionText} textContent={itemText} />
         </div>
       </button>
     );
@@ -109,7 +145,7 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
     <div className="sendOptionsContainer">
       <div style={{ overflowY: "auto", overflowX: "hidden" }}>
         {sendOptionElements}
-        {decodedAddedContacts.length !== 0 && (
+        {/* {decodedAddedContacts.length !== 0 && (
           <button
             onClick={() => {
               navigate("ChooseContactHalfModal");
@@ -123,20 +159,27 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
             }}
           >
             <div style={styles.optionRow}>
-              {/* <ThemeImage
+              <ThemeImage
                 styles={styles.icon}
-                lightModeIcon={ICONS.contactsIcon}
-                darkModeIcon={ICONS.contactsIconLight}
-                lightsOutIcon={ICONS.contactsIconLight}
-              /> */}
+                lightModeIcon={contactsIcon}
+                darkModeIcon={contactsIconLight}
+                lightsOutIcon={contactsIconLight}
+              />
               <ThemeText
-                styles={{ ...styles.optionText }}
-                content={t("wallet.halfModal.contacts")}
+                textStyles={{ ...styles.optionText }}
+                textContent={t("wallet.halfModal.contacts")}
               />
             </div>
           </button>
-        )}
+        )} */}
       </div>
+      <input
+        style={{ zIndex: -1, display: "none" }}
+        hidden
+        type="file"
+        id="file-selector"
+        accept="image/*"
+      />
     </div>
   );
 }
@@ -156,7 +199,8 @@ const styles = {
     marginRight: "auto",
   },
   optionText: {
-    // fontSize: SIZES.large,
+    fontSize: "1.2rem",
+    margin: "0",
   },
   icon: {
     width: 35,

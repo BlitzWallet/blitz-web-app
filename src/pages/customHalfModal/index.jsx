@@ -4,6 +4,7 @@ import HalfModalSendOptions from "../wallet/components/sendOptions";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useThemeContext } from "../../contexts/themeContext";
 import "./Modal.css";
+import ManualEnterSendAddress from "../wallet/components/sendOptions/manualEnter";
 
 export default function CustomHalfModal({
   onClose,
@@ -11,8 +12,8 @@ export default function CustomHalfModal({
   params = {},
   openOverlay,
 }) {
-  const { theme } = useThemeContext();
-  const { backgroundOffset } = useThemeColors();
+  const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset, backgroundColor } = useThemeColors();
   const [isKeyboardActive, setIsKeyboardActive] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
   const [isOpen, setIsOpen] = useState(null);
@@ -41,23 +42,16 @@ export default function CustomHalfModal({
         return (
           <HalfModalSendOptions openOverlay={openOverlay} onClose={onClose} />
         );
-      case "confirmSMS":
-        return <div>Confirm SMS: {params?.message}</div>;
       case "manualEnterSendAddress":
         return (
-          <div>
-            Manual Address Input
-            <textarea
-              onFocus={() => setIsKeyboardActive(true)}
-              onBlur={() => setIsKeyboardActive(false)}
-            />
-          </div>
+          <ManualEnterSendAddress openOverlay={openOverlay} onClose={onClose} />
         );
+      case "confirmSMS":
+        return <div>Confirm SMS: {params?.message}</div>;
       default:
         return <div>Default Content</div>;
     }
   };
-  console.log(isOpen, "tesig");
 
   return (
     <div className="backdrop" onClick={handleClose}>
@@ -65,7 +59,10 @@ export default function CustomHalfModal({
         className={`modal ${
           isOpen === null ? "" : !isOpen ? "slide-out" : "slide-in"
         }`}
-        style={{ background: theme ? backgroundOffset : "white" }}
+        style={{
+          backgroundColor:
+            theme && darkModeType ? backgroundOffset : backgroundColor,
+        }}
         onClick={(e) => e.stopPropagation()} // prevent backdrop close
       >
         {renderContent()}

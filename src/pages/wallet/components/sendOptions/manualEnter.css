@@ -1,0 +1,29 @@
+.manualEnterContainer {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  justify-self: center;
+}
+
+.manualEnterContainer .infoContainer {
+  display: flex;
+  align-items: center;
+
+  margin-top: 20px;
+}
+.manualEnterContainer .infoText {
+  margin: 0;
+  margin-right: 10px;
+}
+.manualEnterContainer .image {
+  cursor: pointer;
+}
+.manualEnterContainer .textInput {
+  width: 100%;
+  resize: none;
+  border: unset;
+  border-radius: 8px;
+  flex-grow: 1;
+  margin: 15px 0 10px;
+  padding: 10px;
+}

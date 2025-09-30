@@ -1,5 +1,6 @@
 import "./fonts.css";
 import "./index.css";
+import "../i18n"; // for translation option
 import App from "./App.jsx";
 import "../pollyfills.js";
 import {
@@ -95,6 +96,7 @@ const RestoreWallet = lazy(() =>
 
 import ErrorScreen from "./pages/error/error.jsx";
 import CustomHalfModal from "./pages/customHalfModal/index.jsx";
+import InformationPopup from "./pages/informationPopup/index.jsx";
 const ViewAllTxsPage = lazy(() =>
   import("./pages/viewAllTx/viewAllTxPage.jsx")
 );
@@ -107,10 +109,16 @@ function Root() {
 
   const openOverlay = useCallback(
     (type) => {
-      setOverlays([...overlays, type]);
+      if (type.for !== "halfModal") {
+        setOverlays([...overlays, type]);
+      } else {
+        setOverlays(overlays.slice(0, -1).concat([type]));
+      }
     },
     [overlays]
   );
+
+  console.log(overlays, "overlays");
 
   const closeOverlay = useCallback(() => {
     setOverlays(overlays.slice(0, -1));
@@ -445,6 +453,14 @@ function Root() {
                                               openOverlay={openOverlay}
                                               contentType={overlay.contentType}
                                               params={overlay.params}
+                                            />
+                                          )}
+                                          {overlay.for ===
+                                            "informationPopup" && (
+                                            <InformationPopup
+                                              onClose={closeOverlay}
+                                              openOverlay={openOverlay}
+                                              overlay={overlay}
                                             />
                                           )}
                                         </div>
