@@ -46,11 +46,6 @@ export const sparkPaymenWrapper = async ({
 }) => {
   try {
     console.log("Begining spark payment");
-    console.log(
-      sparkWallet[sha256Hash(mnemonic)],
-      sha256Hash(mnemonic),
-      mnemonic
-    );
     if (!sparkWallet[sha256Hash(mnemonic)])
       throw new Error("sparkWallet not initialized");
     const supportFee = await calculateProgressiveBracketFee(
