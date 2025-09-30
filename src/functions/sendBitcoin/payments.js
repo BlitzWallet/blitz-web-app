@@ -1,4 +1,4 @@
-import { LIQUID_TYPES } from "../../constants";
+import { InputTypes } from "bitcoin-address-parser";
 
 export async function getLNAddressForLiquidPayment(
   paymentInfo,
@@ -8,7 +8,7 @@ export async function getLNAddressForLiquidPayment(
   let invoiceAddress;
   try {
     if (
-      paymentInfo.type?.toLowerCase() === LIQUID_TYPES.LnUrlPay.toLowerCase()
+      paymentInfo.type?.toLowerCase() === InputTypes.LNURL_PAY.toLowerCase()
     ) {
       const url = `${paymentInfo.data.callback}?amount=${sendingValue * 1000}${
         paymentInfo?.data.commentAllowed

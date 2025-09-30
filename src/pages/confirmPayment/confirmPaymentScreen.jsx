@@ -13,19 +13,23 @@ import FormattedSatText from "../../components/formattedSatText/formattedSatText
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
+import ThemeText from "../../components/themeText/themeText";
+import { useTranslation } from "react-i18next";
 
 export default function ConfirmPayment() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { theme } = useThemeContext();
   const location = useLocation();
   const props = location.state;
   const animationRef = useRef(null);
 
   const transaction = props?.transaction;
+  const isLNURLAuth = props?.useLNURLAuth;
 
   const paymentType = location.state?.for;
   const formmatingType = location.state?.formattingType;
-  const didSucceed = transaction?.paymentStatus !== "failed";
+  const didSucceed = transaction?.paymentStatus !== "failed" || isLNURLAuth;
   const paymentFee = transaction?.details.fee;
   const paymentNetwork = transaction?.paymentType;
   const errorMessage = transaction?.details.error || "Unknown Error";
@@ -62,19 +66,33 @@ export default function ConfirmPayment() {
           loop={false}
         />
 
-        <h1 className="paymentStatus">
-          {!didSucceed
-            ? "Failed to send"
-            : paymentType?.toLowerCase() === "paymentsucceed"
-            ? "Sent successfully"
-            : "Received successfully"}
-        </h1>
+        {!isLNURLAuth && (
+          <h1 className="paymentStatus">
+            {!didSucceed
+              ? "Failed to send"
+              : paymentType?.toLowerCase() === "paymentsucceed"
+              ? "Sent successfully"
+              : "Received successfully"}
+          </h1>
+        )}
 
-        {didSucceed && (
+        {didSucceed && !isLNURLAuth && (
           <FormattedSatText
             containerStyles={{ marginBottom: "20px" }}
             styles={{ fontSize: "2.5rem", margin: 0 }}
             balance={amount}
+          />
+        )}
+
+        {isLNURLAuth && (
+          <ThemeText
+            textStyles={{
+              width: "95%",
+              maxWidth: 300,
+              textAlign: "center",
+              marginBottom: 40,
+            }}
+            textContent={t("screens.inAccount.confirmTxPage.lnurlAuthSuccess")}
           />
         )}
 
@@ -84,7 +102,7 @@ export default function ConfirmPayment() {
             : "There was an issue sending this payment, please try again."}
         </p>
 
-        {didSucceed && (
+        {didSucceed && !isLNURLAuth && (
           <div style={{ marginBottom: 20 }}>
             <div
               style={{
@@ -109,13 +127,13 @@ export default function ConfirmPayment() {
           </div>
         )}
 
-        {!didSucceed && (
+        {!didSucceed && !isLNURLAuth && (
           <div className="errorMessageTextContainer">
             <p>{errorMessage}</p>
           </div>
         )}
 
-        {!didSucceed && (
+        {!didSucceed && !isLNURLAuth && (
           <CustomButton
             actionFunction={() => {
               const mailto = `mailto:blake@blitzwalletapp.com?subject=Payment Failed&body=${encodeURIComponent(
@@ -123,16 +141,16 @@ export default function ConfirmPayment() {
               )}`;
               window.location.href = mailto;
             }}
-            buttonClassName={"errorButton"}
+            buttonStyles={{ backgroundColor: "transparent" }}
             textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
-            textContent={"Send report to developer"}
+            textContent={t("screens.inAccount.confirmTxPage.sendReport")}
           />
         )}
         <CustomButton
           actionFunction={handleBack}
           textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
           buttonClassName={"continueBTN"}
-          textContent={"Continue"}
+          textContent={t("constants.continue")}
         />
       </div>
     </div>

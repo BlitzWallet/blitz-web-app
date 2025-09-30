@@ -1,6 +1,7 @@
 import { getLNAddressForLiquidPayment } from "./payments";
 import { SATSPERBITCOIN } from "../../constants";
 import { sparkPaymenWrapper } from "../spark/payments";
+import { InputTypes } from "bitcoin-address-parser";
 
 export default async function processLNUrlPay(input, context) {
   const {
@@ -23,7 +24,7 @@ export default async function processLNUrlPay(input, context) {
   let invoice = "";
 
   const defaultLNURLDescription =
-    JSON.parse(input.data.metadataStr)?.find((item) => {
+    JSON.parse(input.data.metadata)?.find((item) => {
       const [tag, value] = item;
       if (tag === "text/plain") return true;
     }) || [];
@@ -56,7 +57,10 @@ export default async function processLNUrlPay(input, context) {
       }
     }
 
-    if (!invoice) throw new Error("Error loading invoice");
+    if (!invoice)
+      throw new Error(
+        t("wallet.sendPages.handlingAddressErrors.lnurlPayInvoiceError")
+      );
     if (paymentInfo.paymentFee && paymentInfo.supportFee) {
       paymentFee = paymentInfo.paymentFee;
       supportFee = paymentInfo.supportFee;
@@ -86,7 +90,7 @@ export default async function processLNUrlPay(input, context) {
       : input.data,
     paymentFee,
     supportFee,
-    type: "lnurlpay",
+    type: InputTypes.LNURL_PAY,
     paymentNetwork: "lightning",
     sendAmount: comingFromAccept
       ? `${

@@ -16,7 +16,6 @@ import { useAppStatus } from "../../contexts/appStatus";
 import ErrorWithPayment from "./components/errorScreen";
 import decodeSendAddress from "../../functions/sendBitcoin/decodeSendAdress";
 import {
-  LIQUID_TYPES,
   QUICK_PAY_STORAGE_KEY,
   SATSPERBITCOIN,
   SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
@@ -31,11 +30,13 @@ import displayCorrectDenomination from "../../functions/displayCorrectDenominati
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
+import { useTranslation } from "react-i18next";
+import { InputTypes } from "bitcoin-address-parser";
 
 export default function SendPage({ openOverlay }) {
   const location = useLocation();
   const params = location.state || {};
-
+  const { t } = useTranslation();
   const {
     btcAddress: btcAdress,
     fromPage,
@@ -81,7 +82,7 @@ export default function SendPage({ openOverlay }) {
   const isLiquidPayment = paymentInfo?.paymentNetwork === "liquid";
   const isBitcoinPayment = paymentInfo?.paymentNetwork === "Bitcoin";
   const isSparkPayment = paymentInfo?.paymentNetwork === "spark";
-  const isLNURLPayment = paymentInfo?.type === LIQUID_TYPES.LnUrlPay;
+  const isLNURLPayment = paymentInfo?.type === InputTypes.LNURL_PAY;
   const minLNURLSatAmount = isLNURLPayment
     ? paymentInfo?.data?.minSendable / 1000
     : 0;
@@ -139,6 +140,7 @@ export default function SendPage({ openOverlay }) {
         sparkInformation,
         seletctedToken,
         currentWalletMnemoinc,
+        t,
       });
     }
     setTimeout(decodePayment, 1000);
@@ -179,7 +181,7 @@ export default function SendPage({ openOverlay }) {
       console.log(formmateedSparkPaymentInfo, "manual spark information");
 
       const memo =
-        paymentInfo.type === "bolt11"
+        paymentInfo.type === InputTypes.BOLT11
           ? enteredPaymentInfo?.description ||
             paymentDescription ||
             paymentInfo?.data.message ||
@@ -321,7 +323,7 @@ export default function SendPage({ openOverlay }) {
         return;
       }
       if (
-        paymentInfo?.type === LIQUID_TYPES.LnUrlPay &&
+        paymentInfo?.type === InputTypes.LNURL_PAY &&
         (convertedSendAmount < minLNURLSatAmount ||
           convertedSendAmount > maxLNURLSatAmount)
       ) {
@@ -376,6 +378,7 @@ export default function SendPage({ openOverlay }) {
         sparkInformation,
         seletctedToken,
         currentWalletMnemoinc,
+        t,
       });
     } catch (err) {
       console.error("Error saving payment info", err);

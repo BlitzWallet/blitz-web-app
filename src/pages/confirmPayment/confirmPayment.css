@@ -13,6 +13,7 @@
   flex-direction: column;
   align-items: center;
   flex: 1;
+  align-self: center;
 }
 .receiveQrPage .contentContainer .paymentStatus {
   font-weight: 400;
@@ -33,6 +34,11 @@
   min-height: 100px;
   padding: 10px;
   margin: 10px;
+  overflow-y: scroll;
+}
+.receiveQrPage .contentContainer .errorMessageTextContainer p {
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 .receiveQrPage .contentContainer .amountText {
   font-weight: 400;
