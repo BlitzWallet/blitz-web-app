@@ -13,7 +13,7 @@ import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
 
-export default function ViewMnemoinc() {
+export default function ViewMnemoinc({ openOverlay }) {
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
@@ -36,22 +36,19 @@ export default function ViewMnemoinc() {
 
   const toggleSeedAsWords = () => {
     if (showSeedAsWords && !props?.confirmed) {
-      navigate("/confirm-action", {
-        state: {
-          confirmHeader: "Are you sure you want to show this QR Code?",
-          confirmDescription:
-            "Scanning your seed is convenient, but be sure you're using a secure and trusted device. This helps keep your wallet safe.",
-          useCustomProps: true,
-          customProps: {
-            confirmed: true,
-            for: "backup wallet",
-          },
-          useProps: true,
-          navigateBack: "settings-item",
-          fromRoute: "settings-item",
-          background: location,
+      openOverlay({
+        for: "confirm-action",
+        confirmHeader: "Are you sure you want to show this QR Code?",
+        confirmDescription:
+          "Scanning your seed is convenient, but be sure you're using a secure and trusted device. This helps keep your wallet safe.",
+        useCustomProps: true,
+        customProps: {
+          confirmed: true,
+          for: "backup wallet",
         },
-        replace: true,
+        useProps: true,
+        navigateBack: "settings-item",
+        fromRoute: "settings-item",
       });
       return;
     }
@@ -126,17 +123,11 @@ export default function ViewMnemoinc() {
       </div>
       <CustomButton
         actionFunction={() => {
-          const response = copyToClipboard(
-            showSeedAsWords ? mnemoinc : seedQRCalculation
+          console.log(openOverlay);
+          copyToClipboard(
+            showSeedAsWords ? mnemoinc : seedQRCalculation,
+            openOverlay
           );
-          navigate("/error", {
-            state: {
-              errorMessage: response
-                ? "Copied to clipboard!"
-                : "Error with copy",
-              background: location,
-            },
-          });
         }}
         buttonClassName={"copySeedBTNContainer"}
         textContent={"Copy"}

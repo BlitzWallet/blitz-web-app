@@ -15,7 +15,7 @@ import { fiatCurrencies } from "../../../../functions/currencyOptions";
 import { useKeysContext } from "../../../../contexts/keysContext";
 import loadNewFiatData from "../../../../functions/saveAndUpdateFiatData";
 
-export default function DisplayCurrency() {
+export default function DisplayCurrency({ openOverlay }) {
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
   const { contactsPrivateKey, publicKey } = useKeysContext();
@@ -58,6 +58,7 @@ export default function DisplayCurrency() {
       contactsPrivateKey={contactsPrivateKey}
       publicKey={publicKey}
       currentCurrency={currentCurrency}
+      openOverlay={openOverlay}
     />
   ));
 
@@ -99,6 +100,7 @@ function FiatCurrencyElement({
   contactsPrivateKey,
   publicKey,
   currentCurrency,
+  openOverlay,
 }) {
   return (
     <div
@@ -118,8 +120,9 @@ function FiatCurrencyElement({
           toggleFiatStats(response.fiatRateResponse);
           toggleMasterInfoObject({ fiatCurrency: currency.id });
         } catch (err) {
-          navigate("/error", {
-            state: { errorMessage: err.message, background: location },
+          openOverlay({
+            for: "error",
+            errorMessage: err.message,
           });
         } finally {
           setIsSaving(false);

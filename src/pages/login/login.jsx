@@ -10,7 +10,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 
-function Login() {
+function Login({ openOverlay }) {
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, textInputBackground, textInputColor, textColor } =
     useThemeColors();
@@ -30,9 +30,11 @@ function Login() {
     const storedKey = Storage.getItem("walletKey");
 
     const decryted = decrypt(storedKey, password);
+
     if (!decryted) {
-      navigate("/error", {
-        state: { errorMessage: "Incorrect password", background: location },
+      openOverlay({
+        for: "error",
+        errorMessage: "Incorrect password",
       });
       return;
     }
@@ -67,11 +69,9 @@ function Login() {
         }, 800);
       } catch (err) {
         console.log("Error deleting account", err);
-        navigate("/error", {
-          state: {
-            errorMessage: "Error deleting account",
-            background: location,
-          },
+        openOverlay({
+          for: "Error deleting account",
+          errorMessage: err.message,
         });
       }
     }
@@ -118,14 +118,12 @@ function Login() {
 
         <ThemeText
           clickFunction={() => {
-            navigate("/confirm-action", {
-              state: {
-                confirmHeader: "Are you sure you want to reset your wallet?",
-                confirmDescription:
-                  "If you forget your password, your wallet key will be permanently deleted from this device. Without your key, your Bitcoin will be lost forever.",
-                fromRoute: "login",
-                background: location,
-              },
+            openOverlay({
+              for: "confirm-action",
+              confirmHeader: "Are you sure you want to reset your wallet?",
+              confirmDescription:
+                "If you forget your password, your wallet key will be permanently deleted from this device. Without your key, your Bitcoin will be lost forever.",
+              fromRoute: "login",
             });
           }}
           className="forgotPassword"

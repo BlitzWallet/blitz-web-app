@@ -17,7 +17,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
-export default function Camera() {
+export default function Camera({ openOverlay }) {
   const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,11 +85,9 @@ export default function Camera() {
     try {
       const hasFlash = await scannerRef.current.hasFlash();
       if (!hasFlash) {
-        navigate("/error", {
-          state: {
-            errorMessage: "Device does not have a flash",
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: "Device does not have a flash.",
         });
         return;
       }
@@ -119,11 +117,9 @@ export default function Camera() {
         fileInput.removeEventListener("change", fileListener);
       })
       .catch((e) => {
-        navigate("/error", {
-          state: {
-            errorMessage: "No QR code found.",
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: "No QR code found.",
         });
 
         fileInput.removeEventListener("change", fileListener);

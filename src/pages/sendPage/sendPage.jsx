@@ -32,7 +32,7 @@ import FormattedSatText from "../../components/formattedSatText/formattedSatText
 import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 
-export default function SendPage() {
+export default function SendPage({ openOverlay }) {
   const location = useLocation();
   const params = location.state || {};
 
@@ -280,11 +280,9 @@ export default function SendPage() {
   const handleSave = async () => {
     try {
       if (Number(userBalance) <= paymentInfo.sendAmount) {
-        navigate("/error", {
-          state: {
-            errorMessage: "Sending amount is greater than wallet balance.",
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: "Sending amount is greater than wallet balance.",
         });
         return;
       }
@@ -293,17 +291,15 @@ export default function SendPage() {
         (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
           convertedSendAmount > minMaxLiquidSwapAmounts.max)
       ) {
-        navigate("/error", {
-          state: {
-            errorMessage: `Liquid payment must be greater than ${displayCorrectDenomination(
-              {
-                amount: minMaxLiquidSwapAmounts.min,
-                masterInfoObject,
-                fiatStats,
-              }
-            )}`,
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: `Liquid payment must be greater than ${displayCorrectDenomination(
+            {
+              amount: minMaxLiquidSwapAmounts.min,
+              masterInfoObject,
+              fiatStats,
+            }
+          )}`,
         });
         return;
       }
@@ -312,17 +308,15 @@ export default function SendPage() {
         paymentInfo?.type === "Bitcoin" &&
         convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
       ) {
-        navigate("/error", {
-          state: {
-            errorMessage: `Minimum on-chain send amount is ${displayCorrectDenomination(
-              {
-                amount: SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
-                fiatStats,
-                masterInfoObject,
-              }
-            )}`,
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: `Minimum on-chain send amount is ${displayCorrectDenomination(
+            {
+              amount: SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
+              fiatStats,
+              masterInfoObject,
+            }
+          )}`,
         });
         return;
       }
@@ -331,30 +325,26 @@ export default function SendPage() {
         (convertedSendAmount < minLNURLSatAmount ||
           convertedSendAmount > maxLNURLSatAmount)
       ) {
-        navigate("/error", {
-          state: {
-            errorMessage: `${
-              convertedSendAmount < minLNURLSatAmount ? "Minimum" : "Maximum"
-            } send amount ${displayCorrectDenomination({
-              amount:
-                convertedSendAmount < minLNURLSatAmount
-                  ? minLNURLSatAmount
-                  : maxLNURLSatAmount,
-              fiatStats,
-              masterInfoObject,
-            })}`,
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: `${
+            convertedSendAmount < minLNURLSatAmount ? "Minimum" : "Maximum"
+          } send amount ${displayCorrectDenomination({
+            amount:
+              convertedSendAmount < minLNURLSatAmount
+                ? minLNURLSatAmount
+                : maxLNURLSatAmount,
+            fiatStats,
+            masterInfoObject,
+          })}`,
         });
         return;
       }
 
       if (!canSendPayment && !!paymentInfo?.sendAmount) {
-        navigate("/error", {
-          state: {
-            errorMessage: "Not enough funds to cover fees",
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: "Not enough funds to cover fees",
         });
         return;
       }
@@ -389,12 +379,10 @@ export default function SendPage() {
       });
     } catch (err) {
       console.error("Error saving payment info", err);
-      navigate("/error", {
-        state: {
-          errorMessage: "Error decoding payment.",
-          navigateBack: "wallet",
-          background: location,
-        },
+      openOverlay({
+        for: "error",
+        errorMessage: "Error decoding payment.",
+        navigateBack: "wallet",
       });
     } finally {
       setIsLoading(false);

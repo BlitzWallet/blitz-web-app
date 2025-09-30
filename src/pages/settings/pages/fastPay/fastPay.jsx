@@ -7,7 +7,7 @@ import "./fastPay.css";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 
-export default function FastPay() {
+export default function FastPay({ openOverlay }) {
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
   const location = useLocation();
@@ -32,22 +32,17 @@ export default function FastPay() {
       const parseValue = Number(value);
       if (isNaN(parseValue)) {
         resetFunction();
-        navigate("/error", {
-          state: {
-            errorMessage: "Value must be a number",
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: "Value must be a number",
         });
-
         return;
       }
       if (parseValue === 0) {
         resetFunction();
-        navigate("/error", {
-          state: {
-            errorMessage: "Must be greater than 0",
-            background: location,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: "Must be greater than 0",
         });
         return;
       }

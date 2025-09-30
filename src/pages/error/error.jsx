@@ -8,17 +8,24 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 
-export default function ErrorScreen() {
+export default function ErrorScreen({ overlay, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [visible, setVisible] = useState(true); // controls animation
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, backgroundColor } = useThemeColors();
 
-  const errorMessage = location?.state?.errorMessage || "Something went wrong.";
+  const errorMessage =
+    overlay.errorMessage ||
+    location?.state?.errorMessage ||
+    "Something went wrong.";
   const navigateBack = location?.state?.navigateBack;
 
   const handleExitComplete = () => {
+    if (onClose) {
+      onClose();
+      if (!overlay.navigateBack) return;
+    }
     switch (navigateBack) {
       case "wallet":
         navigate("/wallet");

@@ -16,7 +16,7 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import useThemeColors from "../../../../hooks/useThemeColors";
 
-export default function WalletNavBar() {
+export default function WalletNavBar({ openOverlay }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useThemeContext();
@@ -36,11 +36,9 @@ export default function WalletNavBar() {
       transactions: txs || prev.transactions,
     }));
     setIsRefreshing(false);
-    navigate("/error", {
-      state: {
-        errorMessage: "Your wallet was successfully refreshed.",
-        background: location,
-      },
+    openOverlay({
+      for: "error",
+      errorMessage: "Your wallet was successfully refreshed.",
     });
   }, []);
   return (

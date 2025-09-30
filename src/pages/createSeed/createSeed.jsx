@@ -10,7 +10,7 @@ import { useAuth } from "../../contexts/authContext";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
 
-function CreateSeed() {
+function CreateSeed({ openOverlay }) {
   const { mnemoinc, setMnemoinc } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,11 +36,9 @@ function CreateSeed() {
       }
       setMnemoinc(generatedMnemonic);
     } catch (err) {
-      navigate("/error", {
-        state: {
-          errorMessage: err.message,
-          background: location,
-        },
+      openOverlay({
+        for: "error",
+        errorMessage: err.message,
       });
       console.log("Error generating seed", err);
     }
@@ -69,7 +67,7 @@ function CreateSeed() {
       <div className="buttonsContainer">
         <CustomButton
           actionFunction={() =>
-            copyToClipboard(seed.join(" "), navigate, location)
+            copyToClipboard(seed.join(" "), openOverlay, location)
           }
           textStyles={{ color: Colors.dark.text }}
           buttonStyles={{ backgroundColor: Colors.light.blue }}

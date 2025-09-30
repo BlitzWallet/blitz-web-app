@@ -10,7 +10,7 @@ import { Colors } from "../../../../constants/theme";
 import ThemeText from "../../../../components/themeText/themeText";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 
-export default function SparkInformation() {
+export default function SparkInformation({ openOverlay }) {
   const { sparkInformation } = useSpark();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,7 +34,7 @@ export default function SparkInformation() {
               onClick={() =>
                 copyToClipboard(
                   sparkInformation.sparkAddress,
-                  navigate,
+                  openOverlay,
                   location
                 )
               }
@@ -61,7 +61,7 @@ export default function SparkInformation() {
               onClick={() =>
                 copyToClipboard(
                   sparkInformation.identityPubKey,
-                  navigate,
+                  openOverlay,
                   location
                 )
               }

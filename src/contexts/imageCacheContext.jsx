@@ -19,8 +19,6 @@ export function ImageCacheProvider({ children }) {
   const { decodedAddedContacts } = useGlobalContacts();
   const didRunContextCacheCheck = useRef(null);
 
-  console.log(cache, "imgaes cache");
-
   useEffect(() => {
     (async () => {
       try {

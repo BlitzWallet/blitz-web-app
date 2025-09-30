@@ -23,7 +23,7 @@ const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
   return acc;
 }, {});
 
-export default function RestoreWallet() {
+export default function RestoreWallet({ openOverlay }) {
   const location = useLocation();
   const params = location.state;
   const navigate = useNavigate();
@@ -73,8 +73,9 @@ export default function RestoreWallet() {
       setInputedKey(newKeys);
     } catch (err) {
       console.error(err);
-      navigate("/error", {
-        state: { errorMessage: err.message, background: location },
+      openOverlay({
+        for: "error",
+        errorMessage: err.message,
       });
     }
   };
@@ -97,8 +98,9 @@ export default function RestoreWallet() {
       });
     } catch (err) {
       console.error(err);
-      navigate("/error", {
-        state: { errorMessage: err.message, background: location },
+      openOverlay({
+        for: "error",
+        errorMessage: err.message,
       });
     } finally {
       setIsValidating(false);
