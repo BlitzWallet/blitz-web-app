@@ -72,26 +72,6 @@ const TOKEN_TICKER_MAX_LENGTH = 10;
 
 const INSET_WINDOW_WIDTH = "95%";
 
-const LIQUID_TYPES = {
-  BitcoinAddress: "BitcoinAddress",
-  LiquidAddress: "LiquidAddress",
-  Bolt11: "Bolt11",
-  Bolt12Offer: "Bolt12Offer",
-  NodeId: "NodeId",
-  Url: "Url",
-  LnUrlPay: "LnUrlPay",
-  LnUrlWithdraw: "LnUrlWithdraw",
-  LnUrlAuth: "LnUrlAuth",
-  LnUrlError: "LnUrlError",
-};
-const LIQUID_PAYMENT_METHOD = {
-  Lightning: "Lightning",
-  Bolt11Invoice: "Bolt11Invoice",
-  Bolt12Offer: "Bolt12Offer",
-  BitcoinAddress: "BitcoinAddress",
-  LiquidAddress: "LiquidAddress",
-};
-
 export {
   //   COLORS,
   //   FONT,
@@ -135,8 +115,6 @@ export {
   BLITZ_SUPPORT_DEFAULT_PAYMENT_DESCRIPTION,
   IS_DONTATION_PAYMENT_BUFFER,
   THEME_LOCAL_STORAGE_KEY,
-  LIQUID_TYPES,
-  LIQUID_PAYMENT_METHOD,
   BLITZ_PROFILE_IMG_STORAGE_REF,
   BIOMETRIC_KEY,
   BITCOIN_SAT_TEXT,

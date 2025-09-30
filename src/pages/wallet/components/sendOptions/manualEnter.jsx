@@ -55,6 +55,7 @@ export default function ManualEnterSendAddress(props) {
       <CustomButton
         buttonStyles={{
           alignSelf: "center",
+          marginTop: "auto",
           opacity: !inputValue ? 0.5 : 1,
         }}
         actionFunction={hanldeSubmit}
@@ -79,10 +80,6 @@ export default function ManualEnterSendAddress(props) {
       return;
     }
     onClose();
-    navigate("/send", {
-      state: {
-        btcAdress: response.btcAdress,
-      },
-    });
+    navigate("/send", { state: { btcAddress: response.btcAdress } });
   }
 }
