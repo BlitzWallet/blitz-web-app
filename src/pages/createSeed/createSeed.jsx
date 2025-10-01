@@ -1,6 +1,6 @@
 import "./style.css";
 import BackArrow from "../../components/backArrow/backArrow";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { generateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { KeyContainer } from "../../components/keyContainer/keyContainer";
@@ -9,12 +9,21 @@ import copyToClipboard from "../../functions/copyToClipboard";
 import { useAuth } from "../../contexts/authContext";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
+import { useTranslation } from "react-i18next";
+import useThemeColors from "../../hooks/useThemeColors";
+import ThemeText from "../../components/themeText/themeText";
+import PageNavBar from "../../components/navBar/navBar";
 
 function CreateSeed({ openOverlay }) {
+  const { t } = useTranslation();
   const { mnemoinc, setMnemoinc } = useAuth();
+  const seed = mnemoinc?.split(" ");
   const navigate = useNavigate();
   const location = useLocation();
-  const seed = mnemoinc?.split(" ");
+  const [showSeed, setShowSeed] = useState(false);
+
+  const { backgroundColor } = useThemeColors();
+  const keyContainerRef = useRef(null);
 
   const generateSeed = () => {
     try {
@@ -50,19 +59,50 @@ function CreateSeed({ openOverlay }) {
 
   return (
     <div className="seedContainer">
-      <BackArrow />
+      <PageNavBar />
       <p className="headerInfoText">
-        This is your password to your money, if you lose it you will lose your
-        money!
+        {t("createAccount.keySetup.generateKey.header")}
       </p>
 
-      <div className="keyContainerWrapper">
-        <KeyContainer keys={seed} />
+      <div>
+        <div ref={keyContainerRef} style={{ position: "relative" }}>
+          <KeyContainer keys={seed} />
+
+          {!showSeed && (
+            <div
+              className="seedOverlayContainer"
+              style={{
+                backgroundColor: backgroundColor,
+              }}
+            >
+              <div
+                className="seedOverlayContentContainer"
+                style={{ backgroundColor: Colors.dark.text }}
+              >
+                <ThemeText
+                  textContent={t(
+                    "createAccount.keySetup.generateKey.seedPrivacyMessage"
+                  )}
+                />
+                <CustomButton
+                  actionFunction={() => setShowSeed(true)}
+                  textContent={t("createAccount.keySetup.generateKey.showIt")}
+                  buttonStyles={{
+                    backgroundColor: backgroundColor,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
       <p className="firstWarningText">
-        Write it down with a pen and paper and keep it safe!
+        {t("createAccount.keySetup.generateKey.subHeader")}
       </p>
-      <p className="secondWarningText">WE CAN NOT help you if you lose it</p>
+      <p className="secondWarningText">
+        {t("createAccount.keySetup.generateKey.disclaimer")}
+      </p>
 
       <div className="buttonsContainer">
         <CustomButton

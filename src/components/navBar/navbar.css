@@ -3,6 +3,7 @@
   width: 100%;
   display: flex;
   align-items: center;
+  min-height: 40px;
 }
 .pageNavBar .backArrowContainer {
   position: absolute;
@@ -10,7 +11,7 @@
   z-index: 1;
 }
 .pageNavBar .pageHeaderText {
-  font-size: 25px;
+  font-size: 1.5rem;
   text-align: center;
   white-space: nowrap; /* Prevent line break */
   overflow: hidden; /* Hide overflow */

@@ -7,6 +7,7 @@ import { encrypt } from "../../functions/encription";
 import { useAuth } from "../../contexts/authContext";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
+import PageNavBar from "../../components/navBar/navBar";
 function CreatePassword() {
   const { login, setMnemoinc } = useAuth();
   const location = useLocation();
@@ -64,7 +65,7 @@ function CreatePassword() {
 
   return (
     <div className="passwordContainer">
-      <BackArrow />
+      <PageNavBar />
 
       <div className="inputContainer">
         <p className="containerDescription">Set Your Wallet Password</p>

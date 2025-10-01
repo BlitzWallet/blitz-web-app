@@ -18,9 +18,9 @@ export default function BackArrow({ backFunction, showWhite = false }) {
       className="backArrowContainer"
     >
       <ThemeImage
-        lightModeIcon={backArrowIcon}
-        darkModeIcon={backArrowIcon}
-        lightsOutIcon={backArrowWhiteIcon}
+        lightModeIcon={showWhite ? backArrowWhiteIcon : backArrowIcon}
+        darkModeIcon={showWhite ? backArrowWhiteIcon : backArrowIcon}
+        lightsOutIcon={showWhite ? backArrowWhiteIcon : backArrowWhiteIcon}
       />
     </div>
   );

@@ -14,6 +14,7 @@ import images from "../../assets/images.png";
 import { useCameraPermission } from "../../hooks/useCameraPermission";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
+import PageNavBar from "../../components/navBar/navBar";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
@@ -137,7 +138,7 @@ export default function Camera({ openOverlay }) {
   return (
     <div className="camera-page">
       <div className="backContainer">
-        <BackArrow showWhite={true} />
+        <PageNavBar showWhite={true} />
       </div>
       <div id="video-container" className="example-style-2">
         <video
