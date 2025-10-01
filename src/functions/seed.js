@@ -23,7 +23,6 @@ export function getPublicKey(privateKey) {
 
 export async function createAccountMnemonic() {
   try {
-    crashlyticsLogReport("Starting generting account mnemoinc");
     let generatedMnemonic = generateMnemonic(wordlist);
     const unuiqueKeys = new Set(generatedMnemonic.split(" "));
 
