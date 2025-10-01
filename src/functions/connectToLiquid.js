@@ -31,7 +31,7 @@ export async function connectToLiquidNode(mnemonic, listener) {
     );
 
     sdkInstance = await connect({ mnemonic, config });
-    sdkInstance.lnurlWithdraw;
+
     if (listener) {
       sdkInstance.addEventListener(listener);
     }

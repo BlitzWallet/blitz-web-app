@@ -7,6 +7,8 @@ import {
 } from "react";
 import startLiquidUpdateInterval from "../functions/liquidBackupUpdate";
 import { useNodeContext } from "./nodeContext";
+import { getLiquidSdk } from "../functions/connectToLiquid";
+import { JsEventListener } from "../functions/breezLiquid/JsEventListener";
 const LiquidEventContext = createContext(null);
 
 // Create a context for the WebView ref
@@ -23,11 +25,14 @@ export function LiquidEventProvider({ children }) {
   useEffect(() => {
     if (!liquidNodeInformation.didConnectToNode) return;
     if (initialLiquidRun.current) return;
-    initialLiquidRun.current = true;
-    intervalId.current = startLiquidUpdateInterval(
-      toggleLiquidNodeInformation,
-      3
-    );
+    try {
+      const sdk = getLiquidSdk();
+      const listener = new JsEventListener(onLiquidBreezEvent);
+
+      sdk.addEventListener(listener);
+    } catch (err) {
+      console.log("adding liquid event listener error", err);
+    }
   }, [liquidNodeInformation.didConnectToNode]);
 
   const debouncedStartInterval = (intervalCount) => {
