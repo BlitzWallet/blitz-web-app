@@ -338,7 +338,8 @@ export const updateSparkTxStatus = async (mnemoninc, accountId) => {
       processLightningTransactions(
         txsByType.lightning,
         unpaidInvoicesByAmount,
-        mnemoninc
+        mnemoninc,
+        accountId
       ),
       processBitcoinTransactions(txsByType.bitcoin, mnemoninc),
       processSparkTransactions(txsByType.spark),
@@ -366,7 +367,8 @@ export const updateSparkTxStatus = async (mnemoninc, accountId) => {
 async function processLightningTransactions(
   lightningTxs,
   unpaidInvoicesByAmount,
-  mnemonic
+  mnemonic,
+  accountId
 ) {
   const CONCURRENCY_LIMIT = 5;
   const updatedTxs = [];
@@ -428,16 +430,17 @@ async function processLightningTransactions(
       continue;
     }
 
-    newTxs.push({
-      ...result,
-      paymentStatus: getSparkPaymentStatus(bitcoinTransfer.status),
-      details: {
-        amount: bitcoinTransfer.totalValue,
-        direction: bitcoinTransfer.transferDirection,
-        preimage: "",
-        address: "",
-      },
-    });
+    const transformedObject = transformTxToPaymentObject(
+      bitcoinTransfer,
+      undefined,
+      undefined,
+      false,
+      [],
+      accountId,
+      1
+    );
+
+    newTxs.push(transformedObject);
   }
 
   return newTxs;
@@ -457,6 +460,7 @@ async function processLightningTransaction(
       !IS_SPARK_REQUEST_ID.test(txStateUpdate.sparkID) &&
       !possibleOptions.length
     ) {
+      // goes to be handled later by transform tx to payment
       return {
         id: txStateUpdate.sparkID,
         paymentStatus: "",
@@ -531,6 +535,11 @@ async function processLightningTransaction(
       };
 
     if (!sparkResponse?.transfer) return null;
+
+    // const fee =
+    //   sparkResponse.fee.originalValue /
+    //   (sparkResponse.fee.originalUnit === 'MILLISATOSHI' ? 1000 : 1);
+
     return {
       useTempId: true,
       tempId: txStateUpdate.sparkID,
@@ -540,6 +549,8 @@ async function processLightningTransaction(
       accountId: txStateUpdate.accountId,
       details: {
         ...details,
+        // fee: Math.round(fee),
+        // totalFee: Math.round(fee) + (details.supportFee || 0),
         preimage: sparkResponse.paymentPreimage || "",
       },
     };
@@ -612,14 +623,15 @@ async function processBitcoinTransactions(bitcoinTxs, mnemonic) {
   const cooldownPeriod = 1000 * 60; // 60 seconds
   let shouldBlockSendCheck = null;
 
-  // if (lastRun && now - JSON.parse(lastRun) < cooldownPeriod) {
-  //   console.log("Blocking bitcoin transaction processing");
-  //   shouldBlockSendCheck = true;
-  // } else {
-  //   console.log("Updating bitcoin transaction processing last run time");
-  //   shouldBlockSendCheck = false;
-  //   Storage.setItem("lastRunBitcoinTxUpdate", now);
-  // }
+  if (lastRun && now - JSON.parse(lastRun) < cooldownPeriod) {
+    console.log("Blocking bitcoin transaction processing");
+    shouldBlockSendCheck = true;
+  } else {
+    console.log("Updating bitcoin transaction processing last run time");
+    shouldBlockSendCheck = false;
+    Storage.setItem("lastRunBitcoinTxUpdate", now);
+  }
+
   const updatedTxs = [];
   let transfersOffset = 0;
   let cachedTransfers = [];

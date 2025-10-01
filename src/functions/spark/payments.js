@@ -122,13 +122,21 @@ export const sparkPaymenWrapper = async ({
         );
 
       const data = lightningPayResponse.paymentResponse;
+
+      const realPaymentFee = data?.fee?.originalValue
+        ? data?.fee?.originalValue /
+          (data?.fee?.originalUnit === "MILLISATOSHI" ? 1000 : 1)
+        : initialFee;
+
       const tx = {
         id: data.id,
         paymentStatus: "pending",
         paymentType: "lightning",
         accountId: sparkInformation.identityPubKey,
         details: {
-          fee: fee,
+          fee: realPaymentFee,
+          totalFee: supportFee + realPaymentFee,
+          supportFee: supportFee,
           amount: amountSats,
           description: memo || "",
           address: address,
@@ -140,7 +148,11 @@ export const sparkPaymenWrapper = async ({
       };
       response = tx;
 
-      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", supportFee);
+      await bulkUpdateSparkTransactions(
+        [tx],
+        "paymentWrapperTx",
+        realPaymentFee
+      );
     } else if (paymentType === "bitcoin") {
       // make sure to import exist speed
       const onChainPayResponse = await sendSparkBitcoinPayment({
@@ -166,7 +178,9 @@ export const sparkPaymenWrapper = async ({
         paymentType: "bitcoin",
         accountId: sparkInformation.identityPubKey,
         details: {
-          fee: fee + supportFee,
+          fee: fee,
+          totalFee: supportFee + fee,
+          supportFee: supportFee,
           amount: amountSats,
           address: address,
           time: new Date(data.updatedAt).getTime(),
@@ -176,7 +190,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", supportFee);
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", fee);
     } else {
       let sparkPayResponse;
 
@@ -209,7 +223,9 @@ export const sparkPaymenWrapper = async ({
         paymentType: "spark",
         accountId: sparkInformation.identityPubKey,
         details: {
-          fee: supportFee,
+          fee: 0,
+          totalFee: 0 + supportFee,
+          supportFee: supportFee,
           amount: amountSats,
           address: address,
           time:
@@ -225,7 +241,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", supportFee);
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", 0);
     }
     console.log(response, "resonse in send function");
     return { didWork: true, response };
