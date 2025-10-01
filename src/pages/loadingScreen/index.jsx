@@ -14,10 +14,8 @@ import { initializePOSTransactionsDatabase } from "../../functions/pos";
 import { initializeSparkDatabase } from "../../functions/spark/transactions";
 import { getCachedSparkTransactions } from "../../functions/spark";
 import { useLiquidEvent } from "../../contexts/liquidEventContext";
-import { connectToLiquidNode } from "../../functions/connectToLiquid.js";
 import { useSpark } from "../../contexts/sparkContext";
 import { useNavigate } from "react-router-dom";
-import { JsEventListener } from "../../functions/breezLiquid/JsEventListener.js";
 import { useNodeContext } from "../../contexts/nodeContext.jsx";
 import { Colors } from "../../constants/theme.js";
 import { useThemeContext } from "../../contexts/themeContext.jsx";
@@ -54,7 +52,6 @@ export default function LoadingScreen() {
   );
   const [hasError, setHasError] = useState("");
   const [didOpenDatabases, setDidOpenDatabases] = useState(false);
-  const liquidNodeConnectionRef = useRef(null);
   const numberOfCachedTransactionsRef = useRef(null);
 
   useEffect(() => {
@@ -85,11 +82,7 @@ export default function LoadingScreen() {
         if (!didOpen || !posTransactions || !sparkTxs)
           throw new Error("Database initialization failed");
 
-        const listener = new JsEventListener(onLiquidBreezEvent);
-        const [didConnectToLiquidNode, txs, initWallet] = await Promise.all([
-          import.meta.env.MODE === "development"
-            ? Promise.resolve({ isConnected: true })
-            : connectToLiquidNode(mnemoinc, listener),
+        const [txs, initWallet] = await Promise.all([
           getCachedSparkTransactions(),
           initializeUserSettings(
             mnemoinc,
@@ -99,10 +92,9 @@ export default function LoadingScreen() {
             toggleGlobalAppDataInformation
           ),
         ]);
-        console.log(didConnectToLiquidNode, txs, initWallet);
 
         if (!initWallet) throw new Error("Error loading user profile");
-        liquidNodeConnectionRef.current = didConnectToLiquidNode;
+
         numberOfCachedTransactionsRef.current = txs;
         setDidOpenDatabases(true);
       } catch (err) {
@@ -125,10 +117,7 @@ export default function LoadingScreen() {
       return;
     didLoadInformation.current = true;
 
-    initWallet(
-      liquidNodeConnectionRef.current,
-      numberOfCachedTransactionsRef.current
-    );
+    initWallet(numberOfCachedTransactionsRef.current);
   }, [masterInfoObject, globalContactsInformation]);
 
   return (
@@ -142,35 +131,23 @@ export default function LoadingScreen() {
       />
     </div>
   );
-  async function initWallet(didConnectToLiquidNode, txs) {
+  async function initWallet(txs) {
     console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
 
     try {
       setStartConnectingToSpark(true);
       console.log(txs, "CACHED TRANSACTIONS");
       setNumberOfCachedTxs(txs?.length || 0);
-      // if (import.meta.env.MODE === "development") {
-      //   navigate("/wallet", { replace: true });
-      //   return;
-      // }
 
-      if (didConnectToLiquidNode.isConnected) {
-        const didSetLiquid = await setLiquidNodeInformationForSession(
-          didConnectToLiquidNode.sdk
-        );
+      const didSetLiquid = await setLiquidNodeInformationForSession();
 
-        // Same thing for here, if liquid does not set continue on in the process
-        if (didSetLiquid) {
-          navigate("/wallet", { replace: true });
-        } else
-          throw new Error(
-            "Wallet information was not set properly, please try again."
-          );
-      } else {
+      // Same thing for here, if liquid does not set continue on in the process
+      if (didSetLiquid) {
+        navigate("/wallet", { replace: true });
+      } else
         throw new Error(
-          "We were unable to set up your wallet. Please try again."
+          "Wallet information was not set properly, please try again."
         );
-      }
     } catch (err) {
       setHasError(String(err.message));
       console.log(err, "homepage connection to node err");
@@ -226,15 +203,11 @@ export default function LoadingScreen() {
     return fiatRate;
   }
 
-  async function setLiquidNodeInformationForSession(sdkInstance) {
+  async function setLiquidNodeInformationForSession() {
     try {
-      const [fiat_rate] = await Promise.all([setupFiatCurrencies(sdkInstance)]);
+      const [fiat_rate] = await Promise.all([setupFiatCurrencies()]);
 
-      toggleFiatStats({ ...fiat_rate });
-
-      toggleLiquidNodeInformation({
-        didConnectToNode: true,
-      });
+      toggleFiatStats(fiat_rate);
 
       return true;
     } catch (err) {
