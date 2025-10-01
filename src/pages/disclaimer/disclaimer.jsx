@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ThemeText from "../../components/themeText/themeText";
 import Icon from "../../components/customIcon/customIcon";
+import PageNavBar from "../../components/navBar/navBar";
 function DisclaimerPage({ openOverlay }) {
   const location = useLocation();
   const params = location.state;
@@ -45,7 +46,7 @@ function DisclaimerPage({ openOverlay }) {
 
   return (
     <div className="disclaimerContainer">
-      <BackArrow />
+      <PageNavBar />
       <div className="disclaimerContentContainer">
         <h1>{t("createAccount.disclaimerPage.header")}</h1>
         <p className="recoveryText">
