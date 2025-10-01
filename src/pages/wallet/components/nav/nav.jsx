@@ -15,6 +15,7 @@ import { getAllSparkTransactions } from "../../../../functions/spark/transaction
 import { useThemeContext } from "../../../../contexts/themeContext";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import useThemeColors from "../../../../hooks/useThemeColors";
+import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
 
 export default function WalletNavBar({ openOverlay }) {
   const navigate = useNavigate();
@@ -22,19 +23,19 @@ export default function WalletNavBar({ openOverlay }) {
   const { theme, toggleTheme } = useThemeContext();
   const { backgroundColor } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { setSparkInformation, sparkInformation } = useSpark();
+  const { sparkInformation } = useSpark();
+  const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+
     await fullRestoreSparkState({
       sparkAddress: sparkInformation.sparkAddress,
+      batchSize: 5,
+      isSendingPayment: false,
+      mnemonic: currentWalletMnemoinc,
+      identityPubKey: sparkInformation.identityPubKey,
     });
-    const balance = await getSparkBalance();
-    const txs = await getAllSparkTransactions();
-    setSparkInformation((prev) => ({
-      ...prev,
-      balance: Number(balance?.balance) || prev.balance,
-      transactions: txs || prev.transactions,
-    }));
+
     setIsRefreshing(false);
     openOverlay({
       for: "error",
