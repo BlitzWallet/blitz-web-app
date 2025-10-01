@@ -143,7 +143,7 @@ export default function SendPage({ openOverlay }) {
         t,
       });
     }
-    setTimeout(decodePayment, 1000);
+    decodePayment();
   }, []);
 
   useEffect(() => {
