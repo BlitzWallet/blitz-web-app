@@ -45,7 +45,9 @@ export default function SettingsContentIndex({ openOverlay }) {
         {selectedPage === "backup wallet" && (
           <ViewMnemoinc openOverlay={openOverlay} />
         )}
-        {selectedPage === "spark info" && <SparkInformation />}
+        {selectedPage === "spark info" && (
+          <SparkInformation openOverlay={openOverlay} />
+        )}
       </div>
     </SafeAreaComponent>
   );
