@@ -64,37 +64,35 @@ function CreateSeed({ openOverlay }) {
         {t("createAccount.keySetup.generateKey.header")}
       </p>
 
-      <div>
-        <div ref={keyContainerRef} style={{ position: "relative" }}>
-          <KeyContainer keys={seed} />
+      <div className="keyContainerWrapper" ref={keyContainerRef}>
+        <KeyContainer keys={seed} />
 
-          {!showSeed && (
+        {!showSeed && (
+          <div
+            className="seedOverlayContainer"
+            style={{
+              backgroundColor: backgroundColor,
+            }}
+          >
             <div
-              className="seedOverlayContainer"
-              style={{
-                backgroundColor: backgroundColor,
-              }}
+              className="seedOverlayContentContainer"
+              style={{ backgroundColor: Colors.dark.text }}
             >
-              <div
-                className="seedOverlayContentContainer"
-                style={{ backgroundColor: Colors.dark.text }}
-              >
-                <ThemeText
-                  textContent={t(
-                    "createAccount.keySetup.generateKey.seedPrivacyMessage"
-                  )}
-                />
-                <CustomButton
-                  actionFunction={() => setShowSeed(true)}
-                  textContent={t("createAccount.keySetup.generateKey.showIt")}
-                  buttonStyles={{
-                    backgroundColor: backgroundColor,
-                  }}
-                />
-              </div>
+              <ThemeText
+                textContent={t(
+                  "createAccount.keySetup.generateKey.seedPrivacyMessage"
+                )}
+              />
+              <CustomButton
+                actionFunction={() => setShowSeed(true)}
+                textContent={t("createAccount.keySetup.generateKey.showIt")}
+                buttonStyles={{
+                  backgroundColor: backgroundColor,
+                }}
+              />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <p className="firstWarningText">

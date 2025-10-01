@@ -60,12 +60,22 @@ function DisclaimerPage({ openOverlay }) {
         </p>
 
         <div onClick={toggleTermsAcceptance} className="termsAndConditions">
-          <div className="termsAndConditionsCheckbox">
+          <div
+            style={{
+              backgroundColor: termsAccepted
+                ? Colors.constants.blue
+                : "transparent",
+              borderColor: termsAccepted
+                ? Colors.constants.blue
+                : Colors.light.text,
+            }}
+            className="termsAndConditionsCheckbox"
+          >
             {termsAccepted && (
               <Icon
                 width={10}
                 height={10}
-                color={Colors.light.text}
+                color={Colors.dark.text}
                 name={"expandedTxCheck"}
               />
             )}

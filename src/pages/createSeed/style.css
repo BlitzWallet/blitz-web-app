@@ -20,7 +20,9 @@
   max-height: 362px;
   overflow-y: scroll;
   margin: 20px auto;
+  position: relative;
 }
+
 .seedContainer .firstWarningText {
   text-align: center;
   margin: 0;
@@ -64,7 +66,6 @@
 .seedContainer .seedOverlayContentContainer {
   padding: 20px;
   border-radius: 8px;
-  max-width: 80%;
   text-align: center;
   display: flex;
   flex-direction: column;
