@@ -97,6 +97,7 @@ const RestoreWallet = lazy(() =>
 import ErrorScreen from "./pages/error/error.jsx";
 import CustomHalfModal from "./pages/customHalfModal/index.jsx";
 import InformationPopup from "./pages/informationPopup/index.jsx";
+import FullLoadingScreen from "./components/fullLoadingScreen/fullLoadingScreen.jsx";
 const ViewAllTxsPage = lazy(() =>
   import("./pages/viewAllTx/viewAllTxPage.jsx")
 );
@@ -154,13 +155,14 @@ function Root() {
                                           <div
                                             style={{
                                               flex: 1,
+                                              display: "flex",
                                               width: "100%",
                                               height: "100%",
                                               alignItems: "center",
                                               justifyContent: "center",
                                             }}
                                           >
-                                            Loading...
+                                            <FullLoadingScreen />
                                           </div>
                                         </SafeAreaComponent>
                                       }

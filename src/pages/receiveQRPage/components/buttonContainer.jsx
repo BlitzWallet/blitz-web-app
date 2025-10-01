@@ -44,15 +44,19 @@ export default function ReceiveButtonsContainer({
       />
 
       <CustomButton
-        actionFunction={() =>
-          navigate(`/receive-options`, {
-            state: {
+        actionFunction={() => {
+          openOverlay({
+            for: "halfModal",
+            contentType: "switchReceiveOptions",
+
+            params: {
               receiveOption,
               amount: initialSendAmount,
               description: description,
+              sliderHeight: "80dvh",
             },
-          })
-        }
+          });
+        }}
         buttonStyles={{
           backgroundColor: "transparent",
           borderColor: theme ? Colors.dark.text : Colors.light.text,

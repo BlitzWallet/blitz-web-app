@@ -21,6 +21,10 @@ export default function InformationPopup({ overlay, onClose }) {
 
   const handleExitComplete = () => {
     onClose();
+    if (overlay.customNavigation) {
+      overlay.customNavigation();
+      return;
+    }
   };
 
   const handleOkClick = (e) => {

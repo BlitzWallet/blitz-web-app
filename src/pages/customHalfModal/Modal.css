@@ -17,7 +17,8 @@
   height: 50vh;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
   transition: all 0.3s;
   transform: translateY(100%);
   display: flex;

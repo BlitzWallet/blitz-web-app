@@ -31,3 +31,58 @@
   height: auto;
   margin-right: 10px;
 }
+.receiveItemsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  overflow-y: scroll;
+  height: fit-content;
+}
+
+.receiveItemContainer {
+  width: 100%;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  min-height: 90px;
+}
+.receiveItemContainer .itemTextContiner {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  flex-grow: 1;
+}
+.receiveItemContainer .logoContainer {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+}
+.receiveItemContainer .receiveLogo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+.receiveItemContainer .itemTextContiner p {
+  margin: 0;
+}
+
+.receiveItemsContainer .moreOptionsButton {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}

@@ -5,6 +5,7 @@ import useThemeColors from "../../hooks/useThemeColors";
 import { useThemeContext } from "../../contexts/themeContext";
 import "./Modal.css";
 import ManualEnterSendAddress from "../wallet/components/sendOptions/manualEnter";
+import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
 
 export default function CustomHalfModal({
   onClose,
@@ -19,7 +20,7 @@ export default function CustomHalfModal({
   const [isOpen, setIsOpen] = useState(null);
 
   // Default slide height (percentage of screen)
-  const slideHeight = params?.sliderHeight || 0.5;
+  const slideHeight = params?.sliderHeight || "50dvh";
 
   const handleClose = useCallback(() => {
     console.log("being clicked");
@@ -46,6 +47,14 @@ export default function CustomHalfModal({
         return (
           <ManualEnterSendAddress openOverlay={openOverlay} onClose={onClose} />
         );
+      case "switchReceiveOptions":
+        return (
+          <SwitchReceiveOption
+            params={params}
+            openOverlay={openOverlay}
+            onClose={onClose}
+          />
+        );
       case "confirmSMS":
         return <div>Confirm SMS: {params?.message}</div>;
       default:
@@ -62,6 +71,7 @@ export default function CustomHalfModal({
         style={{
           backgroundColor:
             theme && darkModeType ? backgroundOffset : backgroundColor,
+          height: slideHeight,
         }}
         onClick={(e) => e.stopPropagation()} // prevent backdrop close
       >

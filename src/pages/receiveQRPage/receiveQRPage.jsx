@@ -15,23 +15,28 @@ import ThemeImage from "../../components/ThemeImage/themeImage";
 import aboutIcon from "../../assets/aboutIcon.png";
 import aboutIconWhite from "../../assets/aboutIconWhite.png";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
+import { encodeLNURL } from "../../functions/lnurl/bench32Formmater";
+import FullLoadingScreen from "../../components/fullLoadingScreen/fullLoadingScreen";
 
 export default function ReceiveQRPage({ openOverlay }) {
   const { globalContactsInformation } = useGlobalContacts();
-  const { currentWalletMnemoinc } = useActiveCustodyAccount();
+  const { currentWalletMnemoinc, isUsingAltAccount } =
+    useActiveCustodyAccount();
   const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
 
+  console.log(props, "receive props");
+
   const receiveOption = props?.receiveOption;
-  const amount = props?.amount;
+  const amount = props?.amount || 0;
   const description = props?.description;
   const navigateHome = props?.navigateHome;
   const hasInitialized = useRef(false);
 
   const initialSendAmount = Number(amount);
-  const paymentDescription = description;
+  const paymentDescription = description || "";
   const selectedRecieveOption = (receiveOption || "Lightning").toLowerCase();
 
   console.log(initialSendAmount, paymentDescription, selectedRecieveOption);
@@ -39,7 +44,9 @@ export default function ReceiveQRPage({ openOverlay }) {
   const [addressState, setAddressState] = useState({
     selectedRecieveOption: selectedRecieveOption,
     isReceivingSwap: false,
-    generatedAddress: `${globalContactsInformation.myProfile.uniqueName}@blitzwalletapp.com`,
+    generatedAddress: encodeLNURL(
+      globalContactsInformation?.myProfile?.uniqueName
+    ),
     isGeneratingInvoice: false,
     minMaxSwapAmount: { min: 0, max: 0 },
     swapPegInfo: {},
@@ -49,20 +56,6 @@ export default function ReceiveQRPage({ openOverlay }) {
   });
 
   useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-    console.log(
-      "RENDERING",
-      initialSendAmount,
-      paymentDescription,
-      selectedRecieveOption
-    );
-    if (
-      !initialSendAmount &&
-      selectedRecieveOption.toLowerCase() === "lightning"
-    )
-      return;
-
     initializeAddressProcess({
       userBalanceDenomination: "sats",
       receivingAmount: initialSendAmount,
@@ -72,8 +65,15 @@ export default function ReceiveQRPage({ openOverlay }) {
       selectedRecieveOption,
       navigate,
       currentWalletMnemoinc,
+      globalContactsInformation,
+      isUsingAltAccount,
     });
-  }, [initialSendAmount, paymentDescription, selectedRecieveOption, navigate]);
+  }, [
+    initialSendAmount,
+    paymentDescription,
+    selectedRecieveOption,
+    globalContactsInformation?.myProfile?.uniqueName,
+  ]);
 
   useEffect(() => {
     if (selectedRecieveOption !== "bitcoin") return;
@@ -110,8 +110,8 @@ export default function ReceiveQRPage({ openOverlay }) {
         />
         <ReceiveButtonsContainer
           initialSendAmount={initialSendAmount}
-          description={description}
-          receiveOption={receiveOption}
+          description={paymentDescription}
+          receiveOption={selectedRecieveOption}
           generatingInvoiceQRCode={addressState.isGeneratingInvoice}
           generatedAddress={addressState.generatedAddress}
           theme={theme}
@@ -173,7 +173,7 @@ function QrCode({
         style={{ backgroundColor: backgroundOffset }}
         className="qrCodeContainerReceivePage"
       >
-        <p>loading...</p>
+        <FullLoadingScreen showText={false} />
       </div>
     );
   }
@@ -183,9 +183,12 @@ function QrCode({
         style={{ backgroundColor: backgroundOffset }}
         className="qrCodeContainerReceivePage"
       >
-        <p>
-          {addressState.errorMessageText.text || "Unable to generate address"}
-        </p>
+        <ThemeText
+          className={"receiveErrorText"}
+          textContent={
+            addressState.errorMessageText.text || "Unable to generate address"
+          }
+        />
       </div>
     );
   }

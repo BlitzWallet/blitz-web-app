@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Chart from "react-google-charts";
 import {
   BLITZ_GOAL_USER_COUNT,
@@ -15,6 +15,11 @@ import "./exploreUsers.css";
 import { Colors } from "../../../../constants/theme";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
+import { useKeysContext } from "../../../../contexts/keysContext";
+import { useTranslation } from "react-i18next";
+import Storage from "../../../../functions/localStorage";
+import { shouldLoadExploreData } from "../../../../functions/initializeUserSettingsHelpers";
+import fetchBackend from "../../../../../db/handleBackend";
 
 const DAY_IN_MILLS = 86400000;
 const WEEK_IN_MILLS = DAY_IN_MILLS * 7;
@@ -37,16 +42,21 @@ const MONTH_GROUPING = [
 ];
 
 export default function ExploreUsers() {
+  const { contactsPrivateKey, publicKey } = useKeysContext();
   const [timeFrame, setTimeFrame] = useState("day");
-  const { masterInfoObject } = useGlobalContextProvider();
-  console.log(masterInfoObject.exploreData);
+  const [isLoading, setIsLoading] = useState(true);
+  const { masterInfoObject, toggleMasterInfoObject } =
+    useGlobalContextProvider();
+  const { backgroundOffset, textColor, backgroundColor } = useThemeColors();
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset } = useThemeColors();
-  //   const { t } = useTranslation();
+  const { t } = useTranslation();
   const [targetUserCountBarWidth, setTargetUserCountBarWidth] = useState(0);
   const [yAxisWidth, setYAxisWidth] = useState(0);
+  const [chartWidth, setChartWidth] = useState(0);
 
-  const dataObject = JSON.parse(JSON.stringify(masterInfoObject.exploreData));
+  const dataObject = masterInfoObject.exploreData
+    ? JSON.parse(JSON.stringify(masterInfoObject.exploreData))
+    : false;
   const data = dataObject ? dataObject[timeFrame].reverse() : [];
 
   const min = data.reduce(
@@ -136,6 +146,42 @@ export default function ExploreUsers() {
       </button>
     ));
   }, [timeFrame, theme, darkModeType]);
+
+  useEffect(() => {
+    async function loadExploreData() {
+      try {
+        if (masterInfoObject.exploreData) return;
+        const pastExploreData = Storage.getItem("savedExploreData");
+
+        const shouldLoadExporeDataResp = shouldLoadExploreData(pastExploreData);
+
+        if (!shouldLoadExporeDataResp) {
+          toggleMasterInfoObject({ exploreData: pastExploreData.data });
+          throw new Error("Blocking call since data is up to date");
+        }
+
+        const freshExploreData = await fetchBackend(
+          "getTotalUserCount",
+          { data: publicKey },
+          contactsPrivateKey,
+          publicKey
+        );
+
+        if (freshExploreData) {
+          toggleMasterInfoObject({ exploreData: freshExploreData });
+          Storage.setItem("savedExploreData", {
+            lastUpdated: new Date().getTime(),
+            data: freshExploreData,
+          });
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadExploreData();
+  }, []);
 
   if (
     !masterInfoObject.exploreData ||

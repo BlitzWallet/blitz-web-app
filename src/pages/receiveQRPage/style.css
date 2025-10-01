@@ -27,6 +27,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+}
+.receiveQrPageContent .receiveErrorText {
+  padding: 10px;
+  text-align: center;
 }
 .receiveQrPageContent .formattedSatTextContainer p {
   margin-top: 0;
