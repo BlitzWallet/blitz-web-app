@@ -10,18 +10,17 @@
   gap: 10px;
   width: 100%;
   max-width: 300px;
-  margin-bottom: 20px;
 }
 
 .keyboard-container .keyboard-key {
   padding: 15px;
-  font-size: 18px;
+  font-size: 1.1rem;
   /* border: 1px solid #ccc; */
   /* border-radius: 5px; */
   background: transparent;
   cursor: pointer;
 }
 .keyboard-container .number-keyboard img {
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
 }

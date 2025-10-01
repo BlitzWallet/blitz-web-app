@@ -6,7 +6,7 @@
 .receiveQrPage .confirmTxAnimation {
   width: 95%;
   height: auto;
-  max-width: 250px;
+  max-width: 200px;
 }
 .receiveQrPage .contentContainer {
   display: flex;

@@ -263,6 +263,19 @@ const SparkWalletProvider = ({ children, navigate }) => {
         null,
         sparkInformation.identityPubKey
       );
+      const balance = await getSparkBalance(currentWalletMnemoinc);
+
+      setSparkInformation((prev) => {
+        return {
+          ...prev,
+          transactions: txs || prev.transactions,
+          balance: Math.round(
+            (balance.didWork ? Number(balance.balance) : prev.balance) - fee
+          ),
+          tokens: balance.tokensObj,
+        };
+      });
+      return;
       if (
         updateType === "supportTx" ||
         updateType === "restoreTxs" ||
@@ -282,7 +295,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
         }));
         return;
       }
-      const balance = await getSparkBalance(currentWalletMnemoinc);
 
       if (updateType === "paymentWrapperTx") {
         setSparkInformation((prev) => {

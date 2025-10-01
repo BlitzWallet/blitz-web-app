@@ -120,7 +120,6 @@ const EditReceivePaymentInformation = () => {
       <CustomButton
         actionFunction={handleSubmit}
         buttonStyles={{
-          maxWidth: "200px",
           margin: "0 auto",
         }}
         textContent={"Request"}
