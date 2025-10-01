@@ -152,7 +152,7 @@ async function fetchTxidsFromBlockstream(
 }
 
 export function handleTxIdState(txId, didClaim, address) {
-  let savedDepositTxids = Storage.getItem("depositAddressTxIds") || {};
+  let savedDepositTxids = Storage.getItem("alreadyClaimedTxs") || {};
 
   let savedTxIds = savedDepositTxids[address] || [];
 
@@ -165,11 +165,10 @@ export function handleTxIdState(txId, didClaim, address) {
     console.warn("didClaim must be a boolean value");
     return;
   }
-
   if (savedTxIds.includes(txId.txid)) return;
 
   savedTxIds.push(txId.txid);
   savedDepositTxids[address] = savedTxIds;
 
-  Storage.setItem("depositAddressTxIds", savedDepositTxids);
+  Storage.setItem("alreadyClaimedTxs", savedDepositTxids);
 }
