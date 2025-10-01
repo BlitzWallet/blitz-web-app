@@ -1,36 +1,98 @@
 import BackArrow from "../../components/backArrow/backArrow";
 import disclaimerKeys from "../../assets/disclaimerKeys.png";
 import "./style.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
-
-function DisclaimerPage() {
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import ThemeText from "../../components/themeText/themeText";
+import Icon from "../../components/customIcon/customIcon";
+function DisclaimerPage({ openOverlay }) {
+  const location = useLocation();
+  const params = location.state;
+  const nextPageName = params?.nextPageName;
   const navigate = useNavigate();
+  const [termsAccepted, setTermsAccepted] = useState(false); // Add acceptance state
+  const { t } = useTranslation();
+
+  const nextPage = () => {
+    if (!termsAccepted) {
+      openOverlay({
+        for: "error",
+        errorMessage: t("createAccount.disclaimerPage.acceptError"),
+      });
+      return;
+    }
+    navigate(nextPageName);
+  };
+
+  const openTermsAndConditions = (e) => {
+    console.log("test");
+    console.log(e);
+
+    if (e) {
+      e.preventDefault(); // Stops default browser behavior
+      e.stopPropagation(); // Stops event from bubbling up to parent elements
+    }
+
+    // Remove the early return!
+    window.open("https://blitzwalletapp.com/pages/terms/", "_blank");
+  };
+  const toggleTermsAcceptance = () => {
+    setTermsAccepted(!termsAccepted);
+  };
+
   return (
     <div className="disclaimerContainer">
       <BackArrow />
       <div className="disclaimerContentContainer">
-        <h1>Self-custodial</h1>
+        <h1>{t("createAccount.disclaimerPage.header")}</h1>
         <p className="recoveryText">
-          Blitz cannot access your funds or help recover them if lost. By
-          continuing, you agree to Blitz Wallet's terms and conditions.
+          {t("createAccount.disclaimerPage.subHeader")}
         </p>
         <div className="imgContainer">
           <img loading="lazy" src={disclaimerKeys} />
         </div>
         <p className="quoteText">
-          "With great power comes great responsibility" - Uncle Ben
+          {t("createAccount.disclaimerPage.imgCaption")}
         </p>
+
+        <div onClick={toggleTermsAcceptance} className="termsAndConditions">
+          <div className="termsAndConditionsCheckbox">
+            {termsAccepted && (
+              <Icon
+                width={10}
+                height={10}
+                color={Colors.light.text}
+                name={"expandedTxCheck"}
+              />
+            )}
+          </div>
+          <div className="termsTextContainer">
+            <ThemeText
+              textStyles={{ fontSize: "0.75rem", margin: 0, marginRight: 3 }}
+              textContent={t("createAccount.disclaimerPage.acceptPrefix")}
+            />{" "}
+            <div onClick={openTermsAndConditions}>
+              <ThemeText
+                textStyles={{
+                  fontSize: "0.75rem",
+                  margin: 0,
+                  color: "var(--primaryBlue)",
+                }}
+                className={"termsLink"}
+                textContent={t("createAccount.disclaimerPage.terms&Conditions")}
+              />
+            </div>
+          </div>
+        </div>
         <CustomButton
-          actionFunction={() => navigate("/createAccount")}
+          actionFunction={nextPage}
           textStyles={{ color: Colors.dark.text }}
           buttonStyles={{ backgroundColor: Colors.light.blue }}
           textContent={"Next"}
         />
-        <a href="https://blitzwalletapp.com/pages/terms/">
-          Terms and Conditions
-        </a>
       </div>
     </div>
   );

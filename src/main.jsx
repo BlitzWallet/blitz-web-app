@@ -181,7 +181,9 @@ function Root() {
                                           path="/disclaimer"
                                           element={
                                             <SafeAreaComponent>
-                                              <DisclaimerPage />
+                                              <DisclaimerPage
+                                                openOverlay={openOverlay}
+                                              />
                                             </SafeAreaComponent>
                                           }
                                         />
