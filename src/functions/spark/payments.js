@@ -148,11 +148,7 @@ export const sparkPaymenWrapper = async ({
       };
       response = tx;
 
-      await bulkUpdateSparkTransactions(
-        [tx],
-        "paymentWrapperTx",
-        realPaymentFee
-      );
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", 0);
     } else if (paymentType === "bitcoin") {
       // make sure to import exist speed
       const onChainPayResponse = await sendSparkBitcoinPayment({
@@ -190,7 +186,7 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", fee);
+      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", 0);
     } else {
       let sparkPayResponse;
 
