@@ -1,73 +1,288 @@
-// SlideUpPage.jsx
-import BackArrow from "../../components/backArrow/backArrow";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import lightningIcon from "../../assets/lightningBoltDark.png";
-import lightningIconLight from "../../assets/lightningBoltLight.png";
-import bitcoinIcon from "../../assets/chainDark.png";
-import bitcoinIconLight from "../../assets/chainLight.png";
-import sparkIcon from "../../assets/SparkAsteriskBlack.png";
-import sparkIconLight from "../../assets/SparkAsteriskWhite.png";
-import "./style.css";
-
 import { useEffect, useState } from "react";
-import useThemeColors from "../../hooks/useThemeColors";
+import {
+  arrow_small_left_white,
+  bitcoinReceiveIcon,
+  blockstreamLiquid,
+  lightningReceiveIcon,
+  liquidReceiveIcon,
+  rootstockLogo,
+  smallArrowLeft,
+  sparkAsteriskWhite,
+} from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
-import ThemeImage from "../../components/ThemeImage/themeImage";
+import { useTranslation } from "react-i18next";
 import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
+import "./style.css";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
+import { useAppStatus } from "../../contexts/appStatus";
+import { useActiveCustodyAccount } from "../../contexts/activeAccount";
+import { useKeysContext } from "../../contexts/keysContext";
+import { useNavigate } from "react-router-dom";
+import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
+import { useNodeContext } from "../../contexts/nodeContext";
 
-export default function SwitchReceiveOption() {
-  const [selectedOption, setSelectedOption] = useState("");
-  const { backgroundColor, backgroundOffset } = useThemeColors();
-  const { theme } = useThemeContext();
-  const naigate = useNavigate();
-  const location = useLocation();
-  const props = location.state;
+const MAIN_PAYMENTS = [
+  ["Lightning", "Instant"],
+  ["Bitcoin", "~ 10 minutes"],
+  ["Spark", "Instant"],
+  ["Liquid", "~ 1 minute"],
+  // ["Rootstock", "~ 1 minute"],
+];
 
-  const amount = props?.amount;
-  const description = props?.description;
+export default function SwitchReceiveOption({ onClose, params, openOverlay }) {
+  const navigate = useNavigate();
+  const { fiatStats } = useNodeContext();
+  const { currentWalletMnemonic } = useActiveCustodyAccount();
+  const { accountMnemoinc } = useKeysContext();
+  const { minMaxLiquidSwapAmounts } = useAppStatus();
+  const { theme, darkModeType } = useThemeContext();
+  const { masterInfoObject } = useGlobalContextProvider();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+  const { t } = useTranslation();
+  const { backgroundColor, backgroundOffset, textColor } = useThemeColors();
+  const isLRC20Enabled = masterInfoObject?.lrc20Settings?.isEnabled;
+
+  const didWarnLiquid = params?.didWarnLiquid;
+  const didWarnSpark = params?.didWarnSpark;
+  const didWarnRootstock = params?.didWarnRootstock;
 
   useEffect(() => {
-    if (!selectedOption) return;
-    naigate(`/receive`, {
-      state: {
-        receiveOption: selectedOption,
-        amount: Number(amount),
-        description: description,
-        navigateHome: true,
-      },
-      replace: true,
-    });
-  }, [selectedOption]);
-  return (
-    <div style={{ backgroundColor }} className="sliderContainer">
-      <BackArrow />
-      <div
-        style={{ backgroundColor: backgroundOffset }}
-        className="optionsContainer"
+    if (!didWarnSpark && !didWarnLiquid && !didWarnRootstock) return;
+    handleGoBack(
+      didWarnLiquid ? "Liquid" : didWarnSpark ? "Spark" : "Rootstock"
+    );
+  }, [didWarnSpark, didWarnLiquid, didWarnRootstock]);
+
+  const handleGoBack = (selectedOption) => {
+    onClose();
+    setTimeout(() => {
+      navigate("/receive", {
+        state: {
+          receiveOption: selectedOption,
+          amount: 0,
+          description: "",
+        },
+        replace: true,
+      });
+    }, 200);
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleClick = (selectedOption) => {
+    if (selectedOption === "Spark" && !isLRC20Enabled) {
+      openOverlay({
+        for: "informationPopup",
+        textContent: t(
+          "wallet.receivePages.switchReceiveOptionPage.sparkWarningMessage"
+        ),
+        buttonText: t("constants.understandText"),
+        customNavigation: () => {
+          console.log("runninghere");
+          openOverlay({
+            for: "halfModal",
+            contentType: "switchReceiveOptions",
+            params: {
+              didWarnSpark: true,
+            },
+          });
+        },
+      });
+      return;
+    } else if (selectedOption === "Liquid") {
+      openOverlay({
+        for: "informationPopup",
+        textContent:
+          t("wallet.receivePages.switchReceiveOptionPage.swapWarning", {
+            amount: displayCorrectDenomination({
+              amount: minMaxLiquidSwapAmounts.min,
+              masterInfoObject,
+              fiatStats,
+            }),
+            swapType: "Liquid",
+          }) +
+          `${currentWalletMnemonic !== accountMnemoinc ? "\n\n" : ""}${
+            currentWalletMnemonic !== accountMnemoinc
+              ? t(
+                  "wallet.receivePages.switchReceiveOptionPage.notUsingMainAccountWarning",
+                  {
+                    swapType: "Liquid",
+                  }
+                )
+              : ""
+          }`,
+        buttonText: t("constants.understandText"),
+        customNavigation: () => {
+          console.log("runninghere");
+          openOverlay({
+            for: "halfModal",
+            contentType: "switchReceiveOptions",
+            params: {
+              didWarnLiquid: true,
+            },
+          });
+        },
+      });
+
+      return;
+    } else if (selectedOption === "Rootstock") {
+      const warningText = `Minimum swap amount is ${
+        minMaxLiquidSwapAmounts.rsk.min + 1000
+      } sats for Rootstock.${
+        currentWalletMnemonic !== accountMnemoinc
+          ? "\n\nYou are not using your main account for Rootstock swaps."
+          : ""
+      }`;
+
+      if (navigate) {
+        navigate("InformationPopup", {
+          textContent: warningText,
+          buttonText: "I Understand",
+          customNavigation: () =>
+            navigate("switchReceiveOption", { didWarnRootstock: true }),
+        });
+      }
+      return;
+    }
+    handleGoBack(selectedOption);
+  };
+
+  const paymentTypes = MAIN_PAYMENTS.map((item, index) => {
+    const [name] = item;
+    return (
+      <button
+        key={name}
+        onClick={() => handleClick(name)}
+        className="receiveItemContainer"
+        style={{
+          backgroundColor:
+            theme && darkModeType ? backgroundColor : backgroundOffset,
+          marginBottom: index !== 4 ? "20px" : 0,
+        }}
       >
         <div
-          onClick={() => setSelectedOption("lightning")}
-          className="option"
-          style={{ backgroundColor }}
+          className="logoContainer"
+          style={{
+            backgroundColor: theme
+              ? darkModeType
+                ? backgroundOffset
+                : backgroundColor
+              : "var(--primaryBlue)",
+          }}
         >
-          <img src={theme ? lightningIconLight : lightningIcon} alt="" />
-          <ThemeText textContent={"Lightning | Best for small payments"} />
+          <img
+            className="receiveLogo"
+            src={
+              name === "Lightning"
+                ? lightningReceiveIcon
+                : name === "Bitcoin"
+                ? bitcoinReceiveIcon
+                : name === "Spark"
+                ? sparkAsteriskWhite
+                : name === "Liquid"
+                ? blockstreamLiquid
+                : rootstockLogo
+            }
+            alt={name}
+          />
         </div>
-        <div
-          onClick={() => setSelectedOption("bitcoin")}
-          className="option"
-          style={{ backgroundColor }}
-        >
-          <img src={theme ? bitcoinIconLight : bitcoinIcon} alt="" />
-          <ThemeText textContent={"Bitcoin | Best for large payments"} />
+        <div className="itemTextContiner">
+          <ThemeText
+            textContent={
+              name === "Lightning"
+                ? "Lightning Network"
+                : name === "Bitcoin"
+                ? "On-Chain"
+                : name === "Liquid"
+                ? "Liquid Network"
+                : name === "Spark"
+                ? "Spark"
+                : "Rootstock"
+            }
+          />
+          <ThemeText
+            textStyles={{ opacity: 0.7, fontSize: "0.75rem" }}
+            textContent={
+              name === "Lightning"
+                ? t("constants.instant")
+                : name === "Bitcoin"
+                ? t("wallet.receivePages.switchReceiveOptionPage.tenMinutes", {
+                    numMins: 10,
+                  })
+                : name === "Liquid"
+                ? t("wallet.receivePages.switchReceiveOptionPage.oneMinute", {
+                    numMins: 1,
+                  })
+                : name === "Spark"
+                ? t("constants.instant")
+                : t("wallet.receivePages.switchReceiveOptionPage.tenMinutes", {
+                    numMins: 3,
+                  })
+            }
+          />
         </div>
+      </button>
+    );
+  });
+
+  return (
+    <div className="receiveItemsContainer">
+      <ThemeText
+        textStyles={{ marginTop: 10, marginBottom: 20 }}
+        textContent={t("wallet.receivePages.switchReceiveOptionPage.title")}
+      />
+
+      {paymentTypes.slice(0, isLRC20Enabled ? 3 : 2)}
+
+      <button className="moreOptionsButton" onClick={toggleExpanded}>
+        <ThemeText
+          textContent={t(
+            "wallet.receivePages.switchReceiveOptionPage.actionBTN",
+            {
+              action: isExpanded
+                ? t("constants.lessLower")
+                : t("constants.moreLower"),
+            }
+          )}
+        />
         <div
-          onClick={() => setSelectedOption("spark")}
-          className="option"
-          style={{ backgroundColor }}
+          style={{
+            marginLeft: "5px",
+            width: "15px",
+            height: "15px",
+            transform: `rotate(${isExpanded ? 90 : -90}deg)`,
+            transition: "transform 0.3s ease",
+          }}
         >
-          <img src={theme ? sparkIconLight : sparkIcon} alt="" />
-          <ThemeText textContent={"Spark"} />
+          <img
+            style={{ width: "100%", height: "100%" }}
+            src={theme ? arrow_small_left_white : smallArrowLeft}
+            alt="arrow"
+          />
+        </div>
+      </button>
+
+      <div
+        style={{
+          width: "100%",
+          maxHeight: isExpanded ? `${contentHeight}px` : "0px",
+          overflow: "hidden",
+          transition: "max-height 0.3s ease",
+        }}
+      >
+        <div
+          ref={(el) => {
+            if (el && contentHeight === 0) {
+              setContentHeight(el.scrollHeight);
+            }
+          }}
+          style={{ width: "100%" }}
+        >
+          {paymentTypes.slice(isLRC20Enabled ? 3 : 2)}
         </div>
       </div>
     </div>

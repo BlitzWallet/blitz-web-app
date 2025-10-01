@@ -1,6 +1,7 @@
-import { QUICK_PAY_STORAGE_KEY } from "../../constants";
+import { NWC_IDENTITY_PUB_KEY, QUICK_PAY_STORAGE_KEY } from "../../constants";
 import { BLITZ_FEE_PERCET, BLITZ_FEE_SATS } from "../../constants/math";
 import Storage from "../localStorage";
+import { isNewDaySince } from "../rotateAddressDateChecker";
 
 const keys = [
   "homepageTxPreferance",
@@ -15,6 +16,10 @@ const keys = [
   QUICK_PAY_STORAGE_KEY,
   "crashReportingSettings",
   "enabledDeveloperSupport",
+  "didViewNWCMessage",
+  "userSelectedLanguage",
+  NWC_IDENTITY_PUB_KEY,
+  "userBalanceDenomination",
 ];
 
 const defaultValues = {
@@ -41,6 +46,10 @@ const defaultValues = {
     baseFee: BLITZ_FEE_SATS,
     baseFeePercent: BLITZ_FEE_PERCET,
   },
+  didViewNWCMessage: false,
+  userSelectedLanguage: "en",
+  [NWC_IDENTITY_PUB_KEY]: "",
+  userBalanceDenomination: "",
 };
 
 export const fetchLocalStorageItems = async () => {
@@ -73,5 +82,28 @@ export const fetchLocalStorageItems = async () => {
       parsedResults[10] ?? defaultValues.crashReportingSettings,
     enabledDeveloperSupport:
       parsedResults[11] ?? defaultValues.enabledDeveloperSupport,
+    didViewNWCMessage: parsedResults[12] ?? defaultValues.didViewNWCMessage,
+    userSelectedLanguage:
+      parsedResults[13] ?? defaultValues.userSelectedLanguage,
+    nwc_identity_pub_key:
+      parsedResults[14] ?? defaultValues[NWC_IDENTITY_PUB_KEY],
+    userBalanceDenomination:
+      parsedResults[15] ?? defaultValues.userBalanceDenomination,
   };
 };
+
+export function shouldLoadExploreData(savedExploreRawData) {
+  let shouldFetchUserCount = false;
+  try {
+    if (
+      !savedExploreRawData?.lastUpdated ||
+      isNewDaySince(savedExploreRawData?.lastUpdated)
+    ) {
+      shouldFetchUserCount = true;
+    }
+  } catch (err) {
+    console.log("error in should load explore data", err);
+  }
+
+  return shouldFetchUserCount;
+}

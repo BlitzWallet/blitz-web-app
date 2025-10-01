@@ -5,16 +5,21 @@ import {
 import { breezLiquidReceivePaymentWrapper } from "../breezLiquid";
 
 import customUUID from "../customUUID";
+import { encodeLNURL } from "../lnurl/bench32Formmater";
 import { sparkReceivePaymentWrapper } from "../spark/payments";
 
 let invoiceTracker = [];
 export async function initializeAddressProcess(wolletInfo) {
-  const { setAddressState, selectedRecieveOption } = wolletInfo;
+  const {
+    setAddressState,
+    selectedRecieveOption,
+    globalContactsInformation,
+    isUsingAltAccount,
+  } = wolletInfo;
   const requestUUID = customUUID();
   invoiceTracker.push(requestUUID);
   let stateTracker = {};
   let hasGlobalError = false;
-  console.log(wolletInfo.currentWalletMnemoinc);
   try {
     setAddressState((prev) => {
       return {
@@ -31,18 +36,27 @@ export async function initializeAddressProcess(wolletInfo) {
       };
     });
     if (selectedRecieveOption.toLowerCase() === "lightning") {
-      const response = await sparkReceivePaymentWrapper({
-        paymentType: "lightning",
-        amountSats: wolletInfo.receivingAmount,
-        memo: wolletInfo.description,
-        mnemoinc: wolletInfo.currentWalletMnemoinc,
-      });
-      // const response = await generateLightningAddress(wolletInfo);
-      if (!response.didWork) throw new Error("Error with lightning");
-      stateTracker = {
-        generatedAddress: response.invoice,
-        fee: 0,
-      };
+      if (!wolletInfo.receivingAmount && !isUsingAltAccount) {
+        stateTracker = {
+          generatedAddress: encodeLNURL(
+            globalContactsInformation?.myProfile?.uniqueName
+          ),
+          fee: 0,
+        };
+      } else {
+        const response = await sparkReceivePaymentWrapper({
+          paymentType: "lightning",
+          amountSats: wolletInfo.receivingAmount,
+          memo: wolletInfo.description,
+          mnemoinc: wolletInfo.currentWalletMnemoinc,
+        });
+        // const response = await generateLightningAddress(wolletInfo);
+        if (!response.didWork) throw new Error("Error with lightning");
+        stateTracker = {
+          generatedAddress: response.invoice,
+          fee: 0,
+        };
+      }
       // stateTracker = response
     } else if (selectedRecieveOption.toLowerCase() === "bitcoin") {
       const response = await sparkReceivePaymentWrapper({
