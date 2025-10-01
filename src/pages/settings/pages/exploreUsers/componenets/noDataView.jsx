@@ -10,6 +10,7 @@ import Lottie from "lottie-react";
 import errorTxAnimation from "../../../../../assets/errorTxAnimation.json";
 import ThemeText from "../../../../../components/themeText/themeText";
 import "./noData.css";
+import { useTranslation } from "react-i18next";
 
 export default function NoDataView() {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +18,7 @@ export default function NoDataView() {
   const { publicKey, contactsPrivateKey } = useKeysContext();
   const { toggleMasterInfoObject } = useGlobalContextProvider();
   const animationRef = useRef(null);
+  const { t } = useTranslation();
 
   const errorAnimation = useMemo(() => {
     return applyErrorAnimationTheme(
@@ -62,13 +64,13 @@ export default function NoDataView() {
 
       <ThemeText
         styles={{ marginBottom: "auto" }}
-        content={"We were unable to retrive Blitz user count."}
+        textContent={t("errormessages.explorePagenoDataError")}
       />
       <CustomButton
         actionFunction={handleSearch}
         useLoading={isLoading}
         buttonStyles={{ marginTop: "auto" }}
-        textContent={"Try again"}
+        textContent={t("constants.tryAgain")}
       />
     </div>
   );

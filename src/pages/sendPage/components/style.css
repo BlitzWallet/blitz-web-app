@@ -18,4 +18,5 @@
   flex: 1;
   max-width: 400px;
   overflow-y: scroll;
+  text-align: center;
 }

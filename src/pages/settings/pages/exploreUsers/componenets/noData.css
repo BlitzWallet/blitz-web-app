@@ -6,4 +6,5 @@
 }
 .exporeUsersDataErrorContainer .lottieViewAnimation {
   margin-top: auto;
+  max-width: 200px;
 }

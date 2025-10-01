@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import Storage from "../../../../functions/localStorage";
 import { shouldLoadExploreData } from "../../../../functions/initializeUserSettingsHelpers";
 import fetchBackend from "../../../../../db/handleBackend";
+import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
 
 const DAY_IN_MILLS = 86400000;
 const WEEK_IN_MILLS = DAY_IN_MILLS * 7;
@@ -83,30 +84,30 @@ export default function ExploreUsers() {
 
   const getChartData = () => {
     const headers = ["Time", "Users"];
+    console.log(data);
     const rows = data.map((item, index) => {
       let label;
       const now = new Date().getTime();
       if (timeFrame === "year") {
-        label = new Date(now - YEAR_IN_MILLS * Math.abs(6 - index))
-          .getFullYear()
-          .toString();
+        label = `${new Date(
+          now - YEAR_IN_MILLS * Math.abs(6 - index)
+        ).getFullYear()}`;
       } else if (timeFrame === "month") {
         const dateIndex = new Date(
           now - MONTH_IN_MILLS * Math.abs(6 - index)
         ).getMonth();
-        label = MONTH_GROUPING[dateIndex].slice(0, 3);
+        label = t(`months.${MONTH_GROUPING[dateIndex]}`).slice(0, 3);
       } else if (timeFrame === "day") {
+        const now = new Date().getTime() - DAY_IN_MILLS;
         const dateIndex = new Date(
           now - DAY_IN_MILLS * Math.abs(7 - index)
         ).getDay();
-        label = WEEK_OPTIONS[dateIndex].slice(0, 3);
+        label = t(`weekdays.${WEEK_OPTIONS[dateIndex]}`).slice(0, 3);
       } else {
-        const nowDate = new Date();
-        const todayDay = nowDate.getDay();
+        const now = new Date();
+        const todayDay = now.getDay();
         const daysToSunday = 7 - (todayDay === 0 ? 7 : todayDay);
-        const endOfWeek = new Date(
-          nowDate.getTime() + daysToSunday * DAY_IN_MILLS
-        );
+        const endOfWeek = new Date(now.getTime() + daysToSunday * DAY_IN_MILLS);
         const dateIndex = new Date(
           endOfWeek - WEEK_IN_MILLS * Math.abs(6 - index)
         );
@@ -142,10 +143,10 @@ export default function ExploreUsers() {
             theme && darkModeType ? Colors.dark.text : Colors.light.blue,
         }}
       >
-        {item}
+        {t(`constants.${item}`)}
       </button>
     ));
-  }, [timeFrame, theme, darkModeType]);
+  }, [timeFrame, theme, darkModeType, t]);
 
   useEffect(() => {
     async function loadExploreData() {
@@ -183,6 +184,10 @@ export default function ExploreUsers() {
     loadExploreData();
   }, []);
 
+  if (isLoading) {
+    return <FullLoadingScreen />;
+  }
+
   if (
     !masterInfoObject.exploreData ||
     !Object.keys(masterInfoObject.exploreData).length
@@ -197,12 +202,12 @@ export default function ExploreUsers() {
       >
         <ThemeText
           className={"downloadsContainerHeader"}
-          textContent={"Blitz Wallet Downloads"}
+          textContent={t("screens.inAccount.explorePage.title")}
         />
         <ThemeText
           className={"todayText"}
           styles={{ marginBottom: 5 }}
-          textContent={"Today"}
+          textContent={t("constants.today")}
         />
         <div className="donwloadsRow">
           <DateCountdown />
@@ -227,7 +232,10 @@ export default function ExploreUsers() {
           />
         </div>
         <div className="donwloadsRow">
-          <ThemeText textStyles={{ marginTop: 0 }} textContent={"Yesterday"} />
+          <ThemeText
+            textStyles={{ marginTop: 0 }}
+            textContent={t("constants.yesterday")}
+          />
           <ThemeText
             textContent={`${formatBalanceAmount(
               totalYesterday
@@ -257,6 +265,14 @@ export default function ExploreUsers() {
                 color:
                   theme && darkModeType ? Colors.dark.text : Colors.light.text,
               },
+              ticks: (() => {
+                const minVal = Math.round(min * 0.95);
+                const maxVal = Math.round(
+                  max * (timeFrame !== "day" ? 1.2 : 1.05)
+                );
+                const step = Math.round((maxVal - minVal) / 5);
+                return Array.from({ length: 6 }, (_, i) => minVal + step * i);
+              })(),
               viewWindow: {
                 min: Math.round(min * 0.95),
                 max: Math.round(max * (timeFrame !== "day" ? 1.2 : 1.05)),
