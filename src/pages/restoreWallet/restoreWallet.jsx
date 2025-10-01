@@ -34,6 +34,17 @@ export default function RestoreWallet({ openOverlay }) {
   const [inputedKey, setInputedKey] = useState(INITIAL_KEY_STATE);
 
   const handleInputElement = (text, keyNumber) => {
+    const restoredSeed = handleRestoreFromText(text);
+
+    if (restoredSeed.didWork && restoredSeed?.seed?.length === 12) {
+      const splitSeed = restoredSeed.seed;
+      const newKeys = {};
+      NUMARRAY.forEach((num, index) => {
+        newKeys[`key${num}`] = splitSeed[index];
+      });
+      setInputedKey(newKeys);
+      return;
+    }
     setInputedKey((prev) => ({ ...prev, [`key${keyNumber}`]: text }));
   };
 
