@@ -307,17 +307,16 @@ export const sparkReceivePaymentWrapper = async ({
 async function handleSupportPayment(masterInfoObject, supportFee, mnemonic) {
   try {
     if (masterInfoObject?.enabledDeveloperSupport?.isEnabled) {
-      await new Promise((res) => setTimeout(res, 2000));
-      await sendSparkPayment({
-        receiverSparkAddress: import.meta.env.VITE_BLITZ_SPARK_ADDRESS,
-        amountSats: supportFee,
-        mnemonic: mnemonic,
-      });
-
-      sparkTransactionsEventEmitter.emit(
-        SPARK_TX_UPDATE_ENVENT_NAME,
-        "supportTx"
-      );
+      // await new Promise((res) => setTimeout(res, 2000));
+      // await sendSparkPayment({
+      //   receiverSparkAddress: import.meta.env.VITE_BLITZ_SPARK_ADDRESS,
+      //   amountSats: supportFee,
+      //   mnemonic: mnemonic,
+      // });
+      // sparkTransactionsEventEmitter.emit(
+      //   SPARK_TX_UPDATE_ENVENT_NAME,
+      //   "supportTx"
+      // );
     }
   } catch (err) {
     console.log("Error sending support payment", err);
