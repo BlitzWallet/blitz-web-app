@@ -31,7 +31,9 @@ export default function SettingsContentIndex({ openOverlay }) {
         {selectedPage === "display options" && <DisplayOptions />}
 
         {selectedPage === "edit contact profile" && (
-          <EditMyProfilePage fromSettings={true} pageType="myProfile" />
+          <EditMyProfilePage
+            navProps={{ fromSettings: true, pageType: "myProfile" }}
+          />
         )}
 
         {selectedPage === "fast pay" && <FastPay />}

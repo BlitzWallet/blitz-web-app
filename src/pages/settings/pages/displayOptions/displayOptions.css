@@ -44,3 +44,9 @@
   margin-top: 0;
   margin-bottom: 0;
 }
+
+/* removing bad css styles  */
+#displayOptionsContainer .css-2s7so3-MuiSlider-root {
+  padding: 0 !important;
+  margin-bottom: 0 !important;
+}
