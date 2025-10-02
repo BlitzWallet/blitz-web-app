@@ -21,26 +21,15 @@ import Storage from "../../../../functions/localStorage";
 import { shouldLoadExploreData } from "../../../../functions/initializeUserSettingsHelpers";
 import fetchBackend from "../../../../../db/handleBackend";
 import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
-
-const DAY_IN_MILLS = 86400000;
-const WEEK_IN_MILLS = DAY_IN_MILLS * 7;
-const MONTH_IN_MILLS = DAY_IN_MILLS * 30;
-const YEAR_IN_MILLS = DAY_IN_MILLS * 365;
-const WEEK_OPTIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTH_GROUPING = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { useServerTimeOnly } from "../../../../contexts/serverTime";
+import {
+  DAY_IN_MILLS,
+  MONTH_GROUPING,
+  MONTH_IN_MILLS,
+  WEEK_IN_MILLS,
+  WEEK_OPTIONS,
+  YEAR_IN_MILLS,
+} from "../../../../functions/explore/constants";
 
 export default function ExploreUsers() {
   const { contactsPrivateKey, publicKey } = useKeysContext();
@@ -54,6 +43,8 @@ export default function ExploreUsers() {
   const [targetUserCountBarWidth, setTargetUserCountBarWidth] = useState(0);
   const [yAxisWidth, setYAxisWidth] = useState(0);
   const [chartWidth, setChartWidth] = useState(0);
+  const getServerTime = useServerTimeOnly();
+  const currentTime = getServerTime();
 
   const dataObject = masterInfoObject.exploreData
     ? JSON.parse(JSON.stringify(masterInfoObject.exploreData))
@@ -87,7 +78,7 @@ export default function ExploreUsers() {
     console.log(data);
     const rows = data.map((item, index) => {
       let label;
-      const now = new Date().getTime();
+      const now = currentTime;
       if (timeFrame === "year") {
         label = `${new Date(
           now - YEAR_IN_MILLS * Math.abs(6 - index)
@@ -98,13 +89,13 @@ export default function ExploreUsers() {
         ).getMonth();
         label = t(`months.${MONTH_GROUPING[dateIndex]}`).slice(0, 3);
       } else if (timeFrame === "day") {
-        const now = new Date().getTime() - DAY_IN_MILLS;
+        const now = currentTime - DAY_IN_MILLS;
         const dateIndex = new Date(
           now - DAY_IN_MILLS * Math.abs(7 - index)
         ).getDay();
         label = t(`weekdays.${WEEK_OPTIONS[dateIndex]}`).slice(0, 3);
       } else {
-        const now = new Date();
+        const now = new Date(currentTime);
         const todayDay = now.getDay();
         const daysToSunday = 7 - (todayDay === 0 ? 7 : todayDay);
         const endOfWeek = new Date(now.getTime() + daysToSunday * DAY_IN_MILLS);
@@ -210,7 +201,7 @@ export default function ExploreUsers() {
           textContent={t("constants.today")}
         />
         <div className="donwloadsRow">
-          <DateCountdown />
+          <DateCountdown getServerTime={getServerTime} />
           <ThemeText
             textContent={`${formatBalanceAmount(max)} of ${formatBalanceAmount(
               BLITZ_GOAL_USER_COUNT

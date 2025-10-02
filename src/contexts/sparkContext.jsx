@@ -95,6 +95,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
   const [startConnectingToSpark, setStartConnectingToSpark] = useState(false);
 
   const sessionTime = useMemo(() => {
+    console.log("Updating wallet session time");
     return Date.now();
   }, [currentWalletMnemoinc]);
 
