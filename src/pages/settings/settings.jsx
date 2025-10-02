@@ -33,6 +33,7 @@ import Icon from "../../components/customIcon/customIcon";
 import { Colors } from "../../constants/theme";
 import ThemeImage from "../../components/ThemeImage/themeImage";
 import { useThemeContext } from "../../contexts/themeContext";
+import useThemeColors from "../../hooks/useThemeColors";
 
 const GENERALOPTIONS = [
   {
@@ -147,6 +148,7 @@ export default function SettingsHome({ openOverlay }) {
   const props = location.state;
   const { deleteWallet } = useAuth();
   const { theme, darkModeType } = useThemeContext();
+  const { backgroundOffset } = useThemeColors();
   const settignsList = props?.isDoomsday ? DOOMSDAYSETTINGS : SETTINGSOPTIONS;
 
   useEffect(() => {
@@ -161,6 +163,7 @@ export default function SettingsHome({ openOverlay }) {
     const internalElements = item.map((settingsElement, id) => {
       return (
         <div
+          style={{ borderBottomColor: backgroundOffset }}
           key={id}
           onClick={() => {
             if (settingsElement.name === "Delete Wallet") {
@@ -219,6 +222,7 @@ export default function SettingsHome({ openOverlay }) {
     return (
       <div key={`itemContainer-${id}`} className="settingsItemGroupContainer">
         <ThemeText
+          textStyles={{ marginTop: id === 0 ? 0 : 20 }}
           className={"settingsItemGroupHeader"}
           textContent={
             id === 0

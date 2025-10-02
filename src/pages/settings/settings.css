@@ -15,15 +15,16 @@
   margin: 5px 0;
 }
 .settingsPage .settingsItemGroupContainer .settingsItemGroupHeader {
-  font-size: 1.2rem;
+  opacity: 0.8;
   margin: 0;
 }
 .settingsPage .settingsItemGroupContainer .settingsItemContainer {
   display: flex;
   align-items: center;
-  width: 97%;
+  width: 100;
   cursor: pointer;
-  margin: 10px auto;
+  padding: 15px 0;
+  border-bottom: 1px solid;
 }
 .settingsPage
   .settingsItemGroupContainer
