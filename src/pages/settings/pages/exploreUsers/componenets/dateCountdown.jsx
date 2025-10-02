@@ -1,19 +1,19 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import ThemeText from "../../../../../components/themeText/themeText";
 
-export default function DateCountdown() {
+export default function DateCountdown({ getServerTime }) {
   const [minuteTick, setMinuteTick] = useState();
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    setMinuteTick(getFommattedTime());
+    setMinuteTick(getFommattedTime(getServerTime));
 
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
 
     intervalRef.current = setInterval(() => {
-      setMinuteTick(getFommattedTime());
+      setMinuteTick(getFommattedTime(getServerTime));
     }, 1000);
 
     return () => {
@@ -28,9 +28,8 @@ export default function DateCountdown() {
   return <ThemeText textContent={`(${minuteTick} left)`} />;
 }
 
-function getFommattedTime() {
-  const timestamp = new Date().getTime();
-  const date = new Date(timestamp);
+function getFommattedTime(getServerTime) {
+  const date = new Date(getServerTime());
 
   // Get midnight of the same day
   const midnight = new Date(date);
