@@ -127,7 +127,7 @@ export default function AboutPage() {
           textContent={"Oliver Koblizek"}
         />
       </div>
-      <p style={{ color: textColor }}>Version 0.0.9</p>
+      <p style={{ color: textColor }}>Version 0.1.0</p>
     </div>
   );
 }
