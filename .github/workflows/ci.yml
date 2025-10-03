@@ -18,10 +18,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: "npm"
+
+      - name: Clean npm cache
+        run: |
+          npm cache clean --force
+
       - name: Install dependencies
         run: |
           set -euxo pipefail
-          npm install
+          rm -rf node_modules package-lock.json
+          npm install --prefer-online
 
       - name: Run ESLint
         run: |
