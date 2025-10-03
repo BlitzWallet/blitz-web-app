@@ -6,6 +6,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import "./Modal.css";
 import ManualEnterSendAddress from "../wallet/components/sendOptions/manualEnter";
 import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
+import EditLNURLContactOnReceivePage from "./components/editLNURLOnReceive";
 
 export default function CustomHalfModal({
   onClose,
@@ -53,6 +54,19 @@ export default function CustomHalfModal({
             params={params}
             openOverlay={openOverlay}
             onClose={onClose}
+          />
+        );
+      case "editLNURLOnReceive":
+        return (
+          <EditLNURLContactOnReceivePage
+            theme={theme}
+            darkModeType={darkModeType}
+            slideHeight={slideHeight}
+            isKeyboardActive={isKeyboardActive}
+            setIsKeyboardActive={setIsKeyboardActive}
+            setContentHeight={setContentHeight}
+            openOverlay={openOverlay}
+            onClose={handleClose}
           />
         );
       case "confirmSMS":
