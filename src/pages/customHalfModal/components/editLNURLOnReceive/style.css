@@ -1,0 +1,39 @@
+.editLNURLContactOnReceiveContainer {
+  padding: 20px;
+  width: 100%;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  min-height: 100%;
+}
+.editLNURLContactOnReceiveContainer .profileContainer {
+  width: 125px;
+  height: 125px;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  align-self: center;
+}
+.editLNURLContactOnReceiveContainer .addImage {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--darkModeText);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+}
+.editLNURLContactOnReceiveContainer .infoContainer {
+  display: flex;
+  align-items: center;
+}

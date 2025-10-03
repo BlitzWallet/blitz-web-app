@@ -15,13 +15,20 @@ import ThemeImage from "../../components/ThemeImage/themeImage";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { encodeLNURL } from "../../functions/lnurl/bench32Formmater";
 import FullLoadingScreen from "../../components/fullLoadingScreen/fullLoadingScreen";
-import { aboutIcon } from "../../constants/icons";
+import { aboutIcon, editIconLight } from "../../constants/icons";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
+import { useNodeContext } from "../../contexts/nodeContext";
+import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
+import { Colors } from "../../constants/theme";
 
 export default function ReceiveQRPage({ openOverlay }) {
+  const { masterInfoObject } = useGlobalContextProvider();
+  const { fiatStats } = useNodeContext();
   const { globalContactsInformation } = useGlobalContacts();
   const { currentWalletMnemoinc, isUsingAltAccount } =
     useActiveCustodyAccount();
   const { theme, darkModeType } = useThemeContext();
+  const { textColor } = useThemeColors();
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
@@ -107,6 +114,19 @@ export default function ReceiveQRPage({ openOverlay }) {
           darkModeType={darkModeType}
           openOverlay={openOverlay}
         />
+        {!isUsingAltAccount && (
+          <LNURLContainer
+            theme={theme}
+            textColor={textColor}
+            selectedRecieveOption={selectedRecieveOption}
+            initialSendAmount={initialSendAmount}
+            globalContactsInformation={globalContactsInformation}
+            navigate={navigate}
+            masterInfoObject={masterInfoObject}
+            fiatStats={fiatStats}
+            openOverlay={openOverlay}
+          />
+        )}
         <ReceiveButtonsContainer
           initialSendAmount={initialSendAmount}
           description={paymentDescription}
@@ -151,6 +171,74 @@ export default function ReceiveQRPage({ openOverlay }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function LNURLContainer({
+  theme,
+  textColor,
+  selectedRecieveOption,
+  initialSendAmount,
+  globalContactsInformation,
+  navigate,
+  masterInfoObject,
+  fiatStats,
+  openOverlay,
+}) {
+  return (
+    <div
+      onClick={() => {
+        if (
+          !(
+            selectedRecieveOption.toLowerCase() === "lightning" &&
+            !initialSendAmount
+          )
+        )
+          return;
+        openOverlay({
+          for: "halfModal",
+          contentType: "editLNURLOnReceive",
+        });
+        navigate.navigate("CustomHalfModal", {
+          wantedContent: "editLNURLOnReceive",
+        });
+      }}
+      className="lnurlContainer"
+    >
+      <ThemeText
+        textStyles={{
+          marginRight: 5,
+          color: theme || initialSendAmount ? textColor : Colors.constants.blue,
+        }}
+        CustomNumberOfLines={1}
+        textContent={
+          selectedRecieveOption.toLowerCase() === "lightning" &&
+          !initialSendAmount
+            ? `${globalContactsInformation?.myProfile?.uniqueName}@blitzwalletapp.com`
+            : !initialSendAmount ||
+              selectedRecieveOption.toLowerCase() === "spark" ||
+              selectedRecieveOption.toLowerCase() === "rootstock"
+            ? " "
+            : displayCorrectDenomination({
+                amount: initialSendAmount,
+                masterInfoObject,
+                fiatStats,
+              })
+        }
+      />
+      {selectedRecieveOption.toLowerCase() === "lightning" &&
+        !initialSendAmount && (
+          <ThemeImage
+            filter={
+              theme
+                ? undefined
+                : "brightness(0) saturate(100%) invert(26%) sepia(93%) saturate(3135%) hue-rotate(205deg) brightness(106%) contrast(97%)"
+            }
+            styles={{ height: 20, width: 20 }}
+            icon={editIconLight}
+          />
+        )}
     </div>
   );
 }
