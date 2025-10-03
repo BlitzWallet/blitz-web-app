@@ -7,7 +7,7 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import { Colors } from "../../../../constants/theme";
 import ThemeText from "../../../../components/themeText/themeText";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import { clipboardBlue, clipboardLight } from "../../../../constants/icons";
+import { clipboardBlue } from "../../../../constants/icons";
 
 export default function SparkInformation({ openOverlay }) {
   const { sparkInformation } = useSpark();
@@ -48,9 +48,7 @@ export default function SparkInformation({ openOverlay }) {
               />
               <ThemeImage
                 styles={{ width: 20, height: 20 }}
-                lightModeIcon={clipboardBlue}
-                darkModeIcon={clipboardBlue}
-                lightsOutIcon={clipboardLight}
+                icon={clipboardBlue}
               />
             </span>
           </div>
@@ -75,9 +73,7 @@ export default function SparkInformation({ openOverlay }) {
               />
               <ThemeImage
                 styles={{ width: 20, height: 20 }}
-                lightModeIcon={clipboardBlue}
-                darkModeIcon={clipboardBlue}
-                lightsOutIcon={clipboardLight}
+                icon={clipboardBlue}
               />
             </span>
           </div>

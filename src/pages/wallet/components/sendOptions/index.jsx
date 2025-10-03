@@ -14,11 +14,8 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import "./style.css";
 import {
   clipboardDark,
-  clipboardLight,
   contactsIcon,
-  contactsIconLight,
   editIcon,
-  ImagesIcon,
   ImagesIconDark,
 } from "../../../../constants/icons";
 import {
@@ -34,13 +31,6 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
   const { t } = useTranslation();
 
   const sendOptionElements = ["img", "clipboard", "manual"].map((item, key) => {
-    const lightIcon =
-      item === "img"
-        ? ImagesIcon
-        : item === "clipboard"
-        ? clipboardLight
-        : editIcon;
-
     const darkIcon =
       item === "img"
         ? ImagesIconDark
@@ -128,12 +118,7 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
               />
             </div>
           ) : (
-            <ThemeImage
-              styles={styles.icon}
-              lightModeIcon={darkIcon}
-              darkModeIcon={lightIcon}
-              lightsOutIcon={lightIcon}
-            />
+            <ThemeImage styles={styles.icon} icon={darkIcon} />
           )}
           <ThemeText textStyles={styles.optionText} textContent={itemText} />
         </div>

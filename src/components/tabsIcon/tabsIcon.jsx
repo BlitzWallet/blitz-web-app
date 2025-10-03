@@ -6,8 +6,9 @@ import {
   contactsIconBlueSelected,
   walletBlueIcon,
 } from "../../constants/icons";
+import ThemeImage from "../ThemeImage/themeImage";
 
-export default function TabsIcon({ value, icon, theme, darkModeType }) {
+export default function TabsIcon({ value, icon }) {
   let imgSrc =
     icon === "contacts"
       ? value === 0
@@ -21,16 +22,6 @@ export default function TabsIcon({ value, icon, theme, darkModeType }) {
       ? appstoreFilled
       : appstore;
   return (
-    <img
-      style={{
-        height: "20px",
-        width: "20px",
-        filter:
-          theme && darkModeType
-            ? "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(134deg) brightness(111%) contrast(101%)"
-            : "unset",
-      }}
-      src={imgSrc}
-    />
+    <ThemeImage styles={{ height: "20px", width: "20px" }} icon={imgSrc} />
   );
 }

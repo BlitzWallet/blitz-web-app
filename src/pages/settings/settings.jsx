@@ -12,24 +12,15 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import {
   aboutIcon,
-  aboutIconWhite,
   colorIcon,
-  colorIconWhite,
   contactsIconBlue,
-  contactsIconWhite,
   currencyIcon,
-  currencyIconWhite,
   keyIcon,
-  keyIconWhite,
   leftCheveronIcon,
   navigationIcon,
-  navigationIconWhite,
   nodeIcon,
-  nodeIconWhite,
   receiptIcon,
-  receiptWhite,
   trashIcon,
-  trashIconWhite,
 } from "../../constants/icons";
 
 const GENERALOPTIONS = [
@@ -37,21 +28,18 @@ const GENERALOPTIONS = [
     for: "general",
     name: "About",
     icon: aboutIcon,
-    iconWhite: aboutIconWhite,
     arrowIcon: leftCheveronIcon,
   },
   {
     for: "general",
     name: "Display Currency",
     icon: currencyIcon,
-    iconWhite: currencyIconWhite,
     arrowIcon: leftCheveronIcon,
   },
   {
     for: "general",
     name: "Display Options",
     icon: colorIcon,
-    iconWhite: colorIconWhite,
     arrowIcon: leftCheveronIcon,
   },
 
@@ -59,7 +47,6 @@ const GENERALOPTIONS = [
     for: "general",
     name: "Edit Contact Profile",
     icon: contactsIconBlue,
-    iconWhite: contactsIconWhite,
     arrowIcon: leftCheveronIcon,
   },
   {
@@ -74,7 +61,6 @@ const GENERALOPTIONS = [
     name: "Blitz Stats",
     svgName: "crashDebugIcon",
     icon: navigationIcon,
-    iconWhite: navigationIconWhite,
     arrowIcon: leftCheveronIcon,
   },
 ];
@@ -83,7 +69,6 @@ const SECURITYOPTIONS = [
     for: "Security & Customization",
     name: "Backup wallet",
     icon: keyIcon,
-    iconWhite: keyIconWhite,
     arrowIcon: leftCheveronIcon,
   },
 ];
@@ -93,21 +78,18 @@ const ADVANCEDOPTIONS = [
     for: "Closing Account",
     name: "Blitz Fee Details",
     icon: receiptIcon,
-    iconWhite: receiptWhite,
     arrowIcon: leftCheveronIcon,
   },
   {
     for: "Closing Account",
     name: "Delete Wallet",
     icon: trashIcon,
-    iconWhite: trashIconWhite,
     arrowIcon: leftCheveronIcon,
   },
   {
     for: "Closing Account",
     name: "Spark Info",
     icon: nodeIcon,
-    iconWhite: nodeIconWhite,
     arrowIcon: leftCheveronIcon,
   },
 ];
@@ -122,7 +104,6 @@ const DOOMSDAYSETTINGS = [
       for: "Security & Customization",
       name: "Backup wallet",
       icon: keyIcon,
-      iconWhite: keyIconWhite,
       arrowIcon: leftCheveronIcon,
     },
   ],
@@ -131,7 +112,6 @@ const DOOMSDAYSETTINGS = [
       for: "Closing Account",
       name: "Delete Wallet",
       icon: trashIcon,
-      iconWhite: trashIconWhite,
       arrowIcon: leftCheveronIcon,
     },
   ],
@@ -191,26 +171,18 @@ export default function SettingsHome({ openOverlay }) {
           ) : (
             <ThemeImage
               className="settingsItemImage"
-              lightModeIcon={settingsElement.icon}
-              darkModeIcon={settingsElement.icon}
-              lightsOutIcon={settingsElement.iconWhite}
+              icon={settingsElement.icon}
               styles={{ width: 20, height: 20 }}
             />
-            // <img className="settingsItemImage" src={settingsElement.icon} />
           )}
           <ThemeText
             className={"settingsItemName"}
             textContent={settingsElement.name}
           />
-          <img
+          <ThemeImage
+            styles={{ width: 20, height: 20 }}
             className="settingsItemChevron"
-            style={{
-              filter:
-                theme && darkModeType
-                  ? "brightness(0) saturate(100%) invert(100%) sepia(3%) saturate(7500%) hue-rotate(137deg) brightness(113%) contrast(101%)"
-                  : "initial",
-            }}
-            src={settingsElement.arrowIcon}
+            icon={settingsElement.arrowIcon}
           />
         </div>
       );

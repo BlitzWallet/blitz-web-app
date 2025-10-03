@@ -30,7 +30,7 @@ import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { useTranslation } from "react-i18next";
 import { InputTypes } from "bitcoin-address-parser";
 import ThemeImage from "../../components/ThemeImage/themeImage";
-import { adminHomeWallet, adminHomeWallet_white } from "../../constants/icons";
+import { adminHomeWallet } from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
 
 export default function SendPage({ openOverlay }) {
@@ -530,9 +530,7 @@ function NabBar({ sparkInformation }) {
         <ThemeImage
           styles={{ width: 20, height: 20 }}
           alt="wallet icon to show user balance"
-          lightModeIcon={adminHomeWallet}
-          darkModeIcon={adminHomeWallet_white}
-          lightsOutIcon={adminHomeWallet_white}
+          icon={adminHomeWallet}
         />
         <FormattedSatText balance={sparkInformation.balance} />
       </div>

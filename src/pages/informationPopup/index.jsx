@@ -8,7 +8,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import ThemeImage from "../../components/ThemeImage/themeImage";
-import { xSmallIcon, xSmallIconWhite } from "../../constants/icons";
+import { xSmallIcon } from "../../constants/icons";
 
 export default function InformationPopup({ overlay, onClose }) {
   const navigate = useNavigate();
@@ -66,9 +66,7 @@ export default function InformationPopup({ overlay, onClose }) {
             <ThemeImage
               clickFunction={handleOkClick}
               className="closeImage"
-              lightModeIcon={xSmallIcon}
-              darkModeIcon={xSmallIcon}
-              lightsOutIcon={xSmallIconWhite}
+              icon={xSmallIcon}
             />
             <ThemeText className={"message"} textContent={errorMessage} />
 

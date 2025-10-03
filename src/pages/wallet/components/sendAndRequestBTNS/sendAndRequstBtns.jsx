@@ -29,9 +29,7 @@ export default function SendAndRequestBtns({ openOverlay }) {
         />
         <ThemeImage
           styles={{ width: "100%", height: "100%" }}
-          lightModeIcon={sendRequestImage}
-          darkModeIcon={sendRequestImage}
-          lightsOutIcon={sendRequestImage}
+          icon={sendRequestImage}
           className="send"
         />
       </div>
@@ -45,9 +43,7 @@ export default function SendAndRequestBtns({ openOverlay }) {
       >
         <ThemeImage
           styles={{ width: "60%", height: "60%" }}
-          lightModeIcon={Qr}
-          darkModeIcon={Qr}
-          lightsOutIcon={Qr}
+          icon={Qr}
           className="request"
         />
       </div>
@@ -59,9 +55,7 @@ export default function SendAndRequestBtns({ openOverlay }) {
         />
         <ThemeImage
           styles={{ width: "100%", height: "100%" }}
-          lightModeIcon={sendRequestImage}
-          darkModeIcon={sendRequestImage}
-          lightsOutIcon={sendRequestImage}
+          icon={sendRequestImage}
           className="request"
         />
       </div>

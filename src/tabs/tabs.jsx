@@ -1,10 +1,8 @@
 import { BottomNavigation, BottomNavigationAction } from "@mui/material";
 import useThemeColors from "../hooks/useThemeColors";
 import TabsIcon from "../components/tabsIcon/tabsIcon";
-import { useThemeContext } from "../contexts/themeContext";
 
 export default function BottomTabs({ setValue, value, Link }) {
-  const { theme, darkModeType } = useThemeContext();
   const { backgroundColor, backgroundOffset, textColor } = useThemeColors();
 
   return (
@@ -45,14 +43,7 @@ export default function BottomTabs({ setValue, value, Link }) {
               },
             }}
             label="Contacts"
-            icon={
-              <TabsIcon
-                theme={theme}
-                darkModeType={darkModeType}
-                value={value}
-                icon="contacts"
-              />
-            }
+            icon={<TabsIcon value={value} icon="contacts" />}
             component={Link}
             to="/contacts"
           />
@@ -68,14 +59,7 @@ export default function BottomTabs({ setValue, value, Link }) {
               },
             }}
             label="Home"
-            icon={
-              <TabsIcon
-                theme={theme}
-                darkModeType={darkModeType}
-                value={value}
-                icon="wallet"
-              />
-            }
+            icon={<TabsIcon value={value} icon="wallet" />}
             component={Link}
             to="/wallet"
           />
@@ -91,14 +75,7 @@ export default function BottomTabs({ setValue, value, Link }) {
               },
             }}
             label="Store"
-            icon={
-              <TabsIcon
-                theme={theme}
-                darkModeType={darkModeType}
-                value={value}
-                icon="store"
-              />
-            }
+            icon={<TabsIcon value={value} icon="store" />}
             component={Link}
             to="/store"
           />

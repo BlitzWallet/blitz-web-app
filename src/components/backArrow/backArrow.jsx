@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import "./style.css";
 import ThemeImage from "../ThemeImage/themeImage";
-import { arrow_small_left_white, smallArrowLeft } from "../../constants/icons";
+import { smallArrowLeft } from "../../constants/icons";
+import { WHITE_FILTER } from "../../constants";
 
 export default function BackArrow({ backFunction, showWhite = false }) {
   const navigate = useNavigate();
@@ -17,11 +18,8 @@ export default function BackArrow({ backFunction, showWhite = false }) {
       className="backArrowContainer"
     >
       <ThemeImage
-        lightModeIcon={showWhite ? arrow_small_left_white : smallArrowLeft}
-        darkModeIcon={showWhite ? arrow_small_left_white : smallArrowLeft}
-        lightsOutIcon={
-          showWhite ? arrow_small_left_white : arrow_small_left_white
-        }
+        icon={smallArrowLeft}
+        filter={showWhite ? WHITE_FILTER : undefined}
       />
     </div>
   );

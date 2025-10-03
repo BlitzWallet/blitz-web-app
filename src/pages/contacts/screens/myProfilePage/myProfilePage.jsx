@@ -12,11 +12,7 @@ import { Colors } from "../../../../constants/theme";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import {
-  ImagesIconDark,
-  settingsIcon,
-  settingsWhite,
-} from "../../../../constants/icons";
+import { ImagesIconDark, settingsIcon } from "../../../../constants/icons";
 
 export default function MyProfilePage({ openOverlay }) {
   const { cache } = useImageCache();
@@ -81,9 +77,7 @@ export default function MyProfilePage({ openOverlay }) {
               state: { pageType: "myProfile", fromSettings: false },
             })
           }
-          lightModeIcon={settingsIcon}
-          darkModeIcon={settingsIcon}
-          lightsOutIcon={settingsWhite}
+          icon={settingsIcon}
         />
       </div>
       <div

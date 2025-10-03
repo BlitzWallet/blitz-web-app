@@ -15,7 +15,7 @@ import ThemeImage from "../../components/ThemeImage/themeImage";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { encodeLNURL } from "../../functions/lnurl/bench32Formmater";
 import FullLoadingScreen from "../../components/fullLoadingScreen/fullLoadingScreen";
-import { aboutIcon, aboutIconWhite } from "../../constants/icons";
+import { aboutIcon } from "../../constants/icons";
 
 export default function ReceiveQRPage({ openOverlay }) {
   const { globalContactsInformation } = useGlobalContacts();
@@ -141,9 +141,7 @@ export default function ReceiveQRPage({ openOverlay }) {
             <ThemeText textStyles={{ margin: 0 }} textContent={"Fee"} />
             <ThemeImage
               styles={{ width: 15, height: 15, marginLeft: "5px" }}
-              lightModeIcon={aboutIcon}
-              darkModeIcon={aboutIcon}
-              lightsOutIcon={aboutIconWhite}
+              icon={aboutIcon}
             />
           </div>
           {selectedRecieveOption.toLowerCase() === "bitcoin" ? (

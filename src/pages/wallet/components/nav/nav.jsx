@@ -44,28 +44,25 @@ export default function WalletNavBar({ openOverlay }) {
   }, []);
   return (
     <div style={{ backgroundColor }} className="walletNavBar">
-      <ThemeImage
-        clickFunction={() => toggleTheme(!theme)}
-        lightModeIcon={darkMode}
-        darkModeIcon={lightMode}
-        lightsOutIcon={lightModeWhite}
-      />
+      <div className="themeContainer" onClick={() => toggleTheme(!theme)}>
+        {theme ? (
+          <ThemeImage icon={lightMode} />
+        ) : (
+          <ThemeImage icon={darkMode} />
+        )}
+      </div>
 
       <div className="refreshContainer">
         <ThemeImage
           styles={{ width: 23, height: 23 }}
           clickFunction={handleRefresh}
-          lightModeIcon={refresh}
-          darkModeIcon={refresh}
-          lightsOutIcon={refreshWhite}
+          icon={refresh}
           className={`${isRefreshing ? "spinningAnimation" : ""}`}
         />
       </div>
       <ThemeImage
         clickFunction={() => navigate("/settings")}
-        lightModeIcon={settingsIcon}
-        darkModeIcon={settingsIcon}
-        lightsOutIcon={settingsWhite}
+        icon={settingsIcon}
       />
     </div>
   );

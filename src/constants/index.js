@@ -21,6 +21,9 @@ const IS_BITCOIN_REQUEST_ID = /^SparkCoopExitRequest:[0-9a-fA-F\-]+$/;
 const NOSTR_NAME_REGEX = /^[a-zA-Z0-9]+$/;
 const NOSTR_RELAY_URL = "wss://relay.getalbypro.com/blitz";
 
+const WHITE_FILTER =
+  "brightness(0) saturate(100%) invert(100%) sepia(3%) saturate(7500%) hue-rotate(137deg) brightness(113%) contrast(101%)";
+
 const IS_LETTER_REGEX = /^[A-Za-z]$/;
 const BITCOIN_SATS_ICON = "\u20BF";
 const HIDDEN_BALANCE_TEXT = `* * * * *`;
@@ -135,4 +138,5 @@ export {
   NWC_LOACAL_STORE_KEY,
   LOGIN_SECURITY_MODE_TYPE_KEY,
   NWC_IDENTITY_PUB_KEY,
+  WHITE_FILTER,
 };

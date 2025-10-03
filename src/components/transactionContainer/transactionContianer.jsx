@@ -9,6 +9,7 @@ import { HIDDEN_BALANCE_TEXT } from "../../constants";
 import ThemeText from "../themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
 import { pendingTx, smallArrowLeft } from "../../constants/icons";
+import ThemeImage from "../ThemeImage/themeImage";
 
 export default function TransactionContanier({ frompage }) {
   const { sparkInformation } = useSpark();
@@ -148,8 +149,8 @@ function TxItem({
       className="transaction"
       key={index}
     >
-      <img
-        style={{
+      <ThemeImage
+        styles={{
           transform: `rotate(${
             isPending
               ? "0deg"
@@ -157,13 +158,9 @@ function TxItem({
               ? "-90deg"
               : "90deg"
           })`,
-          filter:
-            theme && darkModeType
-              ? "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(134deg) brightness(111%) contrast(101%)"
-              : "initial",
         }}
-        src={isPending ? pendingTx : smallArrowLeft}
-        alt=""
+        icon={isPending ? pendingTx : smallArrowLeft}
+        alt="transaction arrow showing payment status"
       />
       <div className="textContainer">
         <ThemeText

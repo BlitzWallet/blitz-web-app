@@ -15,6 +15,7 @@ import {
   flashlightNoFillWhite,
   ImagesIcon,
 } from "../../constants/icons";
+import ThemeImage from "../../components/ThemeImage/themeImage";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
@@ -170,12 +171,16 @@ export default function Camera({ openOverlay }) {
       </div>
       <div onClick={getDataFromFile} className="fileContainer">
         <input hidden type="file" id="file-selector" accept="image/*" />
-        <img className="optionImage" src={ImagesIcon} alt="images icon" />
+        <ThemeImage
+          className="optionImage"
+          icon={ImagesIcon}
+          alt="images icon"
+        />
       </div>
       <div onClick={toggleFlashLight} className="flashLightContainer">
-        <img
+        <ThemeImage
           className="optionImage"
-          src={isFlashlightOn ? FlashLightIcon : flashlightNoFillWhite}
+          icon={isFlashlightOn ? FlashLightIcon : flashlightNoFillWhite}
           alt="flash light icon"
         />
       </div>

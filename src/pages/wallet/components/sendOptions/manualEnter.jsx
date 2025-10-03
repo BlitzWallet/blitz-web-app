@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import ThemeText from "../../../../components/themeText/themeText";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import { aboutIcon, aboutIconWhite } from "../../../../constants/icons";
+import { aboutIcon } from "../../../../constants/icons";
 import CustomButton from "../../../../components/customButton/customButton";
 import handlePreSendPageParsing from "../../../../functions/sendBitcoin/handlePreSendPageParsing";
 import { useState } from "react";
@@ -40,9 +40,7 @@ export default function ManualEnterSendAddress(props) {
           }}
           className="image"
           styles={{ width: 20, height: 20 }}
-          lightsOutIcon={aboutIconWhite}
-          lightModeIcon={aboutIcon}
-          darkModeIcon={aboutIcon}
+          icon={aboutIcon}
         />
       </div>
 

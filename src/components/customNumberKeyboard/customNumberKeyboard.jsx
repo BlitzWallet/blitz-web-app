@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import "./style.css";
 import numberConverter from "../../functions/numberConverter";
 import { SATSPERBITCOIN } from "../../constants";
-import { leftCheveronDark, leftCheveronLight } from "../../constants/icons";
+import { leftCheveronDark } from "../../constants/icons";
 import ThemeImage from "../ThemeImage/themeImage";
 import useThemeColors from "../../hooks/useThemeColors";
 
@@ -92,9 +92,7 @@ export default function CustomNumberKeyboard({
             {num === "back" ? (
               <ThemeImage
                 styles={{ width: 20, height: 20 }}
-                lightModeIcon={leftCheveronDark}
-                darkModeIcon={leftCheveronLight}
-                lightsOutIcon={leftCheveronLight}
+                icon={leftCheveronDark}
               />
             ) : (
               num

@@ -16,6 +16,7 @@ import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import { questionMarkSVG } from "../../constants/icons";
+import ThemeImage from "../../components/ThemeImage/themeImage";
 
 export default function Contacts({ openOverlay }) {
   const { masterInfoObject } = useGlobalContextProvider();
@@ -157,14 +158,9 @@ export default function Contacts({ openOverlay }) {
         </div>
       ) : ( */}
       <div className="noContactsContainer">
-        <img
-          style={{
-            filter: theme
-              ? "brightness(0) saturate(100%) invert(100%) sepia(3%) saturate(7500%) hue-rotate(137deg) brightness(113%) contrast(101%)"
-              : "initial",
-          }}
-          className="questionMarkIcon"
-          src={questionMarkSVG}
+        <ThemeImage
+          icon={questionMarkSVG}
+          styles={{ width: "95%", maxWidth: 300, height: "auto" }}
           alt="question mark to show no contact has been created"
         />
         <ThemeText

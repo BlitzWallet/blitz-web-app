@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import {
-  arrow_small_left_white,
   bitcoinReceiveIcon,
   blockstreamLiquid,
   lightningReceiveIcon,
-  liquidReceiveIcon,
   rootstockLogo,
   smallArrowLeft,
   sparkAsteriskWhite,
@@ -21,6 +19,7 @@ import { useKeysContext } from "../../contexts/keysContext";
 import { useNavigate } from "react-router-dom";
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import { useNodeContext } from "../../contexts/nodeContext";
+import ThemeImage from "../../components/ThemeImage/themeImage";
 
 const MAIN_PAYMENTS = [
   ["Lightning", "Instant"],
@@ -249,21 +248,17 @@ export default function SwitchReceiveOption({ onClose, params, openOverlay }) {
             }
           )}
         />
-        <div
-          style={{
+        <ThemeImage
+          styles={{
+            width: 15,
+            height: 15,
             marginLeft: "5px",
-            width: "15px",
-            height: "15px",
             transform: `rotate(${isExpanded ? 90 : -90}deg)`,
             transition: "transform 0.3s ease",
           }}
-        >
-          <img
-            style={{ width: "100%", height: "100%" }}
-            src={theme ? arrow_small_left_white : smallArrowLeft}
-            alt="arrow"
-          />
-        </div>
+          icon={smallArrowLeft}
+          alt="arrow"
+        />
       </button>
 
       <div

@@ -16,9 +16,7 @@ export default function SocialOptionsBottomBar() {
       >
         <ThemeImage
           styles={{ width: "100%", height: "100%" }}
-          lightModeIcon={telegramIcon}
-          darkModeIcon={telegramIcon}
-          lightsOutIcon={telegramIconWhite}
+          icon={telegramIcon}
         />
       </a>
       <a
@@ -26,24 +24,14 @@ export default function SocialOptionsBottomBar() {
         href="https://github.com/BlitzWallet/blitz-web-app"
         className="imgContainer"
       >
-        <ThemeImage
-          styles={{ width: "100%", height: "100%" }}
-          lightModeIcon={github}
-          darkModeIcon={github}
-          lightsOutIcon={githubIconWhite}
-        />
+        <ThemeImage styles={{ width: "100%", height: "100%" }} icon={github} />
       </a>
       <a
         target="_blank"
         href="https://x.com/BlitzWalletApp"
         className="imgContainer"
       >
-        <ThemeImage
-          styles={{ width: "100%", height: "100%" }}
-          lightModeIcon={twitter}
-          darkModeIcon={twitter}
-          lightsOutIcon={twitterIconWhite}
-        />
+        <ThemeImage styles={{ width: "100%", height: "100%" }} icon={twitter} />
       </a>
     </div>
   );
