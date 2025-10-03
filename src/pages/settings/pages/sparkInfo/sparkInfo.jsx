@@ -1,6 +1,4 @@
 import { useSpark } from "../../../../contexts/sparkContext";
-import clipbardIcon from "../../../../assets/clipboardIcon.png";
-import clipbardIconLight from "../../../../assets/clipboardLight.png";
 import copyToClipboard from "../../../../functions/copyToClipboard";
 import "./sparkInfo.css";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,6 +7,7 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import { Colors } from "../../../../constants/theme";
 import ThemeText from "../../../../components/themeText/themeText";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
+import { clipboardBlue, clipboardLight } from "../../../../constants/icons";
 
 export default function SparkInformation({ openOverlay }) {
   const { sparkInformation } = useSpark();
@@ -49,9 +48,9 @@ export default function SparkInformation({ openOverlay }) {
               />
               <ThemeImage
                 styles={{ width: 20, height: 20 }}
-                lightModeIcon={clipbardIcon}
-                darkModeIcon={clipbardIcon}
-                lightsOutIcon={clipbardIconLight}
+                lightModeIcon={clipboardBlue}
+                darkModeIcon={clipboardBlue}
+                lightsOutIcon={clipboardLight}
               />
             </span>
           </div>
@@ -76,9 +75,9 @@ export default function SparkInformation({ openOverlay }) {
               />
               <ThemeImage
                 styles={{ width: 20, height: 20 }}
-                lightModeIcon={clipbardIcon}
-                darkModeIcon={clipbardIcon}
-                lightsOutIcon={clipbardIconLight}
+                lightModeIcon={clipboardBlue}
+                darkModeIcon={clipboardBlue}
+                lightsOutIcon={clipboardLight}
               />
             </span>
           </div>

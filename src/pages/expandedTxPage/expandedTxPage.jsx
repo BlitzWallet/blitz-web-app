@@ -2,15 +2,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import BackArrow from "../../components/backArrow/backArrow";
 import "./style.css";
 import { Colors } from "../../constants/theme";
-import pendingTx from "../../assets/pendingTx.png";
-import check from "../../assets/check.svg";
-import failed from "../../assets/x-small-black.webp";
 import ThemeText from "../../components/themeText/themeText";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import { useThemeContext } from "../../contexts/themeContext";
 import { useEffect, useState } from "react";
 import CustomButton from "../../components/customButton/customButton";
 import useThemeColors from "../../hooks/useThemeColors";
+import { check, pendingTx, xSmallIconBlack } from "../../constants/icons";
 
 export default function ExpandedTxPage() {
   const location = useLocation();
@@ -98,7 +96,9 @@ export default function ExpandedTxPage() {
                       : "brightness(0) saturate(100%) invert(12%) sepia(40%) saturate(2530%) hue-rotate(188deg) brightness(100%) contrast(107%)",
                   }}
                   className="paymentStatusIcon"
-                  src={isFailed ? failed : isPending ? pendingTx : check}
+                  src={
+                    isFailed ? xSmallIconBlack : isPending ? pendingTx : check
+                  }
                 />
               </div>
             </div>

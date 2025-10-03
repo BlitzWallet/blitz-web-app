@@ -12,11 +12,10 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import ThemeImage from "../../components/ThemeImage/themeImage";
-import aboutIcon from "../../assets/aboutIcon.png";
-import aboutIconWhite from "../../assets/aboutIconWhite.png";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { encodeLNURL } from "../../functions/lnurl/bench32Formmater";
 import FullLoadingScreen from "../../components/fullLoadingScreen/fullLoadingScreen";
+import { aboutIcon, aboutIconWhite } from "../../constants/icons";
 
 export default function ReceiveQRPage({ openOverlay }) {
   const { globalContactsInformation } = useGlobalContacts();

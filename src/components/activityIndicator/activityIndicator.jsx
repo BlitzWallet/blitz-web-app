@@ -7,7 +7,6 @@ export default function ActivityIndicator({ color, size = "small" }) {
       style={{
         width: size === "small" ? "20px" : "40px",
         height: size === "small" ? "20px" : "40px",
-
         borderBottom: `4px solid ${Colors.light.backgroundOffset}`,
         borderLeft: `4px solid ${Colors.light.backgroundOffset}`,
         borderRight: `4px solid ${Colors.light.backgroundOffset}`,

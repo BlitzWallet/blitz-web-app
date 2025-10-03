@@ -1,9 +1,11 @@
 const KEYBOARD_KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, "C", 0, "back"];
 import { useCallback } from "react";
-import deleteIcon from "../../assets/leftCheveronDark.png";
 import "./style.css";
 import numberConverter from "../../functions/numberConverter";
 import { SATSPERBITCOIN } from "../../constants";
+import { leftCheveronDark, leftCheveronLight } from "../../constants/icons";
+import ThemeImage from "../ThemeImage/themeImage";
+import useThemeColors from "../../hooks/useThemeColors";
 
 function getKeyboardKeys(showDot) {
   return KEYBOARD_KEYS.map((key) => {
@@ -21,6 +23,8 @@ export default function CustomNumberKeyboard({
   usingForBalance,
   fiatStats,
 }) {
+  const { textColor } = useThemeColors();
+  // const {theme,darkModeType}=usethemec
   const addPin = useCallback(
     (id) => {
       console.log(id);
@@ -81,10 +85,20 @@ export default function CustomNumberKeyboard({
         {getKeyboardKeys(showDot).map((num) => (
           <button
             key={num}
+            style={{ color: textColor }}
             className={`keyboard-key ${keyClassName}`}
             onClick={() => addPin(num)}
           >
-            {num === "back" ? <img src={deleteIcon} /> : num}
+            {num === "back" ? (
+              <ThemeImage
+                styles={{ width: 20, height: 20 }}
+                lightModeIcon={leftCheveronDark}
+                darkModeIcon={leftCheveronLight}
+                lightsOutIcon={leftCheveronLight}
+              />
+            ) : (
+              num
+            )}
           </button>
         ))}
       </div>

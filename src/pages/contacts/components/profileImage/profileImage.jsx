@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import customUUID from "../../../../functions/customUUID";
-import userIconBlue from "../../../../assets/user.png";
-import userIconWhite from "../../../../assets/user_white.png";
+import { userIcon, userWhite } from "../../../../constants/icons";
 
 export default function ContactProfileImage({
   resizeMode = "cover",
@@ -13,7 +12,7 @@ export default function ContactProfileImage({
   const [loadError, setLoadError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fallbackIcon = darkModeType && theme ? userIconWhite : userIconBlue;
+  const fallbackIcon = darkModeType && theme ? userWhite : userIcon;
   const customURI = uri
     ? `${uri}?v=${updated ? new Date(updated).getTime() : customUUID()}`
     : null;

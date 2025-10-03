@@ -17,12 +17,11 @@ import {
 import "./style.css";
 import ContactProfileImage from "../../components/profileImage/profileImage";
 import { Colors } from "../../../../constants/theme";
-import imagesIcon from "../../../../assets/imagesDark.png";
-import xSmallIconBlack from "../../../../assets/x-small-black.webp";
 import CustomInput from "../../../../components/customInput/customInput";
 import { VALID_USERNAME_REGEX } from "../../../../constants";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
+import { ImagesIconDark, xSmallIconBlack } from "../../../../constants/icons";
 
 export default function EditMyProfilePage({ navProps, openOverlay }) {
   const navigate = useNavigate();
@@ -240,7 +239,7 @@ function InnerContent({
               style={{ backgroundColor: Colors.dark.text }}
             >
               <img
-                src={hasImage ? xSmallIconBlack : imagesIcon}
+                src={hasImage ? xSmallIconBlack : ImagesIconDark}
                 alt=""
                 srcset=""
               />

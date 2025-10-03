@@ -1,31 +1,7 @@
-import BackArrow from "../../components/backArrow/backArrow";
-import { useSpark } from "../../contexts/sparkContext";
 import "./settings.css";
-import clipbardIcon from "../../assets/clipboardIcon.png";
-import copyToClipboard from "../../functions/copyToClipboard";
-import shareIcon from "../../assets/share.png";
 import { useAuth } from "../../contexts/authContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageNavBar from "../../components/navBar/navBar";
-import aboutIcon from "../../assets/aboutIcon.png";
-import aboutIconWhite from "../../assets/aboutIconWhite.png";
-import leftCheveronArrow from "../../assets/left-chevron.png";
-import currencyIcon from "../../assets/currencyIcon.png";
-import currencyIconWhite from "../../assets/currencyIconWhite.png";
-import colorIcon from "../../assets/colorIcon.png";
-import colorIconWhite from "../../assets/colorIconWhite.png";
-import contactsIconBlue from "../../assets/contactsIconBlue.png";
-import contactsIconWhite from "../../assets/contactsIconWhite.png";
-import navigationIcon from "../../assets/navigation.png";
-import navigationIconWhite from "../../assets/navigation_white.png";
-import keyIcon from "../../assets/keyIcon.png";
-import keyIconWhite from "../../assets/keyIconWhite.png";
-import trashIcon from "../../assets/trashIcon.png";
-import trashIconWhite from "../../assets/trashIconWhite.png";
-import receipt from "../../assets/receipt.png";
-import receiptDM from "../../assets/receiptWhite.png";
-import nodeIcon from "../../assets/nodeIcon.png";
-import nodeIconWhite from "../../assets/nodeIconWhite.png";
 import ThemeText from "../../components/themeText/themeText";
 import { useEffect } from "react";
 import SocialOptionsBottomBar from "./socialOptions/socialOptions";
@@ -34,6 +10,27 @@ import { Colors } from "../../constants/theme";
 import ThemeImage from "../../components/ThemeImage/themeImage";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
+import {
+  aboutIcon,
+  aboutIconWhite,
+  colorIcon,
+  colorIconWhite,
+  contactsIconBlue,
+  contactsIconWhite,
+  currencyIcon,
+  currencyIconWhite,
+  keyIcon,
+  keyIconWhite,
+  leftCheveronIcon,
+  navigationIcon,
+  navigationIconWhite,
+  nodeIcon,
+  nodeIconWhite,
+  receiptIcon,
+  receiptWhite,
+  trashIcon,
+  trashIconWhite,
+} from "../../constants/icons";
 
 const GENERALOPTIONS = [
   {
@@ -41,21 +38,21 @@ const GENERALOPTIONS = [
     name: "About",
     icon: aboutIcon,
     iconWhite: aboutIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
   {
     for: "general",
     name: "Display Currency",
     icon: currencyIcon,
     iconWhite: currencyIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
   {
     for: "general",
     name: "Display Options",
     icon: colorIcon,
     iconWhite: colorIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
 
   {
@@ -63,14 +60,14 @@ const GENERALOPTIONS = [
     name: "Edit Contact Profile",
     icon: contactsIconBlue,
     iconWhite: contactsIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
   {
     for: "general",
     name: "Fast Pay",
     svgIcon: true,
     svgName: "quickPayIcon",
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
   {
     for: "general",
@@ -78,7 +75,7 @@ const GENERALOPTIONS = [
     svgName: "crashDebugIcon",
     icon: navigationIcon,
     iconWhite: navigationIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
 ];
 const SECURITYOPTIONS = [
@@ -87,7 +84,7 @@ const SECURITYOPTIONS = [
     name: "Backup wallet",
     icon: keyIcon,
     iconWhite: keyIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
 ];
 
@@ -95,23 +92,23 @@ const ADVANCEDOPTIONS = [
   {
     for: "Closing Account",
     name: "Blitz Fee Details",
-    icon: receipt,
-    iconWhite: receiptDM,
-    arrowIcon: leftCheveronArrow,
+    icon: receiptIcon,
+    iconWhite: receiptWhite,
+    arrowIcon: leftCheveronIcon,
   },
   {
     for: "Closing Account",
     name: "Delete Wallet",
     icon: trashIcon,
     iconWhite: trashIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
   {
     for: "Closing Account",
     name: "Spark Info",
     icon: nodeIcon,
     iconWhite: nodeIconWhite,
-    arrowIcon: leftCheveronArrow,
+    arrowIcon: leftCheveronIcon,
   },
 ];
 const SETTINGSOPTIONS = [
@@ -126,7 +123,7 @@ const DOOMSDAYSETTINGS = [
       name: "Backup wallet",
       icon: keyIcon,
       iconWhite: keyIconWhite,
-      arrowIcon: leftCheveronArrow,
+      arrowIcon: leftCheveronIcon,
     },
   ],
   [
@@ -135,7 +132,7 @@ const DOOMSDAYSETTINGS = [
       name: "Delete Wallet",
       icon: trashIcon,
       iconWhite: trashIconWhite,
-      arrowIcon: leftCheveronArrow,
+      arrowIcon: leftCheveronIcon,
     },
   ],
 ];

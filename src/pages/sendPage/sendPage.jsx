@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import "./send.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackArrow from "../../components/backArrow/backArrow";
-import walletIcon from "../../assets/adminHomeWallet_dark.png";
-import arrowIcon from "../../assets/arrow-left-blue.png";
-import deleteIcon from "../../assets/leftCheveronDark.png";
 import { sparkPaymenWrapper } from "../../functions/spark/payments";
 import { useSpark } from "../../contexts/sparkContext";
 import FullLoadingScreen from "../../components/fullLoadingScreen/fullLoadingScreen";
@@ -32,6 +29,9 @@ import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPa
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { useTranslation } from "react-i18next";
 import { InputTypes } from "bitcoin-address-parser";
+import ThemeImage from "../../components/ThemeImage/themeImage";
+import { adminHomeWallet, adminHomeWallet_white } from "../../constants/icons";
+import ThemeText from "../../components/themeText/themeText";
 
 export default function SendPage({ openOverlay }) {
   const location = useLocation();
@@ -443,7 +443,11 @@ export default function SendPage({ openOverlay }) {
 
         {!canEditPaymentAmount && (
           <>
-            <p className="paymentFeeDesc">Fee & speed</p>
+            <ThemeText
+              textStyles={{ margin: 0, marginTop: 40 }}
+              className="paymentFeeDesc"
+              textContent={"Fee & speed"}
+            />
             <FormattedSatText
               styles={{ marginTop: 0 }}
               balance={totalFee}
@@ -523,7 +527,13 @@ function NabBar({ sparkInformation }) {
     <div className="navBar">
       <BackArrow />
       <div className="label">
-        <img src={walletIcon} alt="wallet icon to show user balance" />
+        <ThemeImage
+          styles={{ width: 20, height: 20 }}
+          alt="wallet icon to show user balance"
+          lightModeIcon={adminHomeWallet}
+          darkModeIcon={adminHomeWallet_white}
+          lightsOutIcon={adminHomeWallet_white}
+        />
         <FormattedSatText balance={sparkInformation.balance} />
       </div>
     </div>

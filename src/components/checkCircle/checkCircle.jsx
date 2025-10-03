@@ -1,8 +1,9 @@
 import "./style.css";
-import checkMark from "../../assets/checkMark.png";
 import { Colors } from "../../constants/theme";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useThemeContext } from "../../contexts/themeContext";
+import { checkMark } from "../../constants/icons";
+
 export default function CheckCircle({ isActive, containerSize = 30 }) {
   const { theme } = useThemeContext();
   const { backgroundOffset } = useThemeColors();

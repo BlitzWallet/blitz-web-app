@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import "./style.css";
 import BackArrow from "../../components/backArrow/backArrow";
-import deleteIcon from "../../assets/leftCheveronDark.png";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import { SATSPERBITCOIN } from "../../constants";
 import { useNodeContext } from "../../contexts/nodeContext";

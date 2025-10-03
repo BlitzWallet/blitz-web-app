@@ -7,14 +7,19 @@ import CustomButton from "../../../components/customButton/customButton";
 import errorAnimationJSON from "../../../assets/errorTxAnimation.json";
 import { applyErrorAnimationTheme } from "../../../functions/lottieViewColorTransformers";
 import "./style.css";
+import { useThemeContext } from "../../../contexts/themeContext";
 
 export default function ErrorWithPayment({ reason }) {
   const navigate = useNavigate();
   const windowWidth = window.innerWidth;
   const animationRef = useRef(null);
+  const { theme, darkModeType } = useThemeContext();
 
   const errorAnimation = useMemo(() => {
-    const defaultTheme = applyErrorAnimationTheme(errorAnimationJSON, "light");
+    const defaultTheme = applyErrorAnimationTheme(
+      errorAnimationJSON,
+      theme ? (darkModeType ? "lightsOut" : "dark") : "light"
+    );
     return defaultTheme;
   }, []);
 

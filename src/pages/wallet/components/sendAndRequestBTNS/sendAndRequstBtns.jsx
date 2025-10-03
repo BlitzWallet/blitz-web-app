@@ -1,6 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import arrow from "../../../../assets/arrow-left-blue.png";
-import arrowWhite from "../../../../assets/arrow-small-left-white.png";
 import sendRequestImage from "../../../../assets/sendRequestImage.png";
 import Qr from "../../../../assets/scanQRCodeLight.png";
 import "./style.css";
@@ -52,7 +50,6 @@ export default function SendAndRequestBtns({ openOverlay }) {
           lightsOutIcon={Qr}
           className="request"
         />
-        {/* <img className="buttonImage" src={Qr} alt="small arrow" /> */}
       </div>
 
       <div onClick={() => naigate("/receive")} className="buttonContainer">

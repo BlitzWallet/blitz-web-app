@@ -1,5 +1,3 @@
-import BackArrow from "../../components/backArrow/backArrow";
-import disclaimerKeys from "../../assets/disclaimerKeys.png";
 import "./style.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import CustomButton from "../../components/customButton/customButton";
@@ -9,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import ThemeText from "../../components/themeText/themeText";
 import Icon from "../../components/customIcon/customIcon";
 import PageNavBar from "../../components/navBar/navBar";
+import { disclaimerKeys } from "../../constants/icons";
 function DisclaimerPage({ openOverlay }) {
   const location = useLocation();
   const params = location.state;

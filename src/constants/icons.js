@@ -7,6 +7,8 @@ import smallArrowLeft from "../assets/icons/arrow-small-left.png";
 import leftCheveronIcon from "../assets/icons/left-chevron.png";
 import walletIcon from "../assets/icons/wallet.png";
 import walletBlueIcon from "../assets/icons/wallet_blue.png";
+import check from "../assets/icons/check.svg";
+import checkMark from "../assets/icons/checkMark.png";
 import settingsIcon from "../assets/icons/settings.png";
 import githubIcon from "../assets/icons/github.png";
 import twitterIcon from "../assets/icons/twitter.png";
@@ -20,8 +22,11 @@ import nodeIcon from "../assets/icons/nodeIcon.png";
 import currencyIcon from "../assets/icons/currencyIcon.png";
 import aboutIcon from "../assets/icons/aboutIcon.png";
 import colorIcon from "../assets/icons/colorIcon.png";
+import refresh from "../assets/icons/refresh.png";
+import refreshWhite from "../assets/icons/refreshWhite.png";
 // import transparentIcon from "../assets/TransparentIcon.png";
 import contactsIconBlue from "../assets/icons/contactsIconBlue.png";
+import pendingTx from "../assets/icons/pendingTx.png";
 import contactsIconBlueSelected from "../assets/icons/contactsIconSelected.png";
 import contactsIcon from "../assets/icons/contactsIcon.png";
 import contactsIconLight from "../assets/icons/contactsIconLight.png";
@@ -94,10 +99,12 @@ import githubWhite from "../assets/icons/githubWhite.png";
 import telegramWhite from "../assets/icons/telegramWhite.png";
 import userWhite from "../assets/icons/user_white.png";
 import flashlightBlue from "../assets/icons/flashlightBlue.png";
+import disclaimerKeys from "../assets/icons/disclaimerKeys.png";
 import imagesBlue from "../assets/icons/imagesBlue.png";
 import trashIconWhite from "../assets/icons/trashIconWhite.png";
 import flashlightNoFillBlue from "../assets/icons/flashlightNoFill.png";
 import flashlightNoFillWhite from "../assets/icons/flashlightNoFillWhite.png";
+import questionMarkSVG from "../assets/icons/questionMarkSVG.svg";
 // import transparentIconWhite from "../assets/TransparentIconWhite.png";
 // import logoWithPadding from "../assets/B_padding.png";
 import xSmallIconBlack from "../assets/icons/x-small-black.png";
@@ -265,4 +272,11 @@ export {
   arrowToRightLight,
   group,
   groupWhite,
+  checkMark,
+  pendingTx,
+  questionMarkSVG,
+  disclaimerKeys,
+  check,
+  refresh,
+  refreshWhite,
 };

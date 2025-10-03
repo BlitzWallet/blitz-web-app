@@ -1,23 +1,25 @@
-import contactsNoFill from "../../assets/contactsIconBlue.png";
-import contactsFill from "../../assets/contactsIconSelected.png";
-import walletNoFill from "../../assets/adminHomeWallet.png";
-import walletFill from "../../assets/wallet_blue.png";
-import storeNoFill from "../../assets/appStore.png";
-import storeFill from "../../assets/appStoreFilled.png";
+import {
+  adminHomeWallet,
+  appstore,
+  appstoreFilled,
+  contactsIconBlue,
+  contactsIconBlueSelected,
+  walletBlueIcon,
+} from "../../constants/icons";
 
 export default function TabsIcon({ value, icon, theme, darkModeType }) {
   let imgSrc =
     icon === "contacts"
       ? value === 0
-        ? contactsFill
-        : contactsNoFill
+        ? contactsIconBlueSelected
+        : contactsIconBlue
       : icon === "wallet"
       ? value === 1
-        ? walletFill
-        : walletNoFill
+        ? walletBlueIcon
+        : adminHomeWallet
       : value === 2
-      ? storeFill
-      : storeNoFill;
+      ? appstoreFilled
+      : appstore;
   return (
     <img
       style={{

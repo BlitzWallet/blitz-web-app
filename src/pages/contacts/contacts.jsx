@@ -9,12 +9,13 @@ import { ContactElement } from "./components/contactElement/contactElement";
 import CustomInput from "../../components/customInput/customInput";
 import ThemeText from "../../components/themeText/themeText";
 import CustomButton from "../../components/customButton/customButton";
-import questionMark from "../../assets/questionMarkSVG.svg";
+
 import "./contacts.css";
 import ContactProfileImage from "./components/profileImage/profileImage";
 import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
+import { questionMarkSVG } from "../../constants/icons";
 
 export default function Contacts({ openOverlay }) {
   const { masterInfoObject } = useGlobalContextProvider();
@@ -163,7 +164,7 @@ export default function Contacts({ openOverlay }) {
               : "initial",
           }}
           className="questionMarkIcon"
-          src={questionMark}
+          src={questionMarkSVG}
           alt="question mark to show no contact has been created"
         />
         <ThemeText

@@ -1,6 +1,4 @@
 import BackArrow from "../../../../components/backArrow/backArrow";
-import SettingsIcon from "../../../../assets/settings.png";
-import SettingsIconWhite from "../../../../assets/settingsWhite.png";
 import "./myProfilePage.css";
 import ContactProfileImage from "../../components/profileImage/profileImage";
 import { useGlobalContacts } from "../../../../contexts/globalContacts";
@@ -9,12 +7,16 @@ import { useImageCache } from "../../../../contexts/imageCacheContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import MaxHeap from "../../../../functions/maxHeap";
-import imagesIcon from "../../../../assets/imagesDark.png";
 import ThemeText from "../../../../components/themeText/themeText";
 import { Colors } from "../../../../constants/theme";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
+import {
+  ImagesIconDark,
+  settingsIcon,
+  settingsWhite,
+} from "../../../../constants/icons";
 
 export default function MyProfilePage({ openOverlay }) {
   const { cache } = useImageCache();
@@ -79,9 +81,9 @@ export default function MyProfilePage({ openOverlay }) {
               state: { pageType: "myProfile", fromSettings: false },
             })
           }
-          lightModeIcon={SettingsIcon}
-          darkModeIcon={SettingsIcon}
-          lightsOutIcon={SettingsIconWhite}
+          lightModeIcon={settingsIcon}
+          darkModeIcon={settingsIcon}
+          lightsOutIcon={settingsWhite}
         />
       </div>
       <div
@@ -104,7 +106,7 @@ export default function MyProfilePage({ openOverlay }) {
           style={{ backgroundColor: Colors.dark.text }}
           className="scanProfileImageContianer"
         >
-          <img src={imagesIcon} alt="Open scan profile modal" />
+          <img src={ImagesIconDark} alt="Open scan profile modal" />
         </div>
       </div>
       <ThemeText

@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 export default function ConfirmPayment() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { theme } = useThemeContext();
+  const { theme, darkModeType } = useThemeContext();
   const location = useLocation();
   const props = location.state;
   const animationRef = useRef(null);
@@ -39,11 +39,17 @@ export default function ConfirmPayment() {
   console.log(paymentFee, "etstasdas");
 
   const confirmAnimation = useMemo(() => {
-    return updateConfirmAnimation(confirmTxAnimation, "light");
-  }, []);
+    return updateConfirmAnimation(
+      confirmTxAnimation,
+      theme ? (darkModeType ? "lightsOut" : "dark") : "light"
+    );
+  }, [theme, darkModeType]);
 
   const errorAnimation = useMemo(() => {
-    return applyErrorAnimationTheme(errorTxAnimation, "light");
+    return applyErrorAnimationTheme(
+      errorTxAnimation,
+      theme ? (darkModeType ? "lightsOut" : "dark") : "light"
+    );
   }, []);
 
   useEffect(() => {
@@ -67,13 +73,16 @@ export default function ConfirmPayment() {
         />
 
         {!isLNURLAuth && (
-          <h1 className="paymentStatus">
-            {!didSucceed
-              ? "Failed to send"
-              : paymentType?.toLowerCase() === "paymentsucceed"
-              ? "Sent successfully"
-              : "Received successfully"}
-          </h1>
+          <ThemeText
+            className={"paymentStatus"}
+            textContent={
+              !didSucceed
+                ? "Failed to send"
+                : paymentType?.toLowerCase() === "paymentsucceed"
+                ? "Sent successfully"
+                : "Received successfully"
+            }
+          />
         )}
 
         {didSucceed && !isLNURLAuth && (
@@ -96,11 +105,14 @@ export default function ConfirmPayment() {
           />
         )}
 
-        <p className="errorText">
-          {didSucceed
-            ? ""
-            : "There was an issue sending this payment, please try again."}
-        </p>
+        <ThemeText
+          className={"errorText"}
+          textContent={
+            didSucceed
+              ? ""
+              : "There was an issue sending this payment, please try again."
+          }
+        />
 
         {didSucceed && !isLNURLAuth && (
           <div style={{ marginBottom: 20 }}>
@@ -111,7 +123,7 @@ export default function ConfirmPayment() {
                 width: 200,
               }}
             >
-              <p>Fee</p>
+              <ThemeText textContent={"Fee"} />
               <FormattedSatText balance={paymentFee} />
             </div>
             <div
@@ -121,15 +133,18 @@ export default function ConfirmPayment() {
                 width: 200,
               }}
             >
-              <p>Type</p>
-              <p className="paymentNetwork">{paymentNetwork}</p>
+              <ThemeText textContent={"Type"} />
+              <ThemeText
+                className={"paymentNetwork"}
+                textContent={paymentNetwork}
+              />
             </div>
           </div>
         )}
 
         {!didSucceed && !isLNURLAuth && (
           <div className="errorMessageTextContainer">
-            <p>{errorMessage}</p>
+            <ThemeText textContent={errorMessage} />
           </div>
         )}
 
@@ -148,7 +163,6 @@ export default function ConfirmPayment() {
         )}
         <CustomButton
           actionFunction={handleBack}
-          textStyles={{ color: theme ? Colors.dark.text : Colors.light.text }}
           buttonClassName={"continueBTN"}
           textContent={t("constants.continue")}
         />

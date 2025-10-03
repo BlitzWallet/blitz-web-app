@@ -1,8 +1,6 @@
 import { useSpark } from "../../contexts/sparkContext";
 import { TransferDirection } from "@buildonspark/spark-sdk/types";
 import "./style.css";
-import arrow from "../../assets/arrow-left-blue.png";
-import pendingTx from "../../assets/pendingTx.png";
 import { useNavigate } from "react-router-dom";
 import SkeletonLoadingTx from "./skeletonLoadingTx";
 import FormattedSatText from "../formattedSatText/formattedSatText";
@@ -10,6 +8,7 @@ import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { HIDDEN_BALANCE_TEXT } from "../../constants";
 import ThemeText from "../themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
+import { pendingTx, smallArrowLeft } from "../../constants/icons";
 
 export default function TransactionContanier({ frompage }) {
   const { sparkInformation } = useSpark();
@@ -163,7 +162,7 @@ function TxItem({
               ? "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(134deg) brightness(111%) contrast(101%)"
               : "initial",
         }}
-        src={isPending ? pendingTx : arrow}
+        src={isPending ? pendingTx : smallArrowLeft}
         alt=""
       />
       <div className="textContainer">

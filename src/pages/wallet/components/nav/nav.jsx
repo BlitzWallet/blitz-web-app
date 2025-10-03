@@ -1,21 +1,21 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import SettingsIcon from "../../../../assets/settings.png";
-import SettingsIconWhite from "../../../../assets/settingsWhite.png";
-import darkMode from "../../../../assets/darkMode.png";
-import lightMode from "../../../../assets/lightMode.png";
-import lightModeWhite from "../../../../assets/lightModeWhite.png";
-import refresh from "../../../../assets/refresh.png";
-import refreshWhite from "../../../../assets/refreshWhite.png";
 import "./nav.css";
 import { useCallback, useState } from "react";
 import { useSpark } from "../../../../contexts/sparkContext";
-import { getSparkBalance } from "../../../../functions/spark";
 import { fullRestoreSparkState } from "../../../../functions/spark/restore";
-import { getAllSparkTransactions } from "../../../../functions/spark/transactions";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
+import {
+  darkMode,
+  lightMode,
+  lightModeWhite,
+  refresh,
+  refreshWhite,
+  settingsIcon,
+  settingsWhite,
+} from "../../../../constants/icons";
 
 export default function WalletNavBar({ openOverlay }) {
   const navigate = useNavigate();
@@ -63,9 +63,9 @@ export default function WalletNavBar({ openOverlay }) {
       </div>
       <ThemeImage
         clickFunction={() => navigate("/settings")}
-        lightModeIcon={SettingsIcon}
-        darkModeIcon={SettingsIcon}
-        lightsOutIcon={SettingsIconWhite}
+        lightModeIcon={settingsIcon}
+        darkModeIcon={settingsIcon}
+        lightsOutIcon={settingsWhite}
       />
     </div>
   );

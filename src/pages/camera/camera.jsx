@@ -1,20 +1,20 @@
 import { useRef, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import QrScanner from "qr-scanner";
-
-import BackArrow from "../../components/backArrow/backArrow";
 import getDataFromClipboard from "../../functions/getDataFromClipboard";
 
 import "./style.css";
 import { Colors } from "../../constants/theme";
 import CustomButton from "../../components/customButton/customButton";
-import flashLightNoFill from "../../assets/flashlightNoFillWhite.png";
-import flashLightFill from "../../assets/flashlight.png";
-import images from "../../assets/images.png";
 import { useCameraPermission } from "../../hooks/useCameraPermission";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
 import PageNavBar from "../../components/navBar/navBar";
+import {
+  FlashLightIcon,
+  flashlightNoFillWhite,
+  ImagesIcon,
+} from "../../constants/icons";
 
 // QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
 
@@ -170,12 +170,12 @@ export default function Camera({ openOverlay }) {
       </div>
       <div onClick={getDataFromFile} className="fileContainer">
         <input hidden type="file" id="file-selector" accept="image/*" />
-        <img className="optionImage" src={images} alt="images icon" />
+        <img className="optionImage" src={ImagesIcon} alt="images icon" />
       </div>
       <div onClick={toggleFlashLight} className="flashLightContainer">
         <img
           className="optionImage"
-          src={isFlashlightOn ? flashLightFill : flashLightNoFill}
+          src={isFlashlightOn ? FlashLightIcon : flashlightNoFillWhite}
           alt="flash light icon"
         />
       </div>
