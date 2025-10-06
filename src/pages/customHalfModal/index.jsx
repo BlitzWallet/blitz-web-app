@@ -7,6 +7,7 @@ import "./Modal.css";
 import ManualEnterSendAddress from "../wallet/components/sendOptions/manualEnter";
 import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
 import EditLNURLContactOnReceivePage from "./components/editLNURLOnReceive";
+import LRC20TokenInformation from "../../functions/lrc20/lrc20TokenDataHalfModal";
 
 export default function CustomHalfModal({
   onClose,
@@ -67,6 +68,17 @@ export default function CustomHalfModal({
             setContentHeight={setContentHeight}
             openOverlay={openOverlay}
             onClose={handleClose}
+          />
+        );
+      case "LRC20TokenInformation":
+        return (
+          <LRC20TokenInformation
+            theme={theme}
+            darkModeType={darkModeType}
+            slideHeight={slideHeight}
+            openOverlay={openOverlay}
+            onClose={handleClose}
+            params={params}
           />
         );
       case "confirmSMS":

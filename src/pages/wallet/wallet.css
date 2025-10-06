@@ -3,4 +3,11 @@
   height: 100%;
   padding-bottom: 65px;
   overflow-y: scroll;
+  margin: 0 auto;
+}
+
+.lrc20Overlay {
+  padding: 2.5%;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
 }

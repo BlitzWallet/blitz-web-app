@@ -11,6 +11,7 @@ import EditMyProfilePage from "../../contacts/screens/editMyProfilePage/editMyPr
 import FastPay from "../pages/fastPay/fastPay";
 import BlitzFeeInformation from "../pages/feeDetails/feeInformation";
 import ExploreUsers from "../pages/exploreUsers/exploreUsers";
+import CustomSettingsNavbar from "../../../components/customSettingsNavbar";
 
 export default function SettingsContentIndex({ openOverlay }) {
   const location = useLocation();
@@ -23,7 +24,16 @@ export default function SettingsContentIndex({ openOverlay }) {
   }
   return (
     <SafeAreaComponent addedClassName={"settingsContentIndexContianer"}>
-      <PageNavBar textClassName={"navbarText"} text={`${selectedPage}`} />
+      <CustomSettingsNavbar
+        textClassName={"navbarText"}
+        text={`${selectedPage}`}
+        showSettings={selectedPage?.toLowerCase() === "spark info"}
+        settingLocation={
+          selectedPage?.toLowerCase() === "spark info"
+            ? "SparkSettingsPage"
+            : ""
+        }
+      />
       <div className="settingsContentIndex">
         {selectedPage === "about" && <AboutPage />}
         {selectedPage === "display currency" && <DisplayCurrency />}

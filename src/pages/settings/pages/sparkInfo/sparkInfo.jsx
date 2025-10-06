@@ -40,7 +40,7 @@ export default function SparkInformation({ openOverlay }) {
               className="techicalData"
             >
               <ThemeText
-                className="techicalLabel"
+                className="techicalData"
                 textContent={`${sparkInformation.sparkAddress.slice(0, 5)}...
                 ${sparkInformation.sparkAddress.slice(
                   sparkInformation.sparkAddress.length - 5
@@ -65,7 +65,7 @@ export default function SparkInformation({ openOverlay }) {
               className="techicalData"
             >
               <ThemeText
-                className="techicalLabel"
+                className="techicalData"
                 textContent={`${sparkInformation.identityPubKey.slice(0, 5)}...
                 ${sparkInformation.identityPubKey.slice(
                   sparkInformation.identityPubKey.length - 5
