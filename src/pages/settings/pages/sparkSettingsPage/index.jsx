@@ -17,13 +17,6 @@ export default function SparkSettingsPage({ openOverlay }) {
   const { t } = useTranslation();
 
   useEffect(() => {
-    console.log(
-      "running in use effect",
-      isInitialRender.current,
-      lrc20Settings,
-      sparkInformation.balance,
-      fiatStats
-    );
     if (isInitialRender.current) {
       isInitialRender.current = false;
       return;
