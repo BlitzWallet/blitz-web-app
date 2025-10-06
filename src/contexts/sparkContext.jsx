@@ -51,6 +51,7 @@ import { useKeysContext } from "./keysContext";
 import liquidToSparkSwap from "../functions/spark/liquidToSparkSwap";
 import { useActiveCustodyAccount } from "./activeAccount";
 import sha256Hash from "../functions/hash";
+import { getLRC20Transactions } from "../functions/lrc20";
 
 export const isSendingPayingEventEmiiter = new EventEmitter();
 export const SENDING_PAYMENT_EVENT_NAME = "SENDING_PAYMENT_EVENT";
@@ -346,7 +347,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
     sparkTransactionsEventEmitter.removeAllListeners(
       SPARK_TX_UPDATE_ENVENT_NAME
     );
-    console.log(currentWalletMnemoinc, "tset");
     sparkWallet[sha256Hash(currentWalletMnemoinc)].removeAllListeners(
       "transfer:claimed"
     );
@@ -383,12 +383,12 @@ const SparkWalletProvider = ({ children, navigate }) => {
           currentWalletMnemoinc,
           sparkInformation.identityPubKey
         );
-        // await getLRC20Transactions({
-        //   ownerPublicKeys: [sparkInformation.identityPubKey],
-        //   sparkAddress: sparkInformation.sparkAddress,
-        //   isInitialRun: isInitialLRC20Run.current,
-        //   mnemonic: currentWalletMnemoinc,
-        // });
+        await getLRC20Transactions({
+          ownerPublicKeys: [sparkInformation.identityPubKey],
+          sparkAddress: sparkInformation.sparkAddress,
+          isInitialRun: isInitialLRC20Run.current,
+          mnemonic: currentWalletMnemoinc,
+        });
       } catch (err) {
         console.error("Error during periodic restore:", err);
       }

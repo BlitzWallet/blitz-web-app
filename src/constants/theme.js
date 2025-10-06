@@ -12,6 +12,9 @@ export const Colors = {
     darkModeTextInputPlaceholder: "#FFFFFF80",
     nostrGreen: "#29C467",
     failedTransaction: "#FF0000",
+    walletHomeLightModeOffset: "#E4E4E4",
+    walletHomeDarkModeOffset: "#002146",
+    walletHomeLightsOutOffset: "#0d0d0d",
   },
   light: {
     blue: "#0375F6",

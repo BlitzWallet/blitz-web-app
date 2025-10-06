@@ -1,10 +1,11 @@
 import sha256Hash from "../hash";
-import { getLocalStorageItem, setLocalStorageItem } from "../localStorage";
+import Storage from "../localStorage";
 import {
   getCachedSparkTransactions,
   getSparkTokenTransactions,
 } from "../spark";
 import { bulkUpdateSparkTransactions } from "../spark/transactions";
+
 import { convertToBech32m } from "./bech32";
 import tokenBufferAmountToDecimal from "./bufferToDecimal";
 import { getCachedTokens } from "./cachedTokens";
@@ -17,14 +18,13 @@ export async function getLRC20Transactions({
   isInitialRun,
   mnemonic,
 }) {
-  const [storedDate, savedTxs, cachedTokens, tokenTxs] = await Promise.all([
-    getLocalStorageItem("lastRunLRC20Tokens").then(
-      (data) => JSON.parse(data) || 0
-    ),
+  const storedDate = Storage.getItem("lastRunLRC20Tokens") || 0;
+  const [savedTxs, cachedTokens, tokenTxs] = await Promise.all([
     getCachedSparkTransactions(null, ownerPublicKeys[0]),
     getCachedTokens(),
     getSparkTokenTransactions({ ownerPublicKeys, mnemonic }),
   ]);
+  console.log(savedTxs, cachedTokens, tokenTxs);
 
   if (!tokenTxs?.tokenTransactionsWithStatus) return;
   const tokenTransactions = tokenTxs.tokenTransactionsWithStatus;
@@ -94,10 +94,7 @@ export async function getLRC20Transactions({
     newTxs.push(tx);
   }
 
-  await setLocalStorageItem(
-    "lastRunLRC20Tokens",
-    JSON.stringify(new Date().getTime())
-  );
+  Storage.setItem("lastRunLRC20Tokens", Date.now());
 
   await bulkUpdateSparkTransactions(newTxs, "fullUpdate");
 }

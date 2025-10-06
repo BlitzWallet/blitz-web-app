@@ -226,11 +226,11 @@ function Root() {
                                           <Route
                                             path="/wallet"
                                             element={
-                                              <SafeAreaComponent>
+                                              <>
                                                 <WalletHome
                                                   openOverlay={openOverlay}
                                                 />
-                                              </SafeAreaComponent>
+                                              </>
                                             }
                                           />
                                           <Route
