@@ -494,7 +494,6 @@ export default function SendPage({ openOverlay }) {
                 )
               ? 1
               : 0.5,
-            margin: "0 auto",
           }}
           actionFunction={() => {
             canEditPaymentAmount ? handleSave() : handleSend();
