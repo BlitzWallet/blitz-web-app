@@ -15,10 +15,13 @@ import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import ThemeText from "../../components/themeText/themeText";
 import { useTranslation } from "react-i18next";
+import { useSpark } from "../../contexts/sparkContext";
+import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 
 export default function ConfirmPayment() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { sparkInformation } = useSpark();
   const { theme, darkModeType } = useThemeContext();
   const location = useLocation();
   const props = location.state;
@@ -35,6 +38,16 @@ export default function ConfirmPayment() {
   const errorMessage = transaction?.details.error || "Unknown Error";
   const amount = transaction?.details.amount;
   const showPendingMessage = transaction?.paymentStatus === "pending";
+
+  const isLRC20Payment = transaction?.details?.isLRC20Payment;
+  const token = isLRC20Payment
+    ? sparkInformation.tokens?.[transaction.details.LRC20Token]
+    : "";
+
+  const formattedTokensBalance = formatTokensNumber(
+    amount,
+    token?.tokenMetadata?.decimals
+  );
 
   console.log(paymentFee, "etstasdas");
 
@@ -89,7 +102,11 @@ export default function ConfirmPayment() {
           <FormattedSatText
             containerStyles={{ marginBottom: "20px" }}
             styles={{ fontSize: "2.5rem", margin: 0 }}
-            balance={amount}
+            neverHideBalance={true}
+            balance={isLRC20Payment ? formattedTokensBalance : amount}
+            useCustomLabel={isLRC20Payment}
+            customLabel={token?.tokenMetadata?.tokenTicker}
+            useMillionDenomination={true}
           />
         )}
 

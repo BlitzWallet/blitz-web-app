@@ -17,11 +17,14 @@
   padding-top: 12px;
   padding-right: 12px;
   padding-bottom: 12px;
-  border-bottom-width: 1px;
+  border-bottom: 1px solid;
 }
 .tokenHalfModalDataContainer .titleText {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 30px;
+}
+.tokenHalfModalDataContainer .itemRow p {
+  margin: 0;
 }
 .tokenHalfModalDataContainer .textItem {
   width: 100%;
