@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./send.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackArrow from "../../components/backArrow/backArrow";
@@ -32,9 +32,14 @@ import { InputTypes } from "bitcoin-address-parser";
 import ThemeImage from "../../components/ThemeImage/themeImage";
 import { adminHomeWallet } from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
+import SelectLRC20Token from "./components/selectLRC20Token";
+import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
+import CustomSettingsNavbar from "../../components/customSettingsNavbar";
+import AcceptButtonSendPage from "./components/acceptButton";
 
 export default function SendPage({ openOverlay }) {
   const location = useLocation();
+  const { sparkInformation } = useSpark();
   const params = location.state || {};
   const { t } = useTranslation();
   const {
@@ -56,10 +61,11 @@ export default function SendPage({ openOverlay }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(globalError);
   const [loadingMessage, setLoadingMessage] = useState(
-    "Getting invoice information"
+    sparkInformation.didConnect
+      ? t("wallet.sendPages.sendPaymentScreen.initialLoadingMessage")
+      : t("wallet.sendPages.sendPaymentScreen.connectToSparkMessage")
   );
   const navigate = useNavigate();
-  const { sparkInformation } = useSpark();
 
   const userBalance = sparkInformation.balance;
   const sendingAmount = paymentInfo?.sendAmount || 0;
@@ -71,6 +77,14 @@ export default function SendPage({ openOverlay }) {
   const [masterTokenInfo, setMasterTokenInfo] = useState({});
   const selectedLRC20Asset = masterTokenInfo?.tokenName || "Bitcoin";
   const seletctedToken = masterTokenInfo?.details || {};
+  const isUsingLRC20 = selectedLRC20Asset !== "Bitcoin";
+  const formattedTokensBalance =
+    selectedLRC20Asset !== "Bitcoin"
+      ? formatTokensNumber(
+          seletctedToken?.balance,
+          seletctedToken?.tokenMetadata?.decimals
+        )
+      : sparkInformation.balance;
 
   const convertedSendAmount = isBTCdenominated
     ? Math.round(Number(sendingAmount))
@@ -92,9 +106,13 @@ export default function SendPage({ openOverlay }) {
 
   const paymentFee =
     (paymentInfo?.paymentFee || 0) + (paymentInfo?.supportFee || 0);
-  const canSendPayment =
-    Number(userBalance) >= Number(convertedSendAmount) + paymentFee &&
-    convertedSendAmount != 0; //ecash is built into ln
+  const canSendPayment = !isUsingLRC20
+    ? Number(sparkInformation.balance) >=
+        Number(convertedSendAmount) + paymentFee && sendingAmount != 0
+    : sparkInformation.balance >= paymentFee &&
+      sendingAmount != 0 &&
+      seletctedToken.balance >=
+        sendingAmount * 10 ** seletctedToken?.tokenMetadata?.decimals;
   console.log(
     canSendPayment,
     "can send payment",
@@ -148,7 +166,7 @@ export default function SendPage({ openOverlay }) {
 
   useEffect(() => {
     if (!Object.keys(paymentInfo).length) return;
-    if (!masterInfoObject[QUICK_PAY_STORAGE_KEY].isFastPayEnabled) return;
+    if (!masterInfoObject[QUICK_PAY_STORAGE_KEY]?.isFastPayEnabled) return;
     if (!canSendPayment) return;
     if (canEditPaymentAmount) return;
     // if (paymentInfo.type === InputTypeVariant.LN_URL_PAY) return;
@@ -190,14 +208,16 @@ export default function SendPage({ openOverlay }) {
       const paymentObject = {
         getFee: false,
         ...formmateedSparkPaymentInfo,
-        amountSats:
-          paymentInfo?.type === "Bitcoin"
-            ? convertedSendAmount + (paymentInfo?.paymentFee || 0)
-            : convertedSendAmount,
+        amountSats: isUsingLRC20
+          ? paymentInfo?.sendAmount *
+            10 ** seletctedToken?.tokenMetadata?.decimals
+          : paymentInfo?.type === "Bitcoin"
+          ? convertedSendAmount + (paymentInfo?.paymentFee || 0)
+          : convertedSendAmount,
         masterInfoObject,
         fee: paymentFee,
         memo,
-        userBalance: userBalance,
+        userBalance: sparkInformation.balance,
         sparkInformation,
         feeQuote: paymentInfo.feeQuote,
         usingZeroAmountInvoice: paymentInfo.usingZeroAmountInvoice,
@@ -206,53 +226,6 @@ export default function SendPage({ openOverlay }) {
       };
       // Shouuld be same for all paymetns
       const paymentResponse = await sparkPaymenWrapper(paymentObject);
-
-      if (paymentInfo.type === "liquid" && paymentResponse.didWork) {
-        async function pollBoltzSwapStatus() {
-          let didSettleInvoice = false;
-          let runCount = 0;
-
-          while (!didSettleInvoice && runCount < 10) {
-            runCount += 1;
-            const resposne = await fetch(
-              getBoltzApiUrl(import.meta.env.VITE_BOLTZ_ENVIRONMENT) +
-                `/v2/swap/${paymentInfo.boltzData.id}`
-            );
-            const boltzData = await resposne.json();
-
-            if (boltzData.status === "invoice.settled") {
-              didSettleInvoice = true;
-
-              navigate("/confirm-page", {
-                state: {
-                  for: "paymentsucceed",
-                  transaction: paymentResponse.response,
-                },
-                replace: true,
-              });
-            } else {
-              console.log("Waiting for confirmation....");
-              await new Promise((resolve) => setTimeout(resolve, 5000));
-            }
-          }
-          if (didSettleInvoice) return;
-          navigate("/confirm-page", {
-            state: {
-              for: "paymentFailed",
-              transaction: {
-                ...paymentResponse.response,
-                details: {
-                  ...paymentResponse.response.details,
-                  error: "Unable to settle swap",
-                },
-              },
-            },
-            replace: true,
-          });
-        }
-        pollBoltzSwapStatus();
-        return;
-      }
 
       if (paymentResponse.didWork) {
         navigate("/confirm-page", {
@@ -391,6 +364,44 @@ export default function SendPage({ openOverlay }) {
       setIsLoading(false);
     }
   };
+  const clearSettings = () => {
+    setPaymentInfo((prev) => ({
+      ...prev,
+      canEditPayment: true,
+      sendAmount: "",
+    }));
+    setMasterTokenInfo({});
+  };
+
+  if (
+    (!Object.keys(paymentInfo).length && !errorMessage) ||
+    !sparkInformation.didConnect
+  )
+    return (
+      <>
+        {!sparkInformation.didConnect && <CustomSettingsNavbar />}
+        <FullLoadingScreen text={loadingMessage} />
+      </>
+    );
+
+  if (errorMessage) {
+    return <ErrorWithPayment reason={errorMessage} />;
+  }
+
+  if (
+    enabledLRC20 &&
+    !Object.keys(seletctedToken).length &&
+    paymentInfo.type === "spark"
+  ) {
+    return (
+      <SelectLRC20Token
+        sparkInformation={sparkInformation}
+        seletctedToken={seletctedToken}
+        goBackFunction={goBackFunction}
+        setSelectedToken={setMasterTokenInfo}
+      />
+    );
+  }
 
   if (!Object.keys(paymentInfo).length && !errorMessage)
     return (
@@ -400,17 +411,45 @@ export default function SendPage({ openOverlay }) {
       />
     );
 
-  if (errorMessage) {
-    console.log("RUNNING ERROR COMPONENT");
-    return <ErrorWithPayment reason={errorMessage} />;
-  }
-
   const totalFee =
     (paymentInfo.paymentFee || 0) + (paymentInfo.supportFee || 0);
 
   return (
     <div className="sendContainer">
-      <NabBar sparkInformation={sparkInformation} />
+      <div className="navBar">
+        <BackArrow
+          backFunction={
+            enabledLRC20 &&
+            Object.keys(seletctedToken).length &&
+            paymentInfo.type === "spark"
+              ? clearSettings
+              : goBackFunction
+          }
+        />
+        <div className="label">
+          <ThemeImage
+            styles={{ width: 20, height: 20 }}
+            alt="wallet icon to show user balance"
+            icon={adminHomeWallet}
+          />
+          <FormattedSatText
+            neverHideBalance={true}
+            balance={
+              selectedLRC20Asset !== "Bitcoin"
+                ? Number(formattedTokensBalance).toFixed(
+                    formattedTokensBalance < 1 ? 4 : 2
+                  )
+                : sparkInformation.balance
+            }
+            useCustomLabel={
+              seletctedToken?.tokenMetadata?.tokenTicker !== "Bitcoin" &&
+              seletctedToken?.tokenMetadata?.tokenTicker !== undefined
+            }
+            customLabel={seletctedToken?.tokenMetadata?.tokenTicker}
+            useMillionDenomination={true}
+          />
+        </div>
+      </div>
       <div className="paymentInfoContainer">
         <div className="balanceContainer">
           <div className="scroll-content">
@@ -424,21 +463,27 @@ export default function SendPage({ openOverlay }) {
               }}
               neverHideBalance={true}
               balance={convertedSendAmount || 0}
+              customLabel={
+                isUsingLRC20 ? seletctedToken?.tokenMetadata?.tokenTicker : ""
+              }
+              useCustomLabel={isUsingLRC20}
             />
           </div>
-          <FormattedSatText
-            containerStyles={{
-              opacity: !convertedSendAmount ? 0.5 : 1,
-            }}
-            styles={{ fontSize: "1.2rem", margin: 0 }}
-            globalBalanceDenomination={
-              masterInfoObject.userBalanceDenomination === "sats"
-                ? "fiat"
-                : "sats"
-            }
-            neverHideBalance={true}
-            balance={convertedSendAmount}
-          />
+          {!isUsingLRC20 && (
+            <FormattedSatText
+              containerStyles={{
+                opacity: !convertedSendAmount ? 0.5 : 1,
+              }}
+              styles={{ fontSize: "1.2rem", margin: 0 }}
+              globalBalanceDenomination={
+                masterInfoObject.userBalanceDenomination === "sats"
+                  ? "fiat"
+                  : "sats"
+              }
+              neverHideBalance={true}
+              balance={convertedSendAmount}
+            />
+          )}
         </div>
 
         {!canEditPaymentAmount && (
@@ -472,43 +517,64 @@ export default function SendPage({ openOverlay }) {
           </>
         )}
 
-        <CustomButton
-          buttonStyles={{
-            marginTop: canEditPaymentAmount ? 0 : "auto",
-            opacity: isSendingPayment
-              ? 1
-              : canSendPayment &&
-                !(
-                  isLiquidPayment &&
-                  (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
-                    convertedSendAmount > minMaxLiquidSwapAmounts.max)
-                ) &&
-                !(
-                  paymentInfo?.type === "lnUrlPay" &&
-                  (convertedSendAmount < minLNURLSatAmount ||
-                    convertedSendAmount > maxLNURLSatAmount)
-                ) &&
-                !(
-                  paymentInfo?.type === "Bitcoin" &&
-                  convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
-                )
-              ? 1
-              : 0.5,
-          }}
-          actionFunction={() => {
-            canEditPaymentAmount ? handleSave() : handleSend();
-          }}
-          textContent={
-            paymentInfo.canEditPayment
-              ? isLoading
-                ? "Loading..."
-                : "Save"
-              : isSendingPayment
-              ? "Sending..."
-              : "Send Payment"
-          }
-          useLoading={isSendingPayment || isLoading}
-        />
+        {canEditPaymentAmount ? (
+          <AcceptButtonSendPage
+            canSendPayment={canSendPayment}
+            errorMessageNavigation={errorMessageNavigation}
+            decodeSendAddress={decodeSendAddress}
+            openOverlay={openOverlay}
+            btcAdress={btcAdress}
+            paymentInfo={paymentInfo}
+            convertedSendAmount={convertedSendAmount}
+            paymentDescription={paymentDescription}
+            setPaymentInfo={setPaymentInfo}
+            setLoadingMessage={setLoadingMessage}
+            minLNURLSatAmount={minLNURLSatAmount}
+            maxLNURLSatAmount={maxLNURLSatAmount}
+            sparkInformation={sparkInformation}
+            isLRC20Payment={isUsingLRC20}
+            seletctedToken={seletctedToken}
+            navigate={navigate}
+          />
+        ) : (
+          <CustomButton
+            buttonStyles={{
+              opacity: isSendingPayment
+                ? 1
+                : canSendPayment &&
+                  !(
+                    isLiquidPayment &&
+                    (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
+                      convertedSendAmount > minMaxLiquidSwapAmounts.max)
+                  ) &&
+                  !(
+                    paymentInfo?.type === "lnUrlPay" &&
+                    (convertedSendAmount < minLNURLSatAmount ||
+                      convertedSendAmount > maxLNURLSatAmount)
+                  ) &&
+                  !(
+                    paymentInfo?.type === "Bitcoin" &&
+                    convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
+                  )
+                ? 1
+                : 0.5,
+              margin: "auto auto 0",
+            }}
+            actionFunction={() => {
+              canEditPaymentAmount ? handleSave() : handleSend();
+            }}
+            textContent={
+              paymentInfo.canEditPayment
+                ? isLoading
+                  ? "Loading..."
+                  : "Save"
+                : isSendingPayment
+                ? "Sending..."
+                : "Send Payment"
+            }
+            useLoading={isSendingPayment || isLoading}
+          />
+        )}
       </div>
     </div>
   );
@@ -519,20 +585,4 @@ export default function SendPage({ openOverlay }) {
     setErrorMessage(reason);
     setPaymentInfo({});
   }
-}
-
-function NabBar({ sparkInformation }) {
-  return (
-    <div className="navBar">
-      <BackArrow />
-      <div className="label">
-        <ThemeImage
-          styles={{ width: 20, height: 20 }}
-          alt="wallet icon to show user balance"
-          icon={adminHomeWallet}
-        />
-        <FormattedSatText balance={sparkInformation.balance} />
-      </div>
-    </div>
-  );
 }

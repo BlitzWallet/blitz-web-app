@@ -55,6 +55,10 @@ const ExpandedTxPage = lazy(() =>
   import("./pages/expandedTxPage/expandedTxPage.jsx")
 );
 const SendPage = lazy(() => import("./pages/sendPage/sendPage.jsx"));
+const SparkSettingsPage = lazy(() =>
+  import("./pages/settings/pages/sparkSettingsPage/index.jsx")
+);
+
 import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
 import {
   ThemeContext,
@@ -222,11 +226,11 @@ function Root() {
                                           <Route
                                             path="/wallet"
                                             element={
-                                              <SafeAreaComponent>
+                                              <>
                                                 <WalletHome
                                                   openOverlay={openOverlay}
                                                 />
-                                              </SafeAreaComponent>
+                                              </>
                                             }
                                           />
                                           <Route
@@ -396,6 +400,22 @@ function Root() {
                                                 <SettingsContentIndex
                                                   openOverlay={openOverlay}
                                                 />
+                                              </AnimatedRouteWrapper>
+                                            }
+                                          />
+                                          <Route
+                                            path="/settings-item/SparkSettingsPage"
+                                            element={
+                                              <AnimatedRouteWrapper
+                                                initialAnimation={{ x: "100%" }}
+                                                animate={{ x: 0 }}
+                                                exitAnimation={{ x: "100%" }}
+                                              >
+                                                <SafeAreaComponent>
+                                                  <SparkSettingsPage
+                                                    openOverlay={openOverlay}
+                                                  />
+                                                </SafeAreaComponent>
                                               </AnimatedRouteWrapper>
                                             }
                                           />

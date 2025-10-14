@@ -9,8 +9,15 @@ import { useEffect, useState } from "react";
 import CustomButton from "../../components/customButton/customButton";
 import useThemeColors from "../../hooks/useThemeColors";
 import { check, pendingTx, xSmallIconBlack } from "../../constants/icons";
+import formatBalanceAmount from "../../functions/formatNumber";
+import { useSpark } from "../../contexts/sparkContext";
+import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
+import { useTranslation } from "react-i18next";
+import { TOKEN_TICKER_MAX_LENGTH } from "../../constants";
 
 export default function ExpandedTxPage() {
+  const { sparkInformation } = useSpark();
+  const { t } = useTranslation();
   const location = useLocation();
   const props = location.state;
   const navigate = useNavigate();
@@ -28,12 +35,38 @@ export default function ExpandedTxPage() {
 
   const description = transaction.details.description;
 
+  const isLRC20Payment = transaction.details.isLRC20Payment;
+  const selectedToken = isLRC20Payment
+    ? sparkInformation.tokens?.[transaction.details.LRC20Token]
+    : "";
+  const formattedTokensBalance = formatTokensNumber(
+    transaction?.details?.amount,
+    selectedToken?.tokenMetadata?.decimals
+  );
+
+  console.log(isLRC20Payment, formattedTokensBalance);
+
   useEffect(() => {
     setWindowWidth(window.innerWidth);
     window.addEventListener("resize", (e) => {
       setWindowWidth(window.innerWidth);
     });
   }, []);
+  const renderLRC20TokenRow = () => {
+    if (!isLRC20Payment) return null;
+
+    return (
+      <>
+        <ThemeText textContent={t("constants.token")} />
+        <ThemeText
+          textStyles={{ textAlign: windowWidth > 320 ? "right" : "center" }}
+          textContent={selectedToken?.tokenMetadata?.tokenTicker
+            ?.toUpperCase()
+            ?.slice(0, TOKEN_TICKER_MAX_LENGTH)}
+        />
+      </>
+    );
+  };
 
   return (
     <>
@@ -116,7 +149,14 @@ export default function ExpandedTxPage() {
               fontSize: windowWidth < 200 ? "30px" : "40px",
               margin: 0,
             }}
-            balance={transaction.details.amount}
+            balance={
+              isLRC20Payment && formattedTokensBalance > 1
+                ? formattedTokensBalance
+                : transaction.details.amount
+            }
+            useCustomLabel={isLRC20Payment}
+            customLabel={selectedToken?.tokenMetadata?.tokenTicker}
+            useMillionDenomination={true}
           />
           <div className="paymentStatusTextContanier">
             <ThemeText textContent={"Payment status"} />
@@ -201,6 +241,7 @@ export default function ExpandedTxPage() {
                 />
               </>
             )}
+            {renderLRC20TokenRow()}
           </div>
           {description && (
             <div className="descriptionContainer">

@@ -1,0 +1,36 @@
+.tokenHalfModalDataContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tokenHalfModalDataContainer .tokenHalfModalDataInnerContainer {
+  width: 95%;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+.tokenHalfModalDataContainer .itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 12px;
+  padding-top: 12px;
+  padding-right: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid;
+}
+.tokenHalfModalDataContainer .titleText {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.tokenHalfModalDataContainer .itemRow p {
+  margin: 0;
+}
+.tokenHalfModalDataContainer .textItem {
+  width: 100%;
+  flex-shrink: 1;
+  max-width: 45%;
+  text-align: right;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

@@ -39,6 +39,7 @@ export default function ThemeImage({
       className={className}
       onClick={() => {
         if (clickFunction) {
+          console.log("rujnning in theem click");
           clickFunction();
         }
       }}

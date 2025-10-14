@@ -17,7 +17,7 @@ import {
   settingsWhite,
 } from "../../../../constants/icons";
 
-export default function WalletNavBar({ openOverlay }) {
+export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useThemeContext();
@@ -43,7 +43,10 @@ export default function WalletNavBar({ openOverlay }) {
     });
   }, []);
   return (
-    <div style={{ backgroundColor }} className="walletNavBar">
+    <div
+      style={{ backgroundColor, paddingTop: didEnabledLrc20 ? "20px" : 0 }}
+      className="walletNavBar"
+    >
       <div className="themeContainer" onClick={() => toggleTheme(!theme)}>
         {theme ? (
           <ThemeImage icon={lightMode} />

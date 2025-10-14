@@ -10,6 +10,7 @@ import {
   BITCOIN_SAT_TEXT,
   BITCOIN_SATS_ICON,
   HIDDEN_BALANCE_TEXT,
+  TOKEN_TICKER_MAX_LENGTH,
 } from "../../constants";
 
 export default function FormattedSatText({
@@ -18,17 +19,21 @@ export default function FormattedSatText({
   reversed,
   frontText,
   containerStyles,
-  isFailedPayment,
   neverHideBalance,
   globalBalanceDenomination,
   backText,
   useBalance,
+  useCustomLabel = false,
+  customLabel = "",
+  useMillionDenomination = false,
 }) {
   const { masterInfoObject } = useGlobalContextProvider();
   const { fiatStats } = useNodeContext();
+
   const localBalanceDenomination =
     globalBalanceDenomination || masterInfoObject.userBalanceDenomination;
-  const currencyText = fiatStats.coin?.toUpperCase() || "USD";
+  const currencyText = (fiatStats.coin || "USD").toUpperCase();
+
   const formattedBalance = useMemo(
     () =>
       useBalance
@@ -39,9 +44,16 @@ export default function FormattedSatText({
               localBalanceDenomination,
               localBalanceDenomination === "fiat" ? 2 : 0,
               fiatStats
-            )
+            ),
+            useMillionDenomination
           ),
-    [balance, useBalance, localBalanceDenomination, fiatStats]
+    [
+      balance,
+      useBalance,
+      localBalanceDenomination,
+      fiatStats,
+      useMillionDenomination,
+    ]
   );
 
   const currencyOptions = useMemo(
@@ -59,112 +71,67 @@ export default function FormattedSatText({
   const showSats =
     localBalanceDenomination === "sats" ||
     localBalanceDenomination === "hidden";
-
   const shouldShowAmount =
     neverHideBalance ||
     localBalanceDenomination === "sats" ||
     localBalanceDenomination === "fiat";
 
-  // Hidding balance format
+  const renderText = (content, extra = {}) => (
+    <ThemeText
+      key={content}
+      reversed={reversed}
+      textStyles={{ includeFontPadding: false, ...styles, ...extra }}
+      textContent={content}
+    />
+  );
+
+  let children = [];
+
+  // Hidden balance format
   if (!shouldShowAmount) {
-    return (
-      <div
-        style={{
-          ...containerStyles,
-        }}
-        className="formattedSatTextContainer"
-      >
-        {frontText && (
-          <ThemeText textStyles={{ ...styles }} textContent={`${frontText}`} />
-        )}
-        <ThemeText
-          reversed={reversed}
-          textContent={HIDDEN_BALANCE_TEXT}
-          textStyles={{ ...styles }}
-        />
-        {backText && (
-          <ThemeText
-            textStyles={{ ...styles, marginLeft: "5px" }}
-            textContent={`${backText}`}
-          />
-        )}
-      </div>
-    );
+    children = [
+      frontText && renderText(frontText),
+      renderText(HIDDEN_BALANCE_TEXT),
+      backText && renderText(backText, { marginLeft: 5 }),
+    ];
   }
-
-  // Bitcoin sats formatting
-  if (showSats) {
-    return (
-      <div
-        style={{
-          ...containerStyles,
-        }}
-        className="formattedSatTextContainer"
-      >
-        {frontText && (
-          <ThemeText textStyles={{ ...styles }} textContent={`${frontText}`} />
-        )}
-        {showSymbol && (
-          <ThemeText
-            textStyles={{ ...styles }}
-            textContent={BITCOIN_SATS_ICON}
-          />
-        )}
-        <ThemeText
-          reversed={reversed}
-          textContent={`${formattedBalance}`}
-          textStyles={{ ...styles }}
-        />
-        {!showSymbol && (
-          <ThemeText
-            textStyles={{ ...styles, marginLeft: "5px" }}
-            textContent={BITCOIN_SAT_TEXT}
-          />
-        )}
-        {backText && (
-          <ThemeText
-            textStyles={{ ...styles, marginLeft: "5px" }}
-            textContent={`${backText}`}
-          />
-        )}
-      </div>
-    );
+  // Custom label format
+  else if (useCustomLabel) {
+    children = [
+      frontText && renderText(frontText),
+      renderText(formatBalanceAmount(balance, useMillionDenomination)),
+      renderText(
+        ` ${customLabel?.toUpperCase()?.slice(0, TOKEN_TICKER_MAX_LENGTH)}`,
+        { marginLeft: 5 }
+      ),
+      backText && renderText(backText, { marginLeft: 5 }),
+    ];
   }
-
+  // Bitcoin sats format
+  else if (showSats) {
+    children = [
+      frontText && renderText(frontText),
+      showSymbol && renderText(BITCOIN_SATS_ICON),
+      renderText(formattedBalance),
+      !showSymbol && renderText(BITCOIN_SAT_TEXT, { marginLeft: 5 }),
+      backText && renderText(backText, { marginLeft: 5 }),
+    ];
+  }
   // Fiat format
+  else {
+    children = [
+      frontText && renderText(frontText),
+      isSymbolInFront && showSymbol && renderText(currencySymbol),
+      renderText(currencyOptions[1]),
+      !isSymbolInFront && showSymbol && renderText(currencySymbol),
+      !showSymbol && renderText(currencyText, { marginLeft: 5 }),
+      backText && renderText(backText, { marginLeft: 5 }),
+    ];
+  }
+
   return (
-    <div
-      style={{
-        ...containerStyles,
-      }}
-      className="formattedSatTextContainer"
-    >
-      {frontText && (
-        <ThemeText textStyles={{ ...styles }} textContent={`${frontText}`} />
-      )}
-      {isSymbolInFront && showSymbol && (
-        <ThemeText textStyles={{ ...styles }} textContent={currencySymbol} />
-      )}
-      <ThemeText
-        reversed={reversed}
-        textContent={`${currencyOptions[1]}`}
-        textStyles={{ ...styles }}
-      />
-      {!isSymbolInFront && showSymbol && (
-        <ThemeText textStyles={{ ...styles }} textContent={currencySymbol} />
-      )}
-      {!showSymbol && (
-        <ThemeText
-          textStyles={{ ...styles, marginLeft: "5px" }}
-          textContent={`${currencyText}`}
-        />
-      )}
-      {backText && (
-        <ThemeText
-          textStyles={{ ...styles, marginLeft: "5px" }}
-          textContent={`${backText}`}
-        />
-      )}
+    <div className="formattedSatTextContainer" style={{ ...containerStyles }}>
+      {children.filter(Boolean)}
     </div>
   );
 }

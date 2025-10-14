@@ -1,57 +1,57 @@
-import {FlatList, StyleSheet, TouchableOpacity, View} from 'react-native';
-import {useSparkWallet} from '../../../context-store/sparkContext';
-import {ThemeText} from '../CustomElements';
-import CustomSearchInput from '../CustomElements/searchInput';
-import {CENTER, SIZES} from '../../constants';
-import {useRef, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import {COLORS, INSET_WINDOW_WIDTH} from '../../constants/theme';
-import GetThemeColors from '../../hooks/themeColors';
-import FormattedSatText from '../CustomElements/satTextDisplay';
-import formatTokensNumber from './formatTokensBalance';
-import {useTranslation} from 'react-i18next';
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSparkWallet } from "../../../context-store/sparkContext";
+import { ThemeText } from "../CustomElements";
+import CustomSearchInput from "../CustomElements/searchInput";
+import { CENTER, SIZES } from "../../constants";
+import { useRef, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { COLORS, INSET_WINDOW_WIDTH } from "../../constants/theme";
+import GetThemeColors from "../../hooks/themeColors";
+import FormattedSatText from "../CustomElements/satTextDisplay";
+import { useTranslation } from "react-i18next";
+import { formatTokensNumber } from "./formatTokensBalance";
 
 export default function LRC20AssetSelectorHalfModal({
   theme,
   darkModeType,
   slideHeight,
 }) {
-  const {t} = useTranslation();
-  const {sparkInformation} = useSparkWallet();
+  const { t } = useTranslation();
+  const { sparkInformation } = useSparkWallet();
   const assetsAvailable = Object.entries(sparkInformation.tokens);
 
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState("");
 
   const navigate = useNavigation();
   const keyboardRef = useRef(null);
 
-  const handleSearch = term => {
+  const handleSearch = (term) => {
     setSearchInput(term);
   };
 
-  const selectToken = token => {
+  const selectToken = (token) => {
     navigate.popTo(
-      'ConfirmPaymentScreen',
-      {selectedLRC20Asset: token},
+      "ConfirmPaymentScreen",
+      { selectedLRC20Asset: token },
       {
         merge: true,
-      },
+      }
     );
   };
 
   const filteredData = [
     [
-      'Bitcoin',
+      "Bitcoin",
       {
         balance: sparkInformation.balance,
         tokenMetadata: {
-          tokenTicker: 'Bitcoin',
-          tokenName: 'Bitcoin',
+          tokenTicker: "Bitcoin",
+          tokenName: "Bitcoin",
         },
       },
     ],
     ...assetsAvailable,
-  ].filter(item => {
+  ].filter((item) => {
     return (
       item[1]?.tokenMetadata?.tokenTicker
         ?.toLowerCase()
@@ -67,11 +67,11 @@ export default function LRC20AssetSelectorHalfModal({
       <View style={styles.innerContainer}>
         <ThemeText
           styles={styles.titleText}
-          content={t('screens.inAccount.lrc20HalfModal.title')}
+          content={t("screens.inAccount.lrc20HalfModal.title")}
         />
         <CustomSearchInput
           placeholderText={t(
-            'screens.inAccount.lrc20HalfModal.searchPlaceholder',
+            "screens.inAccount.lrc20HalfModal.searchPlaceholder"
           )}
           setInputText={handleSearch}
           inputText={searchInput}
@@ -83,7 +83,7 @@ export default function LRC20AssetSelectorHalfModal({
           <FlatList
             showsVerticalScrollIndicator={false}
             data={filteredData}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <AssetItem
                 theme={theme}
                 darkModeType={darkModeType}
@@ -94,20 +94,20 @@ export default function LRC20AssetSelectorHalfModal({
             )}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="none"
-            contentContainerStyle={{paddingTop: 10}}
+            contentContainerStyle={{ paddingTop: 10 }}
           />
         ) : (
           <ThemeText
-            styles={{textAlign: 'center', marginTop: 10}}
-            content={t('screens.inAccount.lrc20HalfModal.noTokens')}
+            styles={{ textAlign: "center", marginTop: 10 }}
+            content={t("screens.inAccount.lrc20HalfModal.noTokens")}
           />
         )}
       </View>
     </View>
   );
 
-  function AssetItem({item, theme, selectToken, darkModeType}) {
-    const {backgroundOffset, backgroundColor} = GetThemeColors();
+  function AssetItem({ item, theme, selectToken, darkModeType }) {
+    const { backgroundOffset, backgroundColor } = GetThemeColors();
     const [tokenIdentifier, details] = item;
 
     return (
@@ -121,26 +121,27 @@ export default function LRC20AssetSelectorHalfModal({
               ? backgroundColor
               : backgroundOffset
             : COLORS.darkModeText,
-        }}>
+        }}
+      >
         <ThemeText
           CustomNumberOfLines={1}
           styles={styles.tickerText}
           content={
-            details?.tokenMetadata?.tokenTicker === 'Bitcoin'
+            details?.tokenMetadata?.tokenTicker === "Bitcoin"
               ? details?.tokenMetadata?.tokenTicker
               : details?.tokenMetadata?.tokenTicker.toUpperCase()
           }
         />
         <FormattedSatText
           balance={
-            details?.tokenMetadata?.tokenTicker === 'Bitcoin'
+            details?.tokenMetadata?.tokenTicker === "Bitcoin"
               ? details?.balance
               : formatTokensNumber(
                   details?.balance,
-                  details?.tokenMetadata?.decimals,
+                  details?.tokenMetadata?.decimals
                 )
           }
-          useCustomLabel={details?.tokenMetadata?.tokenTicker !== 'Bitcoin'}
+          useCustomLabel={details?.tokenMetadata?.tokenTicker !== "Bitcoin"}
           customLabel={details?.tokenMetadata?.tokenTicker}
           useMillionDenomination={true}
         />
@@ -152,20 +153,20 @@ export default function LRC20AssetSelectorHalfModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  innerContainer: {flex: 1, width: INSET_WINDOW_WIDTH, ...CENTER},
+  innerContainer: { flex: 1, width: INSET_WINDOW_WIDTH, ...CENTER },
 
   titleText: {
     fontSize: SIZES.large,
-    textAlign: 'left',
+    textAlign: "left",
     marginBottom: 10,
   },
 
   assetContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
     padding: 15,
     borderRadius: 8,
     marginVertical: 5,
@@ -175,11 +176,11 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 5,
   },
 
-  tickerText: {marginRight: 'auto', includeFontPadding: false},
-  balanceText: {includeFontPadding: false},
+  tickerText: { marginRight: "auto", includeFontPadding: false },
+  balanceText: { includeFontPadding: false },
 });
