@@ -19,6 +19,7 @@
 .walletNavBar .themeContainer {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 .walletNavBar .refreshContainer {
   display: flex;

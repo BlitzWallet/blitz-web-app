@@ -48,11 +48,14 @@ export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
       className="walletNavBar"
     >
       <div className="themeContainer" onClick={() => toggleTheme(!theme)}>
-        {theme ? (
-          <ThemeImage icon={lightMode} />
-        ) : (
-          <ThemeImage icon={darkMode} />
-        )}
+        <ThemeImage
+          styles={{ display: theme ? "block" : "none" }}
+          icon={lightMode}
+        />
+        <ThemeImage
+          styles={{ display: !theme ? "block" : "none" }}
+          icon={darkMode}
+        />
       </div>
 
       <div className="refreshContainer">
