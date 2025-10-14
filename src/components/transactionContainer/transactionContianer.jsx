@@ -190,6 +190,7 @@ export default function TransactionContanier({ frompage }) {
     return [
       <div className="transactionContainer">
         <ThemeText
+          textStyles={{ marginTop: 20 }}
           className={"noTxText"}
           textContent={"Send or receive a transaction for it to show up here."}
         />
