@@ -2,7 +2,7 @@ import { Colors } from "../../constants/theme";
 import { useTranslation } from "react-i18next";
 import { useSpark } from "../../contexts/sparkContext";
 import ThemeText from "../../components/themeText/themeText";
-import { TOKEN_TICKER_MAX_LENGTH } from "../../constants";
+import { INFINITY_SYMBOL, TOKEN_TICKER_MAX_LENGTH } from "../../constants";
 import formatBalanceAmount from "../formatNumber";
 import useThemeColors from "../../hooks/useThemeColors";
 import copyToClipboard from "../copyToClipboard";
@@ -80,13 +80,17 @@ export default function LRC20TokenInformation({
           />
           <ThemeText
             className={"textItem"}
-            textContent={formatBalanceAmount(
-              formatTokensNumber(
-                tokenMetadata.maxSupply,
-                tokenMetadata?.decimals
-              ),
-              true
-            )}
+            textContent={
+              !tokenMetadata.maxSupply
+                ? INFINITY_SYMBOL
+                : formatBalanceAmount(
+                    formatTokensNumber(
+                      tokenMetadata.maxSupply,
+                      tokenMetadata?.decimals
+                    ),
+                    true
+                  )
+            }
           />
         </div>
         <div
