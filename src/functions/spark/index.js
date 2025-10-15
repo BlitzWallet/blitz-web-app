@@ -56,7 +56,12 @@ export const initializeSparkWallet = async (mnemonic) => {
 
     const { wallet } = await SparkWallet.initialize({
       mnemonicOrSeed: mnemonic,
-      options: { network: "MAINNET" },
+      options: {
+        network: "MAINNET",
+        optimizationOptions: {
+          multiplicity: 2,
+        },
+      },
     });
 
     sparkWallet[hash] = wallet;
