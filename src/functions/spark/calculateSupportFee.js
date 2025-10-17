@@ -27,6 +27,7 @@ export default async function calculateProgressiveBracketFee(
   paymentType,
   mnemonic
 ) {
+  return 0;
   let brackets;
   if (paymentType === "lightning") {
     brackets = lightningBrackets;
