@@ -6,11 +6,13 @@ import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import { Colors } from "../../../../constants/theme";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
+import { ArrowDown, ArrowUp, ScanLine } from "lucide-react";
 
 export default function SendAndRequestBtns({ openOverlay }) {
-  const { theme } = useThemeContext();
+  const { theme, darkModeType } = useThemeContext();
   const naigate = useNavigate();
-  const { backgroundOffset } = useThemeColors();
+  const { backgroundOffset, backgroundColor } = useThemeColors();
+
   return (
     <div className="sendAndRequstContainer">
       <div
@@ -22,41 +24,48 @@ export default function SendAndRequestBtns({ openOverlay }) {
           })
         }
         className="buttonContainer buttonWhite"
+        style={{ backgroundColor: Colors.dark.text }}
       >
-        <div
+        {/* <div
           style={{ backgroundColor: theme ? "transparent" : Colors.light.blue }}
           className="fill"
+        /> */}
+        <ArrowUp
+          color={
+            theme && darkModeType ? backgroundColor : Colors.constants.blue
+          }
+          size={25}
         />
-        <ThemeImage
+        {/* <ThemeImage
           styles={{ width: "100%", height: "100%" }}
           icon={sendRequestImage}
           className="send"
-        />
+        /> */}
       </div>
 
       <div
         style={{
-          backgroundColor: theme ? backgroundOffset : Colors.light.blue,
+          width: 80,
+          height: 80,
+          backgroundColor:
+            theme && darkModeType ? backgroundOffset : Colors.light.blue,
         }}
         onClick={() => naigate("/camera")}
         className="buttonContainer"
       >
-        <ThemeImage
-          styles={{ width: "60%", height: "60%" }}
-          icon={Qr}
-          className="request"
-        />
+        <ScanLine color={Colors.dark.text} size={30} />
       </div>
 
-      <div onClick={() => naigate("/receive")} className="buttonContainer">
-        <div
-          style={{ backgroundColor: theme ? "transparent" : Colors.light.blue }}
-          className="fill"
-        />
-        <ThemeImage
-          styles={{ width: "100%", height: "100%" }}
-          icon={sendRequestImage}
-          className="request"
+      <div
+        onClick={() => naigate("/receive")}
+        className="buttonContainer"
+        style={{ backgroundColor: Colors.dark.text }}
+      >
+        <ArrowDown
+          color={
+            theme && darkModeType ? backgroundColor : Colors.constants.blue
+          }
+          size={25}
         />
       </div>
     </div>

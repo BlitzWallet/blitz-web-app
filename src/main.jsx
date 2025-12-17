@@ -9,6 +9,7 @@ import {
   lazy,
   useCallback,
   useContext,
+  useMemo,
   useState,
 } from "react";
 import { createRoot } from "react-dom/client";
@@ -124,16 +125,62 @@ function Root() {
     [overlays]
   );
 
-  console.log(overlays, "overlays");
-
   const closeOverlay = useCallback(() => {
     setOverlays(overlays.slice(0, -1));
   }, [overlays]);
 
   // Define paths where the bottom navigation should be visible
   const showBottomTabsRoutes = ["/wallet", "/contacts", "/store"];
-  const shouldShowBottomTabs = showBottomTabsRoutes.includes(location.pathname);
+  const shouldShowBottomTabs =
+    showBottomTabsRoutes.includes(location.pathname) && !overlays.length;
   const background = location.state && location.state.background;
+
+  console.log(
+    showBottomTabsRoutes,
+    shouldShowBottomTabs,
+    location.pathname,
+    overlays
+  );
+
+  const overlayElements = useMemo(() => {
+    return overlays.map((overlay, index) => (
+      <div
+        key={index}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {overlay.for === "confirm-action" && (
+          <ConfirmActionPage onClose={closeOverlay} overlay={overlay} />
+        )}
+        {overlay.for === "error" && (
+          <ErrorScreen onClose={closeOverlay} overlay={overlay} />
+        )}
+        {overlay.for === "halfModal" && (
+          <CustomHalfModal
+            onClose={closeOverlay}
+            openOverlay={openOverlay}
+            contentType={overlay.contentType}
+            params={overlay.params}
+          />
+        )}
+        {overlay.for === "informationPopup" && (
+          <InformationPopup
+            onClose={closeOverlay}
+            openOverlay={openOverlay}
+            overlay={overlay}
+          />
+        )}
+      </div>
+    ));
+  }, [
+    overlays,
+    ConfirmActionPage,
+    ErrorScreen,
+    CustomHalfModal,
+    InformationPopup,
+  ]);
 
   return (
     <NavigationStackProvider>
@@ -458,48 +505,7 @@ function Root() {
                                         </Routes>
 
                                         {/* Render Overlays */}
-
-                                        {overlays.map((overlay, index) => (
-                                          <div
-                                            key={index}
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                          >
-                                            {overlay.for ===
-                                              "confirm-action" && (
-                                              <ConfirmActionPage
-                                                onClose={closeOverlay}
-                                                overlay={overlay}
-                                              />
-                                            )}
-                                            {overlay.for === "error" && (
-                                              <ErrorScreen
-                                                onClose={closeOverlay}
-                                                overlay={overlay}
-                                              />
-                                            )}
-                                            {overlay.for === "halfModal" && (
-                                              <CustomHalfModal
-                                                onClose={closeOverlay}
-                                                openOverlay={openOverlay}
-                                                contentType={
-                                                  overlay.contentType
-                                                }
-                                                params={overlay.params}
-                                              />
-                                            )}
-                                            {overlay.for ===
-                                              "informationPopup" && (
-                                              <InformationPopup
-                                                onClose={closeOverlay}
-                                                openOverlay={openOverlay}
-                                                overlay={overlay}
-                                              />
-                                            )}
-                                          </div>
-                                        ))}
+                                        {overlayElements}
 
                                         {/* {location.pathname ===
                                         "/confirm-action" && (

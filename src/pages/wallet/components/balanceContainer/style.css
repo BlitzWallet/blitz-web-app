@@ -16,6 +16,7 @@
 }
 .userBalanceContainer p:first-child {
   text-transform: uppercase;
+  line-height: 1;
 }
 .userBalanceContainer h1 {
   font-weight: 400;

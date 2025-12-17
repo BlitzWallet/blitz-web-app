@@ -16,7 +16,9 @@ import ThemeImage from "../ThemeImage/themeImage";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
-
+import { ArrowDown, ArrowUp, Clock } from "lucide-react";
+import { Colors } from "../../constants/theme";
+import useThemeColors from "../../hooks/useThemeColors";
 const TRANSACTION_CONSTANTS = {
   VIEW_ALL_PAGE: "viewAllTx",
   SPARK_WALLET: "sparkWallet",
@@ -225,12 +227,16 @@ function TxItem({
   isFailedPayment,
   sparkInformation,
   isLRC20Payment,
+  theme,
+  darkModeType,
+  frompage,
 }) {
   const { t } = useTranslation();
   const timeDifference = useMemo(
     () => calculateTimeDifference(currentTime, paymentDate),
     [currentTime, paymentDate]
   );
+  const { backgroundColor, backgroundOffset } = useThemeColors();
 
   const token = useMemo(
     () =>
@@ -292,6 +298,7 @@ function TxItem({
 
   return (
     <div
+      style={{ width: frompage === "home" ? "100%" : "90%" }}
       onClick={() =>
         navigate("/expanded-tx", {
           state: { transaction: { ...transaction, details: details } },
@@ -300,19 +307,66 @@ function TxItem({
       className="transaction"
       key={index}
     >
-      <ThemeImage
-        styles={{
-          transform: `rotate(${
-            isPending
-              ? "0deg"
-              : details.direction === "INCOMING"
-              ? "-90deg"
-              : "90deg"
-          })`,
+      <div
+        style={{
+          width: 45,
+          height: 45,
+          marginRight: 10,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor:
+            frompage === "home" ? backgroundColor : backgroundOffset,
         }}
-        icon={isPending ? pendingTx : smallArrowLeft}
-        alt="transaction arrow showing payment status"
-      />
+      >
+        {isPending ? (
+          <Clock
+            color={
+              theme && darkModeType
+                ? details.direction === "INCOMING"
+                  ? Colors.dark.text
+                  : Colors.dark.text
+                : details.direction === "INCOMING"
+                ? Colors.constants.blue
+                : theme
+                ? Colors.dark.text
+                : Colors.light.text
+            }
+            size={25}
+          />
+        ) : details.direction === "INCOMING" ? (
+          <ArrowDown
+            color={
+              theme && darkModeType
+                ? details.direction === "INCOMING"
+                  ? Colors.dark.text
+                  : Colors.dark.text
+                : details.direction === "INCOMING"
+                ? Colors.constants.blue
+                : theme
+                ? Colors.dark.text
+                : Colors.light.text
+            }
+            size={25}
+          />
+        ) : (
+          <ArrowUp
+            color={
+              theme && darkModeType
+                ? details.direction === "INCOMING"
+                  ? Colors.dark.text
+                  : Colors.dark.text
+                : details.direction === "INCOMING"
+                ? Colors.constants.blue
+                : theme
+                ? Colors.dark.text
+                : Colors.light.text
+            }
+            size={25}
+          />
+        )}
+      </div>
       <div className="textContainer">
         <ThemeText
           className={"descriptionText"}

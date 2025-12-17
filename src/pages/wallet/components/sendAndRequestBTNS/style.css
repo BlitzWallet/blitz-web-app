@@ -1,13 +1,13 @@
 .sendAndRequstContainer {
-  width: 200px;
+  width: 245px;
   justify-content: space-between;
   align-items: center;
   display: flex;
   margin: 30px auto 50px;
 }
 .sendAndRequstContainer .buttonContainer {
-  width: 55px;
-  height: 55px;
+  width: 65px;
+  height: 65px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
@@ -15,16 +15,6 @@
   justify-content: center;
   cursor: pointer;
   position: relative;
-}
-.sendAndRequstContainer .buttonContainer .fill {
-  width: 45px;
-  height: 45px;
-
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .sendAndRequstContainer .send {

@@ -17,6 +17,8 @@
   --tertiary: #009bf0;
   --lightModeBackground: #ebebeb;
   --lightModeBackgroundOffset: #e3e3e3;
+  --dmt: rgb(239, 239, 239);
+  --lmt: #262626;
 }
 * {
   box-sizing: border-box;

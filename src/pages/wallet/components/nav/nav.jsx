@@ -16,11 +16,12 @@ import {
   settingsIcon,
   settingsWhite,
 } from "../../../../constants/icons";
+import { Moon, Sun, RefreshCw, Settings } from "lucide-react";
 
 export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useThemeContext();
+  const { theme, toggleTheme, darkModeType } = useThemeContext();
   const { backgroundColor } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { sparkInformation } = useSpark();
@@ -43,32 +44,30 @@ export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
     });
   }, []);
   return (
-    <div
-      style={{ backgroundColor, paddingTop: didEnabledLrc20 ? "20px" : 0 }}
-      className="walletNavBar"
-    >
+    <div style={{ backgroundColor }} className="walletNavBar">
       <div className="themeContainer" onClick={() => toggleTheme(!theme)}>
-        <ThemeImage
-          styles={{ display: theme ? "block" : "none" }}
-          icon={lightMode}
-        />
-        <ThemeImage
-          styles={{ display: !theme ? "block" : "none" }}
-          icon={darkMode}
-        />
+        {!theme ? (
+          <Moon color="var(--primaryBlue)" size={30} />
+        ) : (
+          <Sun
+            color={`${darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}`}
+            size={30}
+          />
+        )}
       </div>
 
       <div className="refreshContainer">
-        <ThemeImage
-          styles={{ width: 23, height: 23 }}
-          clickFunction={handleRefresh}
-          icon={refresh}
+        <RefreshCw
+          onClick={handleRefresh}
+          color={theme && darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}
+          size={28}
           className={`${isRefreshing ? "spinningAnimation" : ""}`}
         />
       </div>
-      <ThemeImage
-        clickFunction={() => navigate("/settings")}
-        icon={settingsIcon}
+      <Settings
+        color={theme && darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}
+        size={30}
+        onClick={() => navigate("/settings")}
       />
     </div>
   );

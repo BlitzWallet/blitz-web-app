@@ -14,6 +14,7 @@ export default function WalletHome({ openOverlay }) {
   const { masterInfoObject } = useGlobalContextProvider();
   const { backgroundColor, backgroundOffset } = useThemeColors();
   const { toggleDidGetToHomepage } = useAppStatus();
+  const { textColor } = useThemeColors();
   const didEnabledLrc20 = masterInfoObject.lrc20Settings?.isEnabled;
 
   useEffect(() => {
@@ -40,7 +41,13 @@ export default function WalletHome({ openOverlay }) {
           <SendAndRequestBtns openOverlay={openOverlay} />
           {didEnabledLrc20 && <LRC20Assets openOverlay={openOverlay} />}
         </div>
-        <TransactionContanier frompage={"home"} />
+
+        <div style={{ background: backgroundOffset }} className="txsContainer">
+          <p style={{ color: textColor }} className="header">
+            Recent activity
+          </p>
+          <TransactionContanier frompage={"home"} />
+        </div>
       </div>
     </SafeAreaComponent>
   );

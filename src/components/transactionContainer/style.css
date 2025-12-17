@@ -19,7 +19,7 @@
 
 .transactionContainer .transaction {
   width: 90%;
-  margin: 20px auto;
+  margin: 15px auto;
   display: flex;
   align-items: center;
   border-radius: 8px;
@@ -73,5 +73,5 @@
 .transactionContainer .viewAllTxText {
   text-align: center;
   cursor: pointer;
-  margin: 10px 0;
+  margin: 10px 0 0;
 }

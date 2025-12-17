@@ -7,7 +7,18 @@
 }
 
 .lrc20Overlay {
-  padding: 2.5%;
+  padding: 20px 2.5% 0;
   border-bottom-left-radius: 30px;
   border-bottom-right-radius: 30px;
+}
+.txsContainer {
+  width: 90%;
+  margin: 20px auto 15px;
+  border-radius: 18px;
+  padding: 20px;
+}
+.txsContainer .header {
+  max-width: 500px;
+  opacity: 0.6;
+  margin: 0 auto;
 }

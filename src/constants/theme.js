@@ -3,6 +3,10 @@
  */
 
 export const Colors = {
+  tx: {
+    lightGray: "#E7E9ED",
+    lightBlue: "#c4dafcff",
+  },
   constants: {
     blue: "#0375F6",
     halfModalBackground: "rgba(0, 0, 0, 0.3)",
