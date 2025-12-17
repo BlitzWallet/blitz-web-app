@@ -7,22 +7,12 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
-import {
-  darkMode,
-  lightMode,
-  lightModeWhite,
-  refresh,
-  refreshWhite,
-  settingsIcon,
-  settingsWhite,
-} from "../../../../constants/icons";
 import { Moon, Sun, RefreshCw, Settings } from "lucide-react";
+import NavBarProfileImage from "../../../../components/navBar/profileImage";
 
 export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { theme, toggleTheme, darkModeType } = useThemeContext();
-  const { backgroundColor } = useThemeColors();
+  const { backgroundColor, backgroundOffset } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { sparkInformation } = useSpark();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
@@ -64,11 +54,7 @@ export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
           className={`${isRefreshing ? "spinningAnimation" : ""}`}
         />
       </div>
-      <Settings
-        color={theme && darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}
-        size={30}
-        onClick={() => navigate("/settings")}
-      />
+      <NavBarProfileImage />
     </div>
   );
 }

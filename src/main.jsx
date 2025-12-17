@@ -1,6 +1,7 @@
+import "../i18n.js";
+
 import "./fonts.css";
 import "./index.css";
-import "../i18n"; // for translation option
 import App from "./App.jsx";
 import "../pollyfills.js";
 import {
@@ -59,6 +60,16 @@ const SendPage = lazy(() => import("./pages/sendPage/sendPage.jsx"));
 const SparkSettingsPage = lazy(() =>
   import("./pages/settings/pages/sparkSettingsPage/index.jsx")
 );
+const ExpandedAddContactsPage = lazy(() =>
+  import(
+    "./pages/contacts/components/expandedAddContactPage/expandedAddContactPage.jsx"
+  )
+);
+const ExpandedContactsPage = lazy(() =>
+  import(
+    "./pages/contacts/components/ExpandedContactsPage/ExpandedContactsPage.jsx"
+  )
+);
 
 import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
 import {
@@ -104,6 +115,7 @@ import CustomHalfModal from "./pages/customHalfModal/index.jsx";
 import InformationPopup from "./pages/informationPopup/index.jsx";
 import FullLoadingScreen from "./components/fullLoadingScreen/fullLoadingScreen.jsx";
 import { GlobalServerTimeProvider } from "./contexts/serverTime.jsx";
+
 const ViewAllTxsPage = lazy(() =>
   import("./pages/viewAllTx/viewAllTxPage.jsx")
 );
@@ -290,6 +302,27 @@ function Root() {
                                               </SafeAreaComponent>
                                             }
                                           />
+                                          <Route
+                                            path="/expandedAddContactsPage"
+                                            element={
+                                              <SafeAreaComponent>
+                                                <ExpandedAddContactsPage
+                                                  openOverlay={openOverlay}
+                                                />
+                                              </SafeAreaComponent>
+                                            }
+                                          />
+                                          <Route
+                                            path="/expandedContactsPage"
+                                            element={
+                                              <SafeAreaComponent>
+                                                <ExpandedContactsPage
+                                                  openOverlay={openOverlay}
+                                                />
+                                              </SafeAreaComponent>
+                                            }
+                                          />
+
                                           <Route
                                             path="/edit-profile"
                                             element={

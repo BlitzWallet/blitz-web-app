@@ -1,0 +1,88 @@
+/* Transaction Item Button */
+.transaction-item-button {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.transaction-item-button:active {
+  opacity: 1;
+}
+
+/* Transaction Container */
+.transaction-container {
+  width: 95%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  margin: 0 auto;
+}
+
+.transaction-container.centered {
+  align-items: center;
+}
+
+/* Icon Styles */
+.icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 5px;
+}
+
+/* Transaction Content */
+.transaction-content {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+.transaction-content > * {
+  margin: 0;
+}
+.transaction-content p:last-child {
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+
+/* Accept or Pay Button Base Styles */
+.accept-or-pay-btn {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  border: none;
+}
+
+.accept-or-pay-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.accept-or-pay-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Text Ellipsis Support */
+.ellipsis-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ellipsis-text-multiline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

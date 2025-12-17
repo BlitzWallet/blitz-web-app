@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import customUUID from "../../../../functions/customUUID";
 import { userIcon, userWhite } from "../../../../constants/icons";
 
 export default function ContactProfileImage({
@@ -13,9 +12,7 @@ export default function ContactProfileImage({
   const [isLoading, setIsLoading] = useState(true);
 
   const fallbackIcon = darkModeType && theme ? userWhite : userIcon;
-  const customURI = uri
-    ? `${uri}?v=${updated ? new Date(updated).getTime() : customUUID()}`
-    : null;
+  const customURI = uri;
 
   const source = !loadError && uri && !isLoading ? customURI : fallbackIcon;
   const isProfile = !loadError && uri && !isLoading;

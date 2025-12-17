@@ -37,6 +37,7 @@
     "events": "^3.3.0",
     "firebase": "^11.9.0",
     "framer-motion": "^12.10.0",
+    "i18next": "^25.7.3",
     "idb": "^8.0.3",
     "intl-pluralrules": "^2.0.1",
     "js-sha256": "^0.11.1",

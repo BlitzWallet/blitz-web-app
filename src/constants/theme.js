@@ -59,3 +59,7 @@ export const Colors = {
     expandedTxReceitBackground: "#1B1B1B",
   },
 };
+export const WINDOWWIDTH = "95%";
+export const INSET_WINDOW_WIDTH = "90%";
+export const MAX_CONTENT_WIDTH = 600;
+export const HIDDEN_OPACITY = 0.5;

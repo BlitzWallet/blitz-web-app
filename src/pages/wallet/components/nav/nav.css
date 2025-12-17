@@ -9,11 +9,6 @@
   z-index: 99;
   align-items: center;
 }
-.walletNavBar img {
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-}
 
 .walletNavBar .themeContainer {
   display: flex;

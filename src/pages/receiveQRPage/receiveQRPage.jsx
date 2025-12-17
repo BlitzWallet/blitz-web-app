@@ -200,9 +200,6 @@ function LNURLContainer({
           for: "halfModal",
           contentType: "editLNURLOnReceive",
         });
-        navigate.navigate("CustomHalfModal", {
-          wantedContent: "editLNURLOnReceive",
-        });
       }}
       className="lnurlContainer"
     >

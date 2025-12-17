@@ -55,6 +55,7 @@ export default function BottomTabs({ setValue, value, Link }) {
           style={{
             backgroundColor: "transparent",
             borderRadius: "20px",
+            height: "45px",
           }}
           sx={{
             "& .MuiBottomNavigationAction-root": {

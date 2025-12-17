@@ -117,6 +117,7 @@ const setCashedMessages = async ({ newMessagesList, myPubKey }) => {
   const store = tx.objectStore(STORE_NAME_CONTACT_MESSAGES);
 
   try {
+    if (!newMessagesList.length) return;
     for (const newMessage of newMessagesList) {
       const existing = await store.get(newMessage.message.uuid);
       const parsedMessage = existing ? JSON.parse(existing.message) : null;
@@ -166,7 +167,11 @@ const setCashedMessages = async ({ newMessagesList, myPubKey }) => {
     }
 
     await tx.done;
-
+    console.log(newMessagesList, "sourted timestamps");
+    const sortedTimestamps = newMessagesList.sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+    console.log(sortedTimestamps, "sourted timestamps");
     const newTimestamp = newMessagesList.sort(
       (a, b) => b.timestamp - a.timestamp
     )[0].timestamp;

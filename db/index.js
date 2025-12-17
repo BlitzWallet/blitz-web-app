@@ -1,11 +1,14 @@
 import {
   addDoc,
+  and,
   collection,
   doc,
   getDoc,
   getDocs,
   getFirestore,
   limit,
+  or,
+  orderBy,
   query,
   setDoc,
   where,
@@ -320,51 +323,78 @@ export async function updateMessage({
   }
 }
 
-export async function syncDatabasePayment(
-  myPubKey,
-  updatedCachedMessagesStateFunction
-) {
+export async function syncDatabasePayment(myPubKey, privateKey) {
   try {
     const cachedConversations = await getCachedMessages();
     const savedMillis = cachedConversations.lastMessageTimestamp;
     console.log("Retrieving docs from timestamp:", savedMillis);
     const messagesRef = collection(db, "contactMessages");
 
-    const receivedMessagesQuery = query(
+    const combinedQuery = query(
       messagesRef,
-      where("toPubKey", "==", myPubKey),
-      where("timestamp", ">", savedMillis)
+      and(
+        where("timestamp", ">", savedMillis),
+        or(
+          where("toPubKey", "==", myPubKey),
+          where("fromPubKey", "==", myPubKey)
+        )
+      ),
+      orderBy("timestamp")
     );
 
-    const sentMessagesQuery = query(
-      messagesRef,
-      where("fromPubKey", "==", myPubKey),
-      where("timestamp", ">", savedMillis)
-    );
+    const snapshot = await getDocs(combinedQuery);
+    const allMessages = snapshot.docs.map((doc) => doc.data());
 
-    const [receivedSnapshot, sentSnapshot] = await Promise.all([
-      getDocs(receivedMessagesQuery),
-      getDocs(sentMessagesQuery),
-    ]);
-
-    const receivedMessages = receivedSnapshot.docs.map((doc) => doc.data());
-    const sentMessages = sentSnapshot.docs.map((doc) => doc.data());
-    const allMessages = [...receivedMessages, ...sentMessages];
-
-    if (allMessages.length === 0) {
-      updatedCachedMessagesStateFunction();
-      return;
-    }
-
+    if (allMessages.length === 0) return [];
+    console.log(allMessages);
     console.log(`${allMessages.length} messages received from history`);
 
-    queueSetCashedMessages({
-      newMessagesList: allMessages,
+    const processedMessages = await processWithRAF(
+      allMessages,
       myPubKey,
-    });
+      privateKey
+    );
+
+    return processedMessages;
   } catch (err) {
     console.error("Error syncing database payments:", err);
     // Consider adding error handling callback if needed
-    updatedCachedMessagesStateFunction();
+    return [];
   }
+}
+
+function processWithRAF(allMessages, myPubKey, privateKey, onProgress) {
+  return new Promise((resolve, reject) => {
+    // Create worker
+    const worker = new Worker(
+      new URL("../src/workers/messageWorker.js", import.meta.url),
+      { type: "module" }
+    );
+
+    worker.onmessage = function (e) {
+      const { type, data, current, total } = e.data;
+
+      if (type === "PROGRESS") {
+        console.log(`Processing: ${current}/${total}`);
+        if (onProgress) {
+          onProgress(current, total);
+        }
+      } else if (type === "COMPLETE") {
+        worker.terminate();
+        resolve(data);
+      }
+    };
+
+    worker.onerror = function (error) {
+      console.error("Worker error:", error);
+      worker.terminate();
+      reject(error);
+    };
+
+    // Send data to worker
+    worker.postMessage({
+      type: "PROCESS_MESSAGES",
+      data: { allMessages, myPubKey, privateKey },
+    });
+  });
 }
