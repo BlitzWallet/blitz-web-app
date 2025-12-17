@@ -27,8 +27,8 @@ Blitz Wallet Web App is a React application that allows users to interact with t
 - [ ] Blitz Contacts
 - [ ] Store items
 - [x] Match Blitz Mobile settings options
-- [ ] More send options (from image, manual input, from contacts)
-- [ ] Liquid receive option
+- [x] More send options (from image, manual input, from contacts)
+- [x] Liquid receive option
 
 ## Contribute
 
