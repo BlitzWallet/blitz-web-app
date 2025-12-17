@@ -92,7 +92,7 @@ export function ImageCacheProvider({ children }) {
                 return {
                   uri: cachedImage.uri,
                   localUri: cachedImage.uri,
-                  updated: cachedMetadata.updated,
+                  updated: cachedImage.metadata,
                   isObjectURL: cachedImage.isObjectURL,
                 };
               }

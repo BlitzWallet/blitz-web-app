@@ -288,18 +288,6 @@ export async function updateCachedImageMetadata(key, metadata) {
 }
 
 /**
- * Get all cached image keys
- */
-export async function getAllCachedImageKeys() {
-  try {
-    return await getAllKeys(STORE_NAME);
-  } catch (e) {
-    console.error("Error getting all cached image keys:", e);
-    return [];
-  }
-}
-
-/**
  * Clear all cached images
  */
 export async function clearAllCachedImages() {
@@ -310,45 +298,6 @@ export async function clearAllCachedImages() {
   } catch (e) {
     console.error("Error clearing all cached images:", e);
     return false;
-  }
-}
-
-/**
- * Get cache statistics
- */
-export async function getCacheStats() {
-  try {
-    const keys = await getAllKeys(STORE_NAME);
-    const db = await openDatabase();
-
-    // Estimate size (not precise but gives an idea)
-    let totalSize = 0;
-    const transaction = db.transaction([STORE_NAME], "readonly");
-    const store = transaction.objectStore(STORE_NAME);
-
-    const sizes = await Promise.all(
-      keys.map((key) => {
-        return new Promise((resolve) => {
-          const request = store.get(key);
-          request.onsuccess = () => {
-            const blob = request.result;
-            resolve(blob ? blob.size : 0);
-          };
-          request.onerror = () => resolve(0);
-        });
-      })
-    );
-
-    totalSize = sizes.reduce((sum, size) => sum + size, 0);
-
-    return {
-      totalImages: keys.length,
-      totalSize,
-      totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
-    };
-  } catch (e) {
-    console.error("Error getting cache stats:", e);
-    return null;
   }
 }
 

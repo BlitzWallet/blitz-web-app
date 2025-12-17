@@ -28,9 +28,7 @@ export async function getBolt11InvoiceForContact(
         const url = `https://${domain}/.well-known/lnurlp/${contactUniqueName}?amount=${
           sendingValue * 1000
         }&isBlitzContact=${useBlitzContact ? true : false}${
-          !!description
-            ? `&comment=${encodeURIComponent(description || "")}`
-            : ""
+          description ? `&comment=${encodeURIComponent(description || "")}` : ""
         }&sendingUUID=${sendingUUID}`;
         console.log(url);
         const response = await fetch(url);

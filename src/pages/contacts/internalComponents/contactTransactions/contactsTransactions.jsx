@@ -49,7 +49,7 @@ function ConfirmedOrSentTransaction({
     (txParsed.didSend && !txParsed.isRequest) ||
     (txParsed.isRequest && txParsed.isRedeemed && !txParsed.didSend);
 
-  if (!!txParsed.giftCardInfo) {
+  if (txParsed.giftCardInfo) {
     return (
       <GiftCardTxItem
         txParsed={txParsed}
@@ -235,30 +235,33 @@ export default function ContactsTransactionItem(props) {
 
         const useNewNotifications = !!retrivedContact.isUsingNewNotifications;
 
-        const [didPublishNotification, didUpdateMessage] = await Promise.all([
-          sendPushNotification({
-            selectedContactUsername: selectedContact.uniqueName,
-            myProfile: myProfile,
-            data: {
-              isUpdate: true,
-              [useNewNotifications ? "option" : "message"]: useNewNotifications
-                ? didPay
-                  ? "paid"
-                  : "declined"
-                : t(
-                    "contacts.internalComponents.contactsTransactions.pushNotificationUpdateMessage",
-                    {
-                      name: myProfile.name || myProfile.uniqueName,
-                      option: didPay
-                        ? t("transactionLabelText.paidLower")
-                        : t("transactionLabelText.declinedLower"),
-                    }
-                  ),
-            },
-            privateKey: contactsPrivateKey,
-            retrivedContact,
-            masterInfoObject,
-          }),
+        const [
+          // didPublishNotification,
+          didUpdateMessage,
+        ] = await Promise.all([
+          // sendPushNotification({
+          //   selectedContactUsername: selectedContact.uniqueName,
+          //   myProfile: myProfile,
+          //   data: {
+          //     isUpdate: true,
+          //     [useNewNotifications ? "option" : "message"]: useNewNotifications
+          //       ? didPay
+          //         ? "paid"
+          //         : "declined"
+          //       : t(
+          //           "contacts.internalComponents.contactsTransactions.pushNotificationUpdateMessage",
+          //           {
+          //             name: myProfile.name || myProfile.uniqueName,
+          //             option: didPay
+          //               ? t("transactionLabelText.paidLower")
+          //               : t("transactionLabelText.declinedLower"),
+          //           }
+          //         ),
+          //   },
+          //   privateKey: contactsPrivateKey,
+          //   retrivedContact,
+          //   masterInfoObject,
+          // }),
 
           retrivedContact.isUsingEncriptedMessaging
             ? updateMessage({
@@ -287,18 +290,20 @@ export default function ContactsTransactionItem(props) {
         }
       } catch (err) {
         console.log(err);
-        if (!usingOnPage) return;
-        navigate("/error", {
-          state: {
-            errorMessage: t("errormessages.declinePaymentError"),
-          },
-        });
+        if (usingOnPage) {
+          navigate("/error", {
+            state: {
+              errorMessage: t("errormessages.declinePaymentError"),
+            },
+          });
+        }
       } finally {
-        if (!usingOnPage) return;
-        setIsLoading((prev) => ({
-          ...prev,
-          [didPay ? "sendBTN" : "declineBTN"]: false,
-        }));
+        if (usingOnPage) {
+          setIsLoading((prev) => ({
+            ...prev,
+            [didPay ? "sendBTN" : "declineBTN"]: false,
+          }));
+        }
       }
     },
     [
