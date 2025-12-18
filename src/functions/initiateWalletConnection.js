@@ -112,10 +112,7 @@ async function initializeSparkSession({
       if (runCount === 1) {
         currentBalance = Number(initialBalanceResponse.balance);
       } else {
-        const retryResponse = await getSparkBalance(
-          mnemonic,
-          sendWebViewRequest
-        );
+        const retryResponse = await getSparkBalance(mnemonic);
         currentBalance = Number(retryResponse.balance);
       }
 

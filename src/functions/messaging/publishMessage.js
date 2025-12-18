@@ -233,15 +233,15 @@ export async function handlePaymentUpdate({
             ? didPay
               ? "paid"
               : "declined"
-            : t(
+            : i18next.t(
                 "contacts.internalComponents.contactsTransactions.pushNotificationUpdateMessage",
                 {
                   name:
                     globalContactsInformation.myProfile.name ||
                     globalContactsInformation.myProfile.uniqueName,
                   option: didPay
-                    ? t("transactionLabelText.paidLower")
-                    : t("transactionLabelText.declinedLower"),
+                    ? i18next.t("transactionLabelText.paidLower")
+                    : i18next.t("transactionLabelText.declinedLower"),
                 }
               ),
         },

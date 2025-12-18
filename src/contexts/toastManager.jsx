@@ -16,6 +16,7 @@ import displayCorrectDenomination from "../functions/displayCorrectDenomination"
 import { useSpark } from "./sparkContext";
 import { useNodeContext } from "./nodeContext";
 import { useGlobalContextProvider } from "./masterInfoObject";
+import { formatTokensNumber } from "../functions/lrc20/formatTokensBalance";
 
 // Toast Context
 const ToastContext = createContext();
@@ -252,7 +253,7 @@ const Toast = ({
         ) : toast.type === "confirmTx" ? (
           <HelpCircle color={Colors.light.text} />
         ) : (
-          <ThemeText styles={styles.toastIcon} content={getIconForType()} />
+          <ThemeText content={getIconForType()} />
         )}
         <div className="toast-text">
           {toast.type === "confirmTx" ? (
@@ -268,7 +269,7 @@ const Toast = ({
                 className={"toast-message"}
                 textContent={t("pushNotifications.paymentReceived.body", {
                   totalAmount: displayCorrectDenomination({
-                    amount: !!token ? formattedTokensBalance : toast.amount,
+                    amount: token ? formattedTokensBalance : toast.amount,
                     masterInfoObject,
                     fiatStats,
                     useCustomLabel: !!token,

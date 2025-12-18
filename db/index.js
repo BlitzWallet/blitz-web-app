@@ -2,6 +2,7 @@ import {
   addDoc,
   and,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -416,7 +417,6 @@ function processWithRAF(allMessages, myPubKey, privateKey, onProgress) {
 
 export async function isValidNip5Name(wantedName) {
   try {
-    crashlyticsLogReport("Seeing if the unique name exists");
     const usersRef = collection(db, "nip5Verification");
     const q = query(
       usersRef,
@@ -426,7 +426,6 @@ export async function isValidNip5Name(wantedName) {
     return querySnapshot.empty;
   } catch (error) {
     console.error("Error checking unique name:", error);
-    crashlyticsRecordErrorReport(error.message);
     return false;
   }
 }

@@ -239,19 +239,19 @@ export default function SendPage() {
 
       if (paymentResponse.didWork) {
         if (fromPage?.includes("contacts") && paymentResponse.response?.id) {
-          handlePaymentUpdate({
-            transaction: params.publishMessageFuncParams.transaction,
-            didPay: params.publishMessageFuncParams.didPay,
-            txid: paymentResponse.response?.id,
-            globalContactsInformation:
-              params.publishMessageFuncParams.globalContactsInformation,
-            selectedContact: params.publishMessageFuncParams.selectedContact,
-            currentTime: params.publishMessageFuncParams.currentTime,
-            contactsPrivateKey,
-            publicKey,
-            masterInfoObject,
-          });
           if (fromPage === "contacts-request") {
+            handlePaymentUpdate({
+              transaction: params.publishMessageFuncParams.transaction,
+              didPay: params.publishMessageFuncParams.didPay,
+              txid: paymentResponse.response?.id,
+              globalContactsInformation:
+                params.publishMessageFuncParams.globalContactsInformation,
+              selectedContact: params.publishMessageFuncParams.selectedContact,
+              currentTime: params.publishMessageFuncParams.currentTime,
+              contactsPrivateKey,
+              publicKey,
+              masterInfoObject,
+            });
           } else {
             const sendObject = params.publishMessageFuncParams;
             sendObject.data.txid = paymentResponse.response?.id;

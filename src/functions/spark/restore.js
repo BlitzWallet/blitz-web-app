@@ -1,6 +1,7 @@
 import {
   findTransactionTxFromTxHistory,
   getCachedSparkTransactions,
+  getSingleTxDetails,
   getSparkBitcoinPaymentRequest,
   getSparkLightningPaymentStatus,
   getSparkLightningSendRequest,
@@ -15,6 +16,7 @@ import {
   deleteSparkTransaction,
   deleteUnpaidSparkLightningTransaction,
   getAllPendingSparkPayments,
+  getAllSparkContactInvoices,
   getAllSparkTransactions,
   getAllUnpaidSparkLightningInvoices,
 } from "./transactions";
@@ -24,6 +26,7 @@ import {
   IS_SPARK_ID,
   IS_SPARK_REQUEST_ID,
 } from "../../constants";
+import sha256Hash from "../hash";
 
 const RESTORE_STATE_KEY = "spark_tx_restore_state";
 const MAX_BATCH_SIZE = 400;
@@ -695,7 +698,7 @@ async function processLightningTransaction(
           mnemonic,
         })
       : await getSparkLightningSendRequest(txStateUpdate.sparkID, mnemonic);
-
+  const paymentStatus = getSparkPaymentStatus(sparkResponse.status);
   if (
     details.direction === "OUTGOING" &&
     getSparkPaymentStatus(sparkResponse.status) === "failed"
@@ -793,7 +796,7 @@ async function getPaymentDetailsWithRetry(
   return null;
 }
 
-async function processBitcoinTransactions(bitcoinTxs, mnemonic) {
+async function processBitcoinTransactions(bitcoinTxs, mnemonic, accountId) {
   const lastRun = Storage.getItem("lastRunBitcoinTxUpdate");
 
   const now = Date.now();

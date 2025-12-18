@@ -226,12 +226,12 @@ export default function SendAndRequestPage(props) {
 
       const sendingAmountMsat = convertedSendAmount * 1000;
       const contactMessage = descriptionValue;
-      const myProfileMessage = !!descriptionValue
+      const myProfileMessage = descriptionValue
         ? descriptionValue
         : t("contacts.sendAndRequestPage.profileMessage", {
             name: selectedContact.name || selectedContact.uniqueName,
           });
-      const payingContactMessage = !!descriptionValue
+      const payingContactMessage = descriptionValue
         ? descriptionValue
         : {
             usingTranslation: true,
