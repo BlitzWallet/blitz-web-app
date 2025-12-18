@@ -12,8 +12,10 @@ import FastPay from "../pages/fastPay/fastPay";
 import BlitzFeeInformation from "../pages/feeDetails/feeInformation";
 import ExploreUsers from "../pages/exploreUsers/exploreUsers";
 import CustomSettingsNavbar from "../../../components/customSettingsNavbar";
+import { useOverlay } from "../../../contexts/overlayContext";
 
-export default function SettingsContentIndex({ openOverlay }) {
+export default function SettingsContentIndex() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const props = location.state;
   const selectedPage = props.for?.toLowerCase();

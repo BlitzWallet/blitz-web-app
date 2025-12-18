@@ -95,6 +95,7 @@ export default function ExpandedContactsPage({
     updateSeenTransactions();
   }, [contactTransactions]);
 
+  console.log(contactTransactions);
   const handleShare = () => {
     if (selectedContact?.isLNURL || !selectedContact?.uniqueName) return;
 
@@ -146,7 +147,7 @@ export default function ExpandedContactsPage({
                   size={20}
                   color={
                     theme && darkModeType
-                      ? Colors.dark.text
+                      ? Colors.light.text
                       : Colors.constants.blue
                   }
                 />
@@ -195,7 +196,7 @@ export default function ExpandedContactsPage({
                 });
                 return;
               }
-              navigate("/send-request", {
+              navigate("/sendAndRequestPage", {
                 state: {
                   selectedContact: selectedContact,
                   paymentType: "send",
@@ -234,7 +235,7 @@ export default function ExpandedContactsPage({
                 });
                 return;
               }
-              navigate("/send-request", {
+              navigate("/sendAndRequestPage", {
                 state: {
                   selectedContact: selectedContact,
                   paymentType: "request",

@@ -8,7 +8,10 @@ import ThemeText from "../../components/themeText/themeText";
 import Icon from "../../components/customIcon/customIcon";
 import PageNavBar from "../../components/navBar/navBar";
 import { disclaimerKeys } from "../../constants/icons";
-function DisclaimerPage({ openOverlay }) {
+import { useOverlay } from "../../contexts/overlayContext";
+
+function DisclaimerPage() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const params = location.state;
   const nextPageName = params?.nextPageName;

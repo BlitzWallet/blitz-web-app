@@ -22,6 +22,7 @@ import {
   receiptIcon,
   trashIcon,
 } from "../../constants/icons";
+import { useOverlay } from "../../contexts/overlayContext";
 
 const GENERALOPTIONS = [
   {
@@ -117,7 +118,8 @@ const DOOMSDAYSETTINGS = [
   ],
 ];
 
-export default function SettingsHome({ openOverlay }) {
+export default function SettingsHome() {
+  const { openOverlay } = useOverlay();
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);

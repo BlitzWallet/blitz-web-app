@@ -13,8 +13,10 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import { ImagesIconDark, settingsIcon } from "../../../../constants/icons";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function MyProfilePage({ openOverlay }) {
+export default function MyProfilePage() {
+  const { openOverlay } = useOverlay();
   const { cache } = useImageCache();
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset } = useThemeColors();

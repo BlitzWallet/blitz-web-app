@@ -7,11 +7,10 @@ import {
   useRef,
   useCallback,
 } from "react";
-
-import { sparkReceivePaymentWrapper } from "../functions/spark/payments";
-import { breezLiquidPaymentWrapper } from "../functions/breezLiquid";
 import {
   claimnSparkStaticDepositAddress,
+  getCachedSparkTransactions,
+  getSingleTxDetails,
   getSparkBalance,
   getSparkLightningPaymentStatus,
   getSparkStaticBitcoinL1AddressQuote,
@@ -24,13 +23,13 @@ import {
   addSingleSparkTransaction,
   bulkUpdateSparkTransactions,
   deleteUnpaidSparkLightningTransaction,
+  getAllSparkContactInvoices,
   getAllSparkTransactions,
   getAllUnpaidSparkLightningInvoices,
   SPARK_TX_UPDATE_ENVENT_NAME,
   sparkTransactionsEventEmitter,
 } from "../functions/spark/transactions";
 import {
-  findSignleTxFromHistory,
   fullRestoreSparkState,
   restoreSparkTxState,
   updateSparkTxStatus,
@@ -52,15 +51,34 @@ import liquidToSparkSwap from "../functions/spark/liquidToSparkSwap";
 import { useActiveCustodyAccount } from "./activeAccount";
 import sha256Hash from "../functions/hash";
 import { getLRC20Transactions } from "../functions/lrc20";
+import { useGlobalContextProvider } from "./masterInfoObject";
+import handleBalanceCache from "../functions/spark/handleBalanceCache";
+import {
+  createBalancePoller,
+  createRestorePoller,
+} from "../functions/pollingManager";
+import i18next from "i18next";
 
 export const isSendingPayingEventEmiiter = new EventEmitter();
 export const SENDING_PAYMENT_EVENT_NAME = "SENDING_PAYMENT_EVENT";
+
+if (!global.blitzWalletSparkIntervalState) {
+  global.blitzWalletSparkIntervalState = {
+    intervalTracker: new Map(),
+    listenerLock: new Map(),
+    allIntervalIds: new Set(),
+    depositIntervalIds: new Set(),
+  };
+}
+const { intervalTracker, listenerLock, allIntervalIds, depositIntervalIds } =
+  global.blitzWalletSparkIntervalState;
 
 // Initiate context
 const SparkWalletManager = createContext(null);
 const sessionTime = new Date().getTime();
 
 const SparkWalletProvider = ({ children, navigate }) => {
+  const { masterInfoObject } = useGlobalContextProvider();
   const { accountMnemoinc, contactsPrivateKey, publicKey } = useKeysContext();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { didGetToHomepage, minMaxLiquidSwapAmounts, appState } =
@@ -78,128 +96,256 @@ const SparkWalletProvider = ({ children, navigate }) => {
     sparkAddress: "",
     didConnect: null,
   });
+  const [tokensImageCache, setTokensImageCache] = useState({});
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const hasRestoreCompleted = useRef(false);
+  const [restoreCompleted, setRestoreCompleted] = useState(false);
+  const [reloadNewestPaymentTimestamp, setReloadNewestPaymentTimestamp] =
+    useState(0);
   const [pendingLiquidPayment, setPendingLiquidPayment] = useState(null);
   const depositAddressIntervalRef = useRef(null);
   const sparkDBaddress = useRef(null);
   const updatePendingPaymentsIntervalRef = useRef(null);
   const isInitialRestore = useRef(true);
   const isInitialLRC20Run = useRef(true);
+  const sparkInfoRef = useRef({
+    balance: 0,
+    tokens: {},
+    identityPubKey: "",
+    sparkAddress: "",
+  });
+  const sessionTimeRef = useRef(Date.now());
+  const newestPaymentTimeRef = useRef(Date.now());
+  const handledTransfers = useRef(new Set());
+  const usedSavedTxIds = useRef(new Set());
+  const prevAccountId = useRef(null);
+  const isSendingPaymentRef = useRef(false);
+  const balancePollingTimeoutRef = useRef(null);
+  const balancePollingAbortControllerRef = useRef(null);
+  const txPollingTimeoutRef = useRef(null);
+  const txPollingAbortControllerRef = useRef(null);
+  const currentPollingMnemonicRef = useRef(null);
+  const isInitialRender = useRef(true);
   const didInitializeSendingPaymentEvent = useRef(false);
   const initialBitcoinIntervalRun = useRef(null);
-  const currentWalletMnemoincRef = useRef(currentWalletMnemoinc);
-  const prevAppState = useRef(null);
+  const prevAppState = useRef(appState);
   const prevListenerType = useRef(null);
   const [numberOfCachedTxs, setNumberOfCachedTxs] = useState(0);
-  // dont need any more velow
+
+  const showTokensInformation =
+    masterInfoObject.enabledBTKNTokens === null
+      ? !!Object.keys(sparkInformation.tokens || {}).length
+      : masterInfoObject.enabledBTKNTokens;
+
+  const didRunInitialRestore = useRef(false);
+
+  const handledNavigatedTxs = useRef(new Set());
+
+  const [didRunNormalConnection, setDidRunNormalConnection] = useState(false);
+  const [normalConnectionTimeout, setNormalConnectionTimeout] = useState(false);
+  const shouldRunNormalConnection =
+    didRunNormalConnection || normalConnectionTimeout;
+  const currentMnemonicRef = useRef(currentWalletMnemoinc);
 
   const [numberOfIncomingLNURLPayments, setNumberOfIncomingLNURLPayments] =
     useState(0);
   const [numberOfConnectionTries, setNumberOfConnectionTries] = useState(0);
   const [startConnectingToSpark, setStartConnectingToSpark] = useState(false);
 
+  const cleanStatusAndLRC20Intervals = () => {
+    try {
+      for (const intervalId of allIntervalIds) {
+        console.log("Clearing stored interval ID:", intervalId);
+        clearInterval(intervalId);
+      }
+
+      intervalTracker.clear();
+      allIntervalIds.clear();
+    } catch (err) {
+      console.log("Error cleaning lrc20 intervals", err);
+    }
+  };
+
+  const clearAllDepositIntervals = () => {
+    console.log(
+      "Clearing all deposit address intervals. Counts:",
+      depositIntervalIds.size
+    );
+
+    for (const intervalId of depositIntervalIds) {
+      console.log("Clearing deposit interval ID:", intervalId);
+      clearInterval(intervalId);
+    }
+
+    depositIntervalIds.clear();
+    console.log("All deposit intervals cleared");
+  };
+
+  useEffect(() => {
+    sparkInfoRef.current = {
+      balance: sparkInformation.balance,
+      tokens: sparkInformation.tokens,
+      identityPubKey: sparkInformation.identityPubKey,
+      sparkAddress: sparkInformation.sparkAddress,
+    };
+  }, [
+    sparkInformation.balance,
+    sparkInformation.tokens,
+    sparkInformation.identityPubKey,
+    sparkInformation.sparkAddress,
+  ]);
+
   const sessionTime = useMemo(() => {
-    console.log("Updating wallet session time");
+    console.log("Updating wallet session time", currentWalletMnemoinc);
     return Date.now();
   }, [currentWalletMnemoinc]);
 
   useEffect(() => {
-    currentWalletMnemoincRef.current = currentWalletMnemoinc;
+    currentMnemonicRef.current = currentWalletMnemoinc;
   }, [currentWalletMnemoinc]);
+
+  useEffect(() => {
+    // Fixing race condition with new preloaded txs
+    sessionTimeRef.current = Date.now() + 5 * 1000;
+  }, [currentWalletMnemoinc]);
+
+  useEffect(() => {
+    newestPaymentTimeRef.current = Date.now();
+  }, [reloadNewestPaymentTimestamp]);
+
+  useEffect(() => {
+    if (!sparkInfoRef.current?.tokens) return;
+
+    async function updateTokensImageCache() {
+      const availableAssets = Object.entries(sparkInfoRef.current.tokens);
+      const extensions = ["jpg", "png"];
+      const newCache = {};
+
+      for (const [tokenId] of availableAssets) {
+        newCache[tokenId] = null;
+
+        for (const ext of extensions) {
+          const url = `https://tokens.sparkscan.io/${tokenId}.${ext}`;
+          try {
+            const response = await fetch(url, { method: "HEAD" });
+            if (response.ok) {
+              newCache[tokenId] = url;
+              break;
+            }
+          } catch (err) {
+            console.log("Image fetch error:", tokenId, err);
+          }
+        }
+      }
+
+      setTokensImageCache(newCache);
+    }
+
+    updateTokensImageCache();
+  }, [Object.keys(sparkInformation.tokens || {}).length]);
 
   // Debounce refs
   const debounceTimeoutRef = useRef(null);
   const pendingTransferIds = useRef(new Set());
 
-  const toggleIsSendingPayment = (isSending) => {
-    setIsSendingPayment(isSending);
-  };
-  useEffect(() => {
-    if (didInitializeSendingPaymentEvent.current) return;
-    didInitializeSendingPaymentEvent.current = true;
-
-    isSendingPayingEventEmiiter.addListener(
-      SENDING_PAYMENT_EVENT_NAME,
-      toggleIsSendingPayment
-    );
+  const toggleIsSendingPayment = useCallback((isSending) => {
+    console.log("Setting is sending payment", isSending);
+    if (isSending) {
+      if (txPollingAbortControllerRef.current) {
+        txPollingAbortControllerRef.current.abort();
+        txPollingAbortControllerRef.current = null;
+      }
+    }
+    isSendingPaymentRef.current = isSending;
   }, []);
 
-  // This is a function that handles incoming transactions and formmataes it to reqirued formation
-  const handleTransactionUpdate = async (
-    recevedTxId,
-    transactions,
-    balance
-  ) => {
-    try {
-      // First we need to get recent spark transfers
-      if (!transactions)
-        throw new Error("Unable to get transactions from spark");
-      const { transfers } = transactions;
-      let selectedSparkTransaction = transfers.find(
-        (tx) => tx.id === recevedTxId
-      );
+  const toggleNewestPaymentTimestamp = () => {
+    setReloadNewestPaymentTimestamp((prev) => prev + 1);
+  };
 
-      if (!selectedSparkTransaction) {
-        console.log("Running full history sweep");
-        const singleTxResponse = await findSignleTxFromHistory(
-          recevedTxId,
-          50,
-          currentWalletMnemoincRef.current
+  useEffect(() => {
+    if (
+      !isSendingPayingEventEmiiter.listenerCount(SENDING_PAYMENT_EVENT_NAME)
+    ) {
+      isSendingPayingEventEmiiter.addListener(
+        SENDING_PAYMENT_EVENT_NAME,
+        toggleIsSendingPayment
+      );
+    }
+
+    return () => {
+      console.log("clearning up toggle send pament");
+      isSendingPayingEventEmiiter.removeListener(
+        SENDING_PAYMENT_EVENT_NAME,
+        toggleIsSendingPayment
+      );
+    };
+  }, [toggleIsSendingPayment]);
+
+  const debouncedHandleIncomingPayment = useCallback(async (balance) => {
+    if (pendingTransferIds.current.size === 0) return;
+
+    const transferIdsToProcess = Array.from(pendingTransferIds.current);
+    pendingTransferIds.current.clear();
+
+    console.log(
+      "Processing debounced incoming payments:",
+      transferIdsToProcess
+    );
+    // let transfersOffset = 0;
+    let cachedTransfers = [];
+
+    for (const transferId of transferIdsToProcess) {
+      try {
+        const transfer = await getSingleTxDetails(
+          currentMnemonicRef.current,
+          transferId
         );
-        if (!singleTxResponse.tx)
-          throw new Error("Unable to find tx in all of history");
-        selectedSparkTransaction = singleTxResponse.tx;
+
+        if (!transfer) continue;
+        cachedTransfers.push(transfer);
+      } catch (error) {
+        console.error("Error processing incoming payment:", transferId, error);
       }
+    }
 
-      console.log(
-        selectedSparkTransaction,
-        "received transaction from spark tx list"
-      );
-      if (!selectedSparkTransaction)
-        throw new Error("Not able to get recent transfer");
+    const paymentObjects = [];
 
-      const unpaidInvoices = await getAllUnpaidSparkLightningInvoices();
-      const paymentObject = await transformTxToPaymentObject(
-        selectedSparkTransaction,
-        sparkInformation.sparkAddress,
+    const [unpaidInvoices, unpaidContactInvoices] = await Promise.all([
+      getAllUnpaidSparkLightningInvoices(),
+      getAllSparkContactInvoices(),
+    ]);
+
+    for (const transferId of transferIdsToProcess) {
+      const tx = cachedTransfers.find((t) => t.id === transferId);
+      if (!tx) continue;
+
+      // Skip UTXO_SWAP handling here — old logic kept
+      if (tx.type === "UTXO_SWAP") continue;
+
+      const paymentObj = await transformTxToPaymentObject(
+        tx,
+        sparkInfoRef.current.sparkAddress,
         undefined,
         false,
         unpaidInvoices,
-        sparkInformation.identityPubKey
+        sparkInfoRef.current.identityPubKey,
+        1,
+        undefined,
+        unpaidContactInvoices
       );
 
-      if (paymentObject) {
-        await bulkUpdateSparkTransactions(
-          [paymentObject],
-          "incomingPayment",
-          0,
-          balance
-        );
+      if (paymentObj) {
+        paymentObjects.push(paymentObj);
       }
-      const savedTxs = await getAllSparkTransactions(
-        5,
-        sparkInformation.identityPubKey
-      );
-      return {
-        txs: savedTxs,
-        paymentObject: paymentObject || {},
-        paymentCreatedTime: new Date(
-          selectedSparkTransaction.createdTime
-        ).getTime(),
-      };
-    } catch (err) {
-      console.log("Handle incoming transaction error", err);
     }
-  };
-  console.log(sparkInformation);
-  const handleIncomingPayment = async (transferId, transactions, balance) => {
-    let storedTransaction = await handleTransactionUpdate(
-      transferId,
-      transactions,
-      balance
-    );
 
-    if (!storedTransaction) {
+    if (!paymentObjects.length) {
+      handleBalanceCache({
+        isCheck: false,
+        passedBalance: balance,
+        mnemonic: currentMnemonicRef.current,
+      });
       setSparkInformation((prev) => ({
         ...prev,
         balance: balance,
@@ -207,135 +353,271 @@ const SparkWalletProvider = ({ children, navigate }) => {
       return;
     }
 
-    const selectedStoredPayment = storedTransaction.txs.find(
-      (tx) => tx.sparkID === transferId
-    );
-    if (!selectedStoredPayment) return;
-    console.log(selectedStoredPayment, "seleceted stored transaction");
-
-    const details = JSON.parse(selectedStoredPayment.details);
-
-    if (details?.shouldNavigate && !details.isLNURL) return;
-    if (details.isLNURL && !details.isBlitzContactPayment) return;
-    if (details.isRestore) return;
-    if (storedTransaction.paymentCreatedTime < sessionTime) return;
-    // Handle confirm animation here
-    navigate("/confirm-page", {
-      state: {
-        for: "invoicePaid",
-        transaction: { ...selectedStoredPayment, details },
-      },
-    });
-  };
-
-  const debouncedHandleIncomingPayment = useCallback(
-    async (balance) => {
-      if (pendingTransferIds.current.size === 0) return;
-
-      const transferIdsToProcess = Array.from(pendingTransferIds.current);
-      pendingTransferIds.current.clear();
-
-      console.log(
-        "Processing debounced incoming payments:",
-        transferIdsToProcess
+    try {
+      await bulkUpdateSparkTransactions(
+        paymentObjects,
+        "incomingPayment",
+        0,
+        balance
       );
-      const transactions = await getSparkTransactions(
-        1,
-        undefined,
-        currentWalletMnemoincRef.current
-      );
-      // Process all pending transfer IDs
-      for (const transferId of transferIdsToProcess) {
-        try {
-          await handleIncomingPayment(transferId, transactions, balance);
-        } catch (error) {
-          console.error(
-            "Error processing incoming payment:",
-            transferId,
-            error
-          );
-        }
-      }
-    },
-    [sparkInformation.identityPubKey]
-  );
+    } catch (error) {
+      console.error("bulkUpdateSparkTransactions failed:", error);
+    }
+  }, []);
 
-  const handleUpdate = async (...args) => {
+  const handleUpdate = useCallback(async (...args) => {
     try {
       const [updateType = "transactions", fee = 0, passedBalance = 0] = args;
+      const mnemonic = currentMnemonicRef.current;
+      const { identityPubKey, balance: prevBalance } = sparkInfoRef.current;
+
       console.log(
         "running update in spark context from db changes",
         updateType
       );
 
-      const txs = await getAllSparkTransactions(
-        null,
-        sparkInformation.identityPubKey
-      );
-      const balance = await getSparkBalance(currentWalletMnemoincRef.current);
+      if (!identityPubKey) {
+        console.warn(
+          "handleUpdate called but identityPubKey is not available yet"
+        );
+        return;
+      }
 
-      setSparkInformation((prev) => {
-        return {
-          ...prev,
-          transactions: txs || prev.transactions,
-          balance: Math.round(
-            (passedBalance
-              ? passedBalance
-              : balance.didWork
-              ? Number(balance.balance)
-              : prev.balance) - fee
-          ),
-          tokens: balance.tokensObj,
-        };
-      });
-      return;
+      const txs = await getCachedSparkTransactions(null, identityPubKey);
+
       if (
-        updateType === "supportTx" ||
-        updateType === "restoreTxs" ||
+        updateType === "lrc20Payments" ||
+        updateType === "txStatusUpdate" ||
         updateType === "transactions"
       ) {
         setSparkInformation((prev) => ({
           ...prev,
           transactions: txs || prev.transactions,
         }));
-        return;
-      }
-      if (updateType === "incomingPayment") {
+      } else if (updateType === "incomingPayment") {
+        handleBalanceCache({
+          isCheck: false,
+          passedBalance: Number(passedBalance),
+          mnemonic,
+        });
         setSparkInformation((prev) => ({
           ...prev,
           transactions: txs || prev.transactions,
           balance: Number(passedBalance),
         }));
+      } else if (updateType === "fullUpdate-waitBalance") {
+        if (balancePollingAbortControllerRef.current) {
+          balancePollingAbortControllerRef.current.abort();
+        }
+
+        balancePollingAbortControllerRef.current = new AbortController();
+        currentPollingMnemonicRef.current = mnemonic;
+
+        const pollingMnemonic = currentPollingMnemonicRef.current;
+
+        setSparkInformation((prev) => ({
+          ...prev,
+          transactions: txs || prev.transactions,
+        }));
+
+        const poller = createBalancePoller(
+          mnemonic,
+          currentMnemonicRef,
+          balancePollingAbortControllerRef.current,
+          (newBalance) => {
+            setSparkInformation((prev) => {
+              if (pollingMnemonic !== currentMnemonicRef.current) {
+                return prev;
+              }
+              handleBalanceCache({
+                isCheck: false,
+                passedBalance: newBalance,
+                mnemonic: pollingMnemonic,
+              });
+              return {
+                ...prev,
+                balance: newBalance,
+              };
+            });
+          },
+          prevBalance
+        );
+
+        balancePollingTimeoutRef.current = poller;
+        poller.start();
+      } else {
+        const balanceResponse = await getSparkBalance(mnemonic);
+
+        const newBalance = balanceResponse.didWork
+          ? Number(balanceResponse.balance)
+          : prevBalance;
+
+        if (updateType === "paymentWrapperTx") {
+          const updatedBalance = Math.round(newBalance - fee);
+
+          handleBalanceCache({
+            isCheck: false,
+            passedBalance: updatedBalance,
+            mnemonic,
+          });
+
+          setSparkInformation((prev) => ({
+            ...prev,
+            transactions: txs || prev.transactions,
+            balance: updatedBalance,
+            tokens: balanceResponse.didWork
+              ? balanceResponse.tokensObj
+              : prev.tokens,
+          }));
+        } else if (updateType === "fullUpdate-tokens") {
+          setSparkInformation((prev) => ({
+            ...prev,
+            transactions: txs || prev.transactions,
+            tokens: balanceResponse.didWork
+              ? balanceResponse.tokensObj
+              : prev.tokens,
+          }));
+        } else if (updateType === "fullUpdate") {
+          handleBalanceCache({
+            isCheck: false,
+            passedBalance: newBalance,
+            mnemonic,
+          });
+
+          setSparkInformation((prev) => ({
+            ...prev,
+            balance: newBalance,
+            transactions: txs || prev.transactions,
+            tokens: balanceResponse.didWork
+              ? balanceResponse.tokensObj
+              : prev.tokens,
+          }));
+        }
+      }
+
+      if (
+        updateType === "paymentWrapperTx" ||
+        updateType === "transactions" ||
+        updateType === "txStatusUpdate" ||
+        updateType === "lrc20Payments"
+      ) {
+        console.log(
+          "Payment type is send payment, transaction, lrc20 first render, or txstatus update, skipping confirm tx page navigation"
+        );
+        return;
+      }
+      const [lastAddedTx] = await getAllSparkTransactions({
+        accountId: identityPubKey,
+        limit: 1,
+      });
+
+      console.log(lastAddedTx, "testing");
+
+      if (!lastAddedTx) {
+        console.log(
+          "No transaction found, skipping confirm tx page navigation"
+        );
+
         return;
       }
 
-      if (updateType === "paymentWrapperTx") {
-        setSparkInformation((prev) => {
-          return {
-            ...prev,
-            transactions: txs || prev.transactions,
-            balance: Math.round(
-              (balance.didWork ? Number(balance.balance) : prev.balance) - fee
-            ),
-            tokens: balance.tokensObj,
-          };
-        });
-      } else if (updateType === "fullUpdate") {
-        setSparkInformation((prev) => {
-          return {
-            ...prev,
-            balance: balance.didWork ? Number(balance.balance) : prev.balance,
-            transactions: txs || prev.transactions,
-            tokens: balance.tokensObj,
-          };
-        });
-      }
-    } catch (err) {
-      console.error("Error in handleUpdate:", err);
-    }
-  };
+      const parsedTx = {
+        ...lastAddedTx,
+        details: JSON.parse(lastAddedTx.details),
+      };
 
-  const transferHandler = (transferId, balance) => {
+      if (handledNavigatedTxs.current.has(parsedTx.sparkID)) {
+        console.log(
+          "Already handled transaction, skipping confirm tx page navigation"
+        );
+        return;
+      }
+      handledNavigatedTxs.current.add(parsedTx.sparkID);
+
+      const details = parsedTx?.details;
+
+      if (new Date(details.time).getTime() < sessionTimeRef.current) {
+        console.log(
+          "created before session time was set, skipping confirm tx page navigation"
+        );
+        return;
+      }
+
+      if (isSendingPaymentRef.current) {
+        console.log("Is sending payment, skipping confirm tx page navigation");
+        return;
+      }
+
+      if (details.direction === "OUTGOING") {
+        console.log(
+          "Only incoming payments navigate here, skipping confirm tx page navigation"
+        );
+        return;
+      }
+
+      const isOnReceivePage =
+        navigationRef
+          .getRootState()
+          .routes?.filter((item) => item.name === "ReceiveBTC").length === 1;
+
+      const isNewestPayment =
+        !!details?.createdTime || !!details?.time
+          ? new Date(details.createdTime || details?.time).getTime() >
+            newestPaymentTimeRef.current
+          : false;
+
+      let shouldShowConfirm = false;
+
+      if (
+        (lastAddedTx.paymentType?.toLowerCase() === "lightning" &&
+          !details.isLNURL &&
+          !details?.shouldNavigate &&
+          isOnReceivePage &&
+          isNewestPayment) ||
+        (lastAddedTx.paymentType?.toLowerCase() === "spark" &&
+          !details.isLRC20Payment &&
+          isOnReceivePage &&
+          isNewestPayment)
+      ) {
+        if (lastAddedTx.paymentType?.toLowerCase() === "spark") {
+          const upaidLNInvoices = await getAllUnpaidSparkLightningInvoices();
+          const lastMatch = upaidLNInvoices.findLast((invoice) => {
+            const savedInvoiceDetails = JSON.parse(invoice.details);
+            return (
+              !savedInvoiceDetails.sendingUUID &&
+              !savedInvoiceDetails.isLNURL &&
+              invoice.amount === details.amount
+            );
+          });
+
+          if (lastMatch && !usedSavedTxIds.current.has(lastMatch.id)) {
+            usedSavedTxIds.current.add(lastMatch.id);
+            const lastInvoiceDetails = JSON.parse(lastMatch.details);
+            if (details.time - lastInvoiceDetails.createdTime < 60 * 1000) {
+              shouldShowConfirm = true;
+            }
+          }
+        } else {
+          shouldShowConfirm = true;
+        }
+      }
+
+      // Handle confirm animation here
+      setPendingNavigation({
+        tx: parsedTx,
+        amount: details.amount,
+        LRC20Token: details.LRC20Token,
+        isLRC20Payment: !!details.LRC20Token,
+        showFullAnimation: shouldShowConfirm,
+      });
+    } catch (err) {
+      console.log("error in spark handle db update function", err);
+    }
+  }, []);
+
+  const transferHandler = useCallback((transferId, balance) => {
+    if (handledTransfers.current.has(transferId)) return;
+    handledTransfers.current.add(transferId);
     console.log(`Transfer ${transferId} claimed. New balance: ${balance}`);
 
     // Add transferId to pending set
@@ -350,93 +632,150 @@ const SparkWalletProvider = ({ children, navigate }) => {
     debounceTimeoutRef.current = setTimeout(() => {
       debouncedHandleIncomingPayment(balance);
     }, 500);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!sparkInformation.identityPubKey) {
+      console.log("Skipping listener setup - no identity pub key yet");
+      return;
+    }
+
+    console.log("adding web view listeners");
+
+    sparkTransactionsEventEmitter.removeAllListeners(
+      SPARK_TX_UPDATE_ENVENT_NAME
+    );
+
+    sparkTransactionsEventEmitter.on(SPARK_TX_UPDATE_ENVENT_NAME, handleUpdate);
+
+    return () => {
+      console.log("Cleaning up spark event listeners");
+      sparkTransactionsEventEmitter.removeListener(
+        SPARK_TX_UPDATE_ENVENT_NAME,
+        handleUpdate
+      );
+    };
+  }, [sparkInformation.identityPubKey, handleUpdate, transferHandler]);
 
   const addListeners = async (mode) => {
     console.log("Adding Spark listeners...");
 
-    const walletHash = sha256Hash(currentWalletMnemoincRef.current);
-    if (mode === "full") {
-      if (!sparkTransactionsEventEmitter.listenerCount()) {
-        sparkTransactionsEventEmitter.on(
-          SPARK_TX_UPDATE_ENVENT_NAME,
-          handleUpdate
-        );
-      }
-      if (!sparkWallet[walletHash].listenerCount()) {
-        sparkWallet[walletHash].on("transfer:claimed", transferHandler);
-      }
+    const walletHash = sha256Hash(currentMnemonicRef.current);
 
-      if (isInitialRestore.current) {
-        isInitialRestore.current = false;
-      }
-
-      await fullRestoreSparkState({
-        sparkAddress: sparkInformation.sparkAddress,
-        batchSize: isInitialRestore.current ? 15 : 5,
-        isSendingPayment: isSendingPayment,
-        mnemonic: currentWalletMnemoincRef.current,
-        identityPubKey: sparkInformation.identityPubKey,
-      });
-      await updateSparkTxStatus(
-        currentWalletMnemoincRef.current,
-        sparkInformation.identityPubKey
-      );
-
-      if (updatePendingPaymentsIntervalRef.current) {
-        console.log("BLOCKING TRYING TO SET INTERVAL AGAIN");
-        clearInterval(updatePendingPaymentsIntervalRef.current);
-      }
-      updatePendingPaymentsIntervalRef.current = setInterval(async () => {
-        try {
-          await updateSparkTxStatus(
-            currentWalletMnemoincRef.current,
-            sparkInformation.identityPubKey
-          );
-          await getLRC20Transactions({
-            ownerPublicKeys: [sparkInformation.identityPubKey],
-            sparkAddress: sparkInformation.sparkAddress,
-            isInitialRun: isInitialLRC20Run.current,
-            mnemonic: currentWalletMnemoincRef.current,
-          });
-        } catch (err) {
-          console.error("Error during periodic restore:", err);
+    try {
+      if (mode === "full") {
+        if (!sparkWallet[walletHash]?.listenerCount()) {
+          sparkWallet[walletHash].on("transfer:claimed", transferHandler);
         }
-      }, 10 * 1000);
+
+        if (!isInitialRestore.current) {
+          if (txPollingAbortControllerRef.current) {
+            txPollingAbortControllerRef.current.abort();
+          }
+
+          txPollingAbortControllerRef.current = new AbortController();
+          const restorePoller = createRestorePoller(
+            currentMnemonicRef.current,
+            isSendingPaymentRef.current,
+            currentMnemonicRef,
+            txPollingAbortControllerRef.current,
+            (result) => {
+              console.log("RESTORE COMPLETE");
+            },
+            sparkInfoRef.current
+          );
+
+          restorePoller.start();
+        }
+
+        updateSparkTxStatus(
+          currentMnemonicRef.current,
+          sparkInfoRef.current.identityPubKey
+        );
+
+        if (updatePendingPaymentsIntervalRef.current) {
+          console.log("BLOCKING TRYING TO SET INTERVAL AGAIN");
+          clearInterval(updatePendingPaymentsIntervalRef.current);
+          updatePendingPaymentsIntervalRef.current = null;
+        }
+
+        const capturedMnemonic = currentMnemonicRef.current;
+        const capturedWalletHash = walletHash;
+
+        const intervalId = setInterval(async () => {
+          try {
+            if (capturedMnemonic !== currentMnemonicRef.current) {
+              console.log("Mnemonic changed. Aborting interval.");
+              clearInterval(intervalId);
+              intervalTracker.delete(capturedWalletHash);
+              allIntervalIds.delete(intervalId);
+              return;
+            }
+
+            await updateSparkTxStatus(
+              currentMnemonicRef.current,
+              sparkInfoRef.current.identityPubKey
+            );
+
+            if (capturedMnemonic !== currentMnemonicRef.current) {
+              console.log(
+                "Context changed during updateSparkTxStatus. Aborting getLRC20Transactions."
+              );
+              clearInterval(intervalId);
+              intervalTracker.delete(capturedWalletHash);
+              allIntervalIds.delete(intervalId);
+              return;
+            }
+
+            await getLRC20Transactions({
+              ownerPublicKeys: [sparkInfoRef.current.identityPubKey],
+              sparkAddress: sparkInfoRef.current.sparkAddress,
+              isInitialRun: isInitialLRC20Run.current,
+              mnemonic: currentMnemonicRef.current,
+            });
+            if (isInitialLRC20Run.current) {
+              isInitialLRC20Run.current = false;
+            }
+          } catch (err) {
+            console.error("Error during periodic restore:", err);
+          }
+        }, 10 * 1000);
+
+        if (isInitialRestore.current) {
+          isInitialRestore.current = false;
+        }
+
+        updatePendingPaymentsIntervalRef.current = intervalId;
+        intervalTracker.set(walletHash, intervalId);
+        allIntervalIds.add(intervalId);
+      }
+    } catch (error) {
+      console.error("Error in addListeners:", error);
+    } finally {
+      listenerLock.set(walletHash, false);
+      console.log("Lock released for wallet:", walletHash);
     }
   };
 
-  const removeListeners = () => {
+  const removeListeners = (onlyClearIntervals = false) => {
     console.log("Removing spark listeners");
-    console.log(
-      sparkTransactionsEventEmitter.listenerCount(SPARK_TX_UPDATE_ENVENT_NAME),
-      "Nymber of event emiitter litsenrs"
-    );
-    console.log(
-      sparkWallet[sha256Hash(prevAccountMnemoincRef.current)]?.listenerCount(
-        "transfer:claimed"
-      ),
-      "number of spark wallet listenre"
-    );
-    if (
-      sparkTransactionsEventEmitter.listenerCount(SPARK_TX_UPDATE_ENVENT_NAME)
-    ) {
-      sparkTransactionsEventEmitter.removeAllListeners(
-        SPARK_TX_UPDATE_ENVENT_NAME
-      );
-    }
-    if (
-      sparkWallet[sha256Hash(prevAccountMnemoincRef.current)]?.listenerCount(
-        "transfer:claimed"
-      )
-    ) {
-      sparkWallet[
-        sha256Hash(prevAccountMnemoincRef.current)
-      ]?.removeAllListeners("transfer:claimed");
-    }
+    cleanStatusAndLRC20Intervals();
+    if (!onlyClearIntervals) {
+      if (!prevAccountMnemoincRef.current) {
+        prevAccountMnemoincRef.current = currentMnemonicRef.current;
+        return;
+      }
+      const hashedMnemonic = sha256Hash(prevAccountMnemoincRef.current);
 
-    prevAccountMnemoincRef.current = currentWalletMnemoincRef.current;
-    // sparkWallet?.removeAllListeners('deposit:confirmed');
+      if (
+        prevAccountMnemoincRef.current &&
+        sparkWallet[hashedMnemonic]?.listenerCount("transfer:claimed")
+      ) {
+        sparkWallet[hashedMnemonic]?.removeAllListeners("transfer:claimed");
+      }
+
+      prevAccountMnemoincRef.current = currentMnemonicRef.current;
+    }
 
     // Clear debounce timeout when removing listeners
     if (debounceTimeoutRef.current) {
@@ -451,34 +790,56 @@ const SparkWalletProvider = ({ children, navigate }) => {
       clearInterval(updatePendingPaymentsIntervalRef.current);
       updatePendingPaymentsIntervalRef.current = null;
     }
+    //Clear balance polling
+    if (balancePollingTimeoutRef.current) {
+      clearTimeout(balancePollingTimeoutRef.current);
+      balancePollingTimeoutRef.current = null;
+    }
+    if (balancePollingAbortControllerRef.current) {
+      balancePollingAbortControllerRef.current.abort();
+      balancePollingAbortControllerRef.current = null;
+    }
+    if (txPollingTimeoutRef.current) {
+      clearTimeout(txPollingTimeoutRef.current);
+      txPollingTimeoutRef.current = null;
+    }
+    if (txPollingAbortControllerRef.current) {
+      txPollingAbortControllerRef.current.abort();
+      txPollingAbortControllerRef.current = null;
+    }
+    currentPollingMnemonicRef.current = null;
   };
 
   // Add event listeners to listen for bitcoin and lightning or spark transfers when receiving does not handle sending
   useEffect(() => {
+    if (prevAppState.current !== appState && appState === "background") {
+      console.log("App moved to background — clearing listener type");
+      prevListenerType.current = null;
+    }
+
     const timeoutId = setTimeout(async () => {
       if (!didGetToHomepage) return;
-      if (!sparkInformation.didConnect) return;
+      if (!sparkInfoRef.current.identityPubKey) return;
 
       const getListenerType = () => {
-        if (appState === "active" && !isSendingPayment) return "full";
-        if (appState === "active" && isSendingPayment) return "sparkOnly";
-        return null; // No listeners in background
+        if (appState === "active") return "full";
+        return null;
       };
 
       const newType = getListenerType();
       const prevType = prevListenerType.current;
+      const prevId = prevAccountId.current;
 
-      console.log(prevAppState.current, appState, "APP STATE CHANGE");
-
-      if (prevAppState.current !== appState && appState === "background") {
+      // Only reconfigure listeners when becoming active
+      if (
+        (newType !== prevType ||
+          prevId !== sparkInfoRef.current.identityPubKey) &&
+        appState === "active"
+      ) {
         removeListeners();
-        prevListenerType.current = null;
-      }
-
-      if (newType !== prevType && appState === "active") {
-        removeListeners();
-        if (newType) addListeners(newType);
+        if (newType) await addListeners(newType);
         prevListenerType.current = newType;
+        prevAccountId.current = sparkInfoRef.current.identityPubKey;
       }
 
       prevAppState.current = appState;
@@ -488,6 +849,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
   }, [
     appState,
     sparkInformation.didConnect,
+    sparkInformation.identityPubKey,
     didGetToHomepage,
     isSendingPayment,
   ]);
@@ -495,17 +857,21 @@ const SparkWalletProvider = ({ children, navigate }) => {
   useEffect(() => {
     if (!didGetToHomepage) return;
     if (!sparkInformation.didConnect) return;
+    if (!sparkInformation.identityPubKey) return;
+
     // Interval to check deposit addresses to see if they were paid
     const handleDepositAddressCheck = async () => {
       try {
         console.log("l1Deposit check running....");
+        if (isSendingPaymentRef.current) return;
+        if (!currentMnemonicRef.current) return;
         const allTxs = await getAllSparkTransactions(
           null,
           sparkInformation.identityPubKey
         );
         const savedTxMap = new Map(allTxs.map((tx) => [tx.sparkID, tx]));
         const depoistAddress = await queryAllStaticDepositAddresses(
-          currentWalletMnemoincRef.current
+          currentMnemonicRef.current
         );
 
         // Loop through deposit addresses and check if they have been paid
@@ -521,16 +887,11 @@ const SparkWalletProvider = ({ children, navigate }) => {
           );
           console.log("Deposit address txids:", txids);
           if (!txids || !txids.length) continue;
+
           const unpaidTxids = txids.filter((txid) => !txid.didClaim);
           let claimedTxs = Storage.getItem("claimedBitcoinTxs") || [];
 
           for (const txid of unpaidTxids) {
-            // get quote for the txid
-            const { didwork, quote, error } =
-              await getSparkStaticBitcoinL1AddressQuote(
-                txid.txid,
-                currentWalletMnemoincRef.current
-              );
             const hasAlreadySaved = savedTxMap.has(txid.txid);
 
             if (!txid.isConfirmed) {
@@ -541,19 +902,36 @@ const SparkWalletProvider = ({ children, navigate }) => {
                     creditAmountSats: txid.amount - txid.fee,
                   },
                   address,
-                  sparkInformation
+                  sparkInfoRef.current
                 );
               }
+              continue;
             }
+            // get quote for the txid
+            const {
+              didwork: quoteDidWorkResponse,
+              quote,
+              error,
+            } = await getSparkStaticBitcoinL1AddressQuote(
+              txid.txid,
+              currentMnemonicRef.current
+            );
 
-            console.log("Deposit address quote:", quote);
-
-            if (!didwork || !quote) {
+            if (!quoteDidWorkResponse || !quote) {
               console.log(error, "Error getting deposit address quote");
               if (
                 error.includes("UTXO is already claimed by the current user.")
               ) {
                 handleTxIdState(txid, true, address);
+              } else if (!hasAlreadySaved) {
+                await addPendingTransaction(
+                  {
+                    transactionId: txid.txid,
+                    creditAmountSats: txid.amount - txid.fee,
+                  },
+                  address,
+                  sparkInfoRef.current
+                );
               }
               continue;
             }
@@ -569,8 +947,13 @@ const SparkWalletProvider = ({ children, navigate }) => {
             } = await claimnSparkStaticDepositAddress({
               ...quote,
               sspSignature: quote.signature,
-              mnemonic: currentWalletMnemoincRef.current,
+              mnemonic: currentMnemonicRef.current,
             });
+
+            // Add pending transaction if not already saved (after successful claim)
+            if (!hasAlreadySaved) {
+              await addPendingTransaction(quote, address, sparkInfoRef.current);
+            }
 
             if (!claimTx || !didWork) {
               console.log("Claim static deposit address error", claimError);
@@ -583,10 +966,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
               continue;
             }
 
-            if (!hasAlreadySaved) {
-              await addPendingTransaction(quote, address, sparkInformation);
-            }
-
             console.log("Claimed deposit address transaction:", claimTx);
 
             if (!claimedTxs?.includes(quote.signature)) {
@@ -597,53 +976,56 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
             await new Promise((res) => setTimeout(res, 2000));
 
-            const findBitcoinTxResponse = await findSignleTxFromHistory(
-              claimTx.transferId,
-              5,
-              currentWalletMnemoincRef.current
+            const bitcoinTransfer = await getSingleTxDetails(
+              currentMnemonicRef.current,
+              claimTx.transferId
             );
 
             let updatedTx = {};
-            if (!findBitcoinTxResponse.tx) {
+            if (!bitcoinTransfer) {
               updatedTx = {
                 useTempId: true,
                 id: claimTx.transferId,
                 tempId: quote.transactionId,
                 paymentStatus: "pending",
                 paymentType: "bitcoin",
-                accountId: sparkInformation.identityPubKey,
+                accountId: sparkInfoRef.current.identityPubKey,
               };
             } else {
-              const { tx: bitcoinTransfer } = findBitcoinTxResponse;
-              if (!bitcoinTransfer) {
-                updatedTx = {
-                  useTempId: true,
-                  id: claimTx.transferId,
-                  tempId: quote.transactionId,
-                  paymentStatus: "pending",
-                  paymentType: "bitcoin",
-                  accountId: sparkInformation.identityPubKey,
-                };
-              } else {
-                updatedTx = {
-                  useTempId: true,
-                  tempId: quote.transactionId,
-                  id: bitcoinTransfer.id,
-                  paymentStatus: "completed",
-                  paymentType: "bitcoin",
-                  accountId: sparkInformation.identityPubKey,
-                  details: {
-                    amount: bitcoinTransfer.totalValue,
-                    fee: Math.abs(
-                      quote.creditAmountSats - bitcoinTransfer.totalValue
-                    ),
-                  },
-                };
-              }
+              updatedTx = {
+                useTempId: true,
+                tempId: quote.transactionId,
+                id: bitcoinTransfer.id,
+                paymentStatus: "completed",
+                paymentType: "bitcoin",
+                accountId: sparkInfoRef.current.identityPubKey,
+                details: {
+                  amount: bitcoinTransfer.totalValue,
+                  fee: Math.abs(
+                    (txid.amount || quote.creditAmountSats) -
+                      bitcoinTransfer.totalValue
+                  ),
+                  totalFee: Math.abs(
+                    (txid.amount || quote.creditAmountSats) -
+                      bitcoinTransfer.totalValue
+                  ),
+                  supportFee: 0,
+                },
+              };
             }
-
-            await bulkUpdateSparkTransactions([updatedTx], "fullUpdate");
             console.log("Updated bitcoin transaction:", updatedTx);
+            await bulkUpdateSparkTransactions([updatedTx], "fullUpdate");
+            // If no details are provided do not show confirm screen
+            // Navigate here, since bulkUpdateSparkTransactions will default to transactions and get blocked in other path
+            if (updatedTx.details) {
+              if (handledNavigatedTxs.current.has(updatedTx.id)) return;
+              handledNavigatedTxs.current.add(updatedTx.id);
+              setPendingNavigation({
+                tx: updatedTx,
+                amount: updatedTx.details.amount,
+                showFullAnimation: false,
+              });
+            }
           }
         }
       } catch (err) {
@@ -663,7 +1045,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
           address: address,
           time: new Date().getTime(),
           direction: "INCOMING",
-          description: "Deposit address payment",
+          description: i18next.t("contexts.spark.depositLabel"),
           onChainTxid: quote.transactionId,
           isRestore: true, // This is a restore payment
         },
@@ -671,19 +1053,78 @@ const SparkWalletProvider = ({ children, navigate }) => {
       await addSingleSparkTransaction(pendingTx);
     };
 
+    clearAllDepositIntervals();
     if (depositAddressIntervalRef.current) {
       clearInterval(depositAddressIntervalRef.current);
+      depositAddressIntervalRef.current = null;
     }
-    if (isSendingPayment) return;
+
     if (!initialBitcoinIntervalRun.current) {
       setTimeout(handleDepositAddressCheck, 1_000 * 5);
       initialBitcoinIntervalRun.current = true;
     }
-    depositAddressIntervalRef.current = setInterval(
+
+    const depositIntervalId = setInterval(
       handleDepositAddressCheck,
       1_000 * 60
     );
+
+    depositAddressIntervalRef.current = depositIntervalId;
+    depositIntervalIds.add(depositIntervalId);
+
+    return () => {
+      console.log("Cleaning up deposit interval on unmount/dependency change");
+      if (depositIntervalId) {
+        clearInterval(depositIntervalId);
+        depositIntervalIds.delete(depositIntervalId);
+      }
+      if (depositAddressIntervalRef.current) {
+        clearInterval(depositAddressIntervalRef.current);
+        depositAddressIntervalRef.current = null;
+      }
+    };
   }, [didGetToHomepage, sparkInformation.didConnect, isSendingPayment]);
+
+  // Run fullRestore when didConnect becomes true
+  useEffect(() => {
+    if (!sparkInformation.didConnect) return;
+    if (!sparkInformation.identityPubKey) return;
+    if (didRunInitialRestore.current) return;
+    didRunInitialRestore.current = true;
+
+    async function runRestore() {
+      const restoreResponse = await fullRestoreSparkState({
+        sparkAddress: sparkInfoRef.current.sparkAddress,
+        batchSize: isInitialRestore.current ? 5 : 2,
+        isSendingPayment: isSendingPaymentRef.current,
+        mnemonic: currentMnemonicRef.current,
+        identityPubKey: sparkInfoRef.current.identityPubKey,
+        isInitialRestore: isInitialRestore.current,
+      });
+
+      if (!restoreResponse) {
+        setRestoreCompleted(true); // This will get the transactions for the session
+      }
+    }
+
+    runRestore();
+  }, [sparkInformation.didConnect, sparkInformation.identityPubKey]);
+
+  // Run transactions after BOTH restore completes
+  useEffect(() => {
+    if (!restoreCompleted) return;
+
+    async function fetchTransactions() {
+      const transactions = await getCachedSparkTransactions(
+        null,
+        sparkInfoRef.current.identityPubKey
+      );
+      setSparkInformation((prev) => ({ ...prev, transactions }));
+      hasRestoreCompleted.current = true;
+    }
+
+    fetchTransactions();
+  }, [restoreCompleted]);
 
   // This function connects to the spark node and sets the session up
 
@@ -694,6 +1135,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       // toggleGlobalContactsInformation,
       // globalContactsInformation,
       mnemonic: accountMnemoinc,
+      hasRestoreCompleted: hasRestoreCompleted.current,
     });
 
     console.log(didWork, "did Connect to spark");
@@ -709,6 +1151,8 @@ const SparkWalletProvider = ({ children, navigate }) => {
   useEffect(() => {
     if (!sparkInformation.didConnect) return;
     if (!globalContactsInformation?.myProfile) return;
+    if (!sparkInformation.identityPubKey) return;
+    if (!sparkInformation.sparkAddress) return;
 
     if (sparkDBaddress.current) return;
     sparkDBaddress.current = true;
@@ -728,7 +1172,22 @@ const SparkWalletProvider = ({ children, navigate }) => {
         true
       );
     }
-  }, [globalContactsInformation.myProfile, sparkInformation]);
+  }, [
+    globalContactsInformation.myProfile,
+    sparkInformation.didConnect,
+    sparkInformation.identityPubKey,
+    sparkInformation.sparkAddress,
+  ]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      pendingTransferIds.current.clear();
+    };
+  }, []);
 
   // This function checks to see if there are any liquid funds that need to be sent to spark
   useEffect(() => {

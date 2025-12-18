@@ -18,8 +18,10 @@ import CustomInput from "../../../../components/customInput/customInput";
 import formatBalanceAmount from "../../../../functions/formatNumber";
 import { useSpark } from "../../../../contexts/sparkContext";
 import { Colors } from "../../../../constants/theme";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function LRC20Assets({ openOverlay }) {
+export default function LRC20Assets() {
+  const { openOverlay } = useOverlay();
   const { darkModeType, theme } = useThemeContext();
   const { sparkInformation } = useSpark();
   const { textColor } = useThemeColors();

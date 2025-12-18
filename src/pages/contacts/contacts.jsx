@@ -24,8 +24,10 @@ import { encryptMessage } from "../../functions/encodingAndDecoding";
 import { ChevronRight, PlusIcon } from "lucide-react";
 import { createFormattedDate, formatMessage } from "./utils/utilityFunctions";
 import { formatDisplayName } from "./utils/formatListDisplayName";
+import { useOverlay } from "../../contexts/overlayContext";
 
-export default function Contacts({ openOverlay }) {
+export default function Contacts() {
+  const { openOverlay } = useOverlay();
   const { contactsPrivateKey, publicKey } = useKeysContext();
   const { masterInfoObject } = useGlobalContextProvider();
   const { cache } = useImageCache();

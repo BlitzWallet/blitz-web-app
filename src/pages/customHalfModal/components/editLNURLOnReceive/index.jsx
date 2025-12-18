@@ -13,13 +13,14 @@ import { useGlobalContacts } from "../../../../contexts/globalContacts";
 import CustomButton from "../../../../components/customButton/customButton";
 import { VALID_USERNAME_REGEX } from "../../../../constants";
 import { isValidUniqueName } from "../../../../../db";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
 export default function EditLNURLContactOnReceivePage({
   theme,
   darkModeType,
-  openOverlay,
   onClose,
 }) {
+  const { openOverlay } = useOverlay();
   const { globalContactsInformation, toggleGlobalContactsInformation } =
     useGlobalContacts();
   const { t } = useTranslation();

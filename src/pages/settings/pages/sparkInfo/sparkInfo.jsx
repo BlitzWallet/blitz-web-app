@@ -8,8 +8,10 @@ import { Colors } from "../../../../constants/theme";
 import ThemeText from "../../../../components/themeText/themeText";
 import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import { clipboardBlue } from "../../../../constants/icons";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function SparkInformation({ openOverlay }) {
+export default function SparkInformation() {
+  const { openOverlay } = useOverlay();
   const { sparkInformation } = useSpark();
   const navigate = useNavigate();
   const location = useLocation();

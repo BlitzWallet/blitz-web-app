@@ -27,6 +27,11 @@ import { useNodeContext } from "../../../../contexts/nodeContext";
 import "./contactsTransactionItem.css";
 import { ArrowDown, ArrowUp, CircleX } from "lucide-react";
 import { Colors } from "../../../../constants/theme";
+import {
+  handlePaymentUpdate,
+  sendPushNotification,
+} from "../../../../functions/messaging/publishMessage";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
 function ConfirmedOrSentTransaction({
   txParsed,
@@ -100,7 +105,6 @@ function ConfirmedOrSentTransaction({
           CustomEllipsizeMode={"tail"}
           CustomNumberOfLines={1}
           textStyles={{
-            fontWeight: 400,
             color: didDeclinePayment
               ? theme && darkModeType
                 ? textColor
@@ -117,13 +121,13 @@ function ConfirmedOrSentTransaction({
         />
         <ThemeText
           textStyles={{
-            fontWeight: 300,
             color: didDeclinePayment
               ? theme && darkModeType
                 ? textColor
                 : Colors.constants.cancelRed
               : textColor,
           }}
+          className={"time-label"}
           textContent={getTimeDisplay(
             timeDifferenceMinutes,
             timeDifferenceHours,
@@ -163,6 +167,7 @@ function ConfirmedOrSentTransaction({
 export default function ContactsTransactionItem(props) {
   const { selectedContact, transaction, myProfile, currentTime, imageData } =
     props;
+  const { openOverlay } = useOverlay();
   const { t } = useTranslation();
   const { fiatStats } = useNodeContext();
   const { masterInfoObject } = useGlobalContextProvider();
@@ -210,91 +215,31 @@ export default function ContactsTransactionItem(props) {
             ...prev,
             [didPay ? "sendBTN" : "declineBTN"]: true,
           }));
-        let newMessage = {
-          ...transaction.message,
-          isRedeemed: didPay,
-          txid,
-          name:
-            globalContactsInformation.myProfile.name ||
-            globalContactsInformation.myProfile.uniqueName,
-        };
-        // Need to switch unique name since the original receiver is now the sender
-        if (newMessage.senderProfileSnapshot) {
-          newMessage.senderProfileSnapshot.uniqueName =
-            globalContactsInformation.myProfile.uniqueName;
-        }
-        delete newMessage.didSend;
-        delete newMessage.wasSeen;
-        const [retrivedContact] = await Promise.all([
-          getDataFromCollection("blitzWalletUsers", selectedContact.uuid),
-        ]);
-        if (!retrivedContact)
-          throw new Error(t("errormessages.userDataFetchError"));
-
         const currentTime = getServerTime();
+        const response = await handlePaymentUpdate({
+          transaction,
+          didPay,
+          txid,
+          globalContactsInformation,
+          selectedContact,
+          currentTime,
+          contactsPrivateKey,
+          publicKey,
+          masterInfoObject,
+        });
 
-        const useNewNotifications = !!retrivedContact.isUsingNewNotifications;
-
-        const [
-          // didPublishNotification,
-          didUpdateMessage,
-        ] = await Promise.all([
-          // sendPushNotification({
-          //   selectedContactUsername: selectedContact.uniqueName,
-          //   myProfile: myProfile,
-          //   data: {
-          //     isUpdate: true,
-          //     [useNewNotifications ? "option" : "message"]: useNewNotifications
-          //       ? didPay
-          //         ? "paid"
-          //         : "declined"
-          //       : t(
-          //           "contacts.internalComponents.contactsTransactions.pushNotificationUpdateMessage",
-          //           {
-          //             name: myProfile.name || myProfile.uniqueName,
-          //             option: didPay
-          //               ? t("transactionLabelText.paidLower")
-          //               : t("transactionLabelText.declinedLower"),
-          //           }
-          //         ),
-          //   },
-          //   privateKey: contactsPrivateKey,
-          //   retrivedContact,
-          //   masterInfoObject,
-          // }),
-
-          retrivedContact.isUsingEncriptedMessaging
-            ? updateMessage({
-                newMessage,
-                fromPubKey: publicKey,
-                toPubKey: selectedContact.uuid,
-                retrivedContact,
-                privateKey: contactsPrivateKey,
-                currentTime,
-              })
-            : updateMessage({
-                newMessage,
-                fromPubKey: transaction.fromPubKey,
-                toPubKey: transaction.toPubKey,
-                retrivedContact,
-                privateKey: contactsPrivateKey,
-                currentTime,
-              }),
-        ]);
-        if (!didUpdateMessage && usingOnPage) {
-          navigate("/error", {
-            state: {
-              errorMessage: t("errormessages.updateContactMessageError"),
-            },
+        if (!response && usingOnPage) {
+          openOverlay({
+            for: "error",
+            errorMessage: t("errormessages.updateContactMessageError"),
           });
         }
       } catch (err) {
         console.log(err);
         if (usingOnPage) {
-          navigate("/error", {
-            state: {
-              errorMessage: t("errormessages.declinePaymentError"),
-            },
+          openOverlay({
+            for: "error",
+            errorMessage: t("errormessages.declinePaymentError"),
           });
         }
       } finally {
@@ -369,9 +314,10 @@ export default function ContactsTransactionItem(props) {
         sendBTN: false,
       }));
 
-      navigate("/confirm-payment", {
+      const currentTime = getServerTime();
+      navigate("/send", {
         state: {
-          btcAdress: receiveAddress,
+          btcAddress: receiveAddress,
           comingFromAccept: true,
           enteredPaymentInfo: {
             amount: sendingAmount,
@@ -384,9 +330,14 @@ export default function ContactsTransactionItem(props) {
             uniqueName: retrivedContact?.contacts?.myProfile?.uniqueName,
             uuid: retrivedContact?.uuid,
           },
-          fromPage: "contacts",
-          publishMessageFunc: (txid) =>
-            updatePaymentStatus(transaction, false, true, txid),
+          fromPage: "contacts-request",
+          publishMessageFuncParams: {
+            transaction,
+            didPay: true,
+            globalContactsInformation,
+            selectedContact,
+            currentTime,
+          },
         },
       });
       return;
@@ -398,6 +349,7 @@ export default function ContactsTransactionItem(props) {
       globalContactsInformation,
       imageData,
       selectedContact,
+      getServerTime,
     ]
   );
 
@@ -420,11 +372,7 @@ export default function ContactsTransactionItem(props) {
     (txParsed.isRequest && txParsed.isRedeemed != null);
 
   return (
-    <button
-      onClick={handleDescriptionClick}
-      className="transaction-item-button"
-      key={props.id}
-    >
+    <div className="transaction-item-button" key={props.id}>
       {isCompletedTransaction ? (
         <ConfirmedOrSentTransaction
           txParsed={txParsed}
@@ -463,6 +411,7 @@ export default function ContactsTransactionItem(props) {
                 fontWeight: 300,
                 marginBottom: paymentDescription ? 0 : 15,
               }}
+              className={"time-label"}
               textContent={getTimeDisplay(
                 timeDifferenceMinutes,
                 timeDifferenceHours,
@@ -491,6 +440,7 @@ export default function ContactsTransactionItem(props) {
               }}
               buttonStyles={{
                 width: "100%",
+                maxWidth: "unset",
                 overflow: "hidden",
                 borderRadius: 15,
                 alignItems: "center",
@@ -499,6 +449,7 @@ export default function ContactsTransactionItem(props) {
               }}
               textStyles={{
                 color: backgroundColor,
+                opacity: 1,
               }}
               textContent={t(
                 "contacts.internalComponents.contactsTransactions.send"
@@ -513,6 +464,7 @@ export default function ContactsTransactionItem(props) {
               }}
               buttonStyles={{
                 width: "100%",
+                maxWidth: "unset",
                 overflow: "hidden",
                 borderRadius: 15,
                 alignItems: "center",
@@ -528,6 +480,6 @@ export default function ContactsTransactionItem(props) {
           </div>
         </div>
       )}
-    </button>
+    </div>
   );
 }

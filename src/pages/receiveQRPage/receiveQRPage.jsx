@@ -20,8 +20,10 @@ import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useNodeContext } from "../../contexts/nodeContext";
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import { Colors } from "../../constants/theme";
+import { useOverlay } from "../../contexts/overlayContext";
 
-export default function ReceiveQRPage({ openOverlay }) {
+export default function ReceiveQRPage() {
+  const { openOverlay } = useOverlay();
   const { masterInfoObject } = useGlobalContextProvider();
   const { fiatStats } = useNodeContext();
   const { globalContactsInformation } = useGlobalContacts();

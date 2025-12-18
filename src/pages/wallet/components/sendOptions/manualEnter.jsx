@@ -9,11 +9,13 @@ import { useState } from "react";
 import "./manualEnter.css";
 import { CONTENT_KEYBOARD_OFFSET } from "../../../../constants";
 import openLinkToNewTab from "../../../../functions/openLinkToNewTab";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function ManualEnterSendAddress(props) {
+export default function ManualEnterSendAddress() {
+  const { openOverlay, closeOverlay } = useOverlay();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { onClose, openOverlay } = props;
+  const onClose = closeOverlay;
 
   const [inputValue, setInputValue] = useState("");
 

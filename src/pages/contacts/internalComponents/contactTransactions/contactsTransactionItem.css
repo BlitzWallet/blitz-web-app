@@ -43,8 +43,9 @@
 .transaction-content > * {
   margin: 0;
 }
-.transaction-content p:last-child {
+.transaction-content .time-label {
   font-size: 0.8em;
+  font-weight: 300;
   opacity: 0.6;
 }
 

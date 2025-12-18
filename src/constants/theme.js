@@ -57,6 +57,7 @@ export const Colors = {
     giftCardBlue2: "#222222",
     giftCardBlue3: "#676767",
     expandedTxReceitBackground: "#1B1B1B",
+    lightsOutModeOpacityInput: "#3C3C3C",
   },
 };
 export const WINDOWWIDTH = "95%";

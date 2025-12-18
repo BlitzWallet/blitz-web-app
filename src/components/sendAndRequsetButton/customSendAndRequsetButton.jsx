@@ -36,14 +36,14 @@ export default function CustomSendAndRequsetBTN({
         {btnType === "send" ? (
           <ArrowUp
             color={
-              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+              theme && darkModeType ? Colors.light.text : Colors.constants.blue
             }
             size={width}
           />
         ) : (
           <ArrowDown
             color={
-              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+              theme && darkModeType ? Colors.light.text : Colors.constants.blue
             }
             size={width}
           />

@@ -9,6 +9,7 @@ export default function ThemeText({
   className,
   reversed,
   clickFunction,
+  ref,
 }) {
   const { theme } = useThemeContext();
 
@@ -27,6 +28,7 @@ export default function ThemeText({
   );
   return (
     <p
+      ref={ref}
       onClick={() => {
         if (clickFunction) {
           clickFunction();

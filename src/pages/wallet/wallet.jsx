@@ -9,8 +9,10 @@ import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import useThemeColors from "../../hooks/useThemeColors";
 import SafeAreaComponent from "../../components/safeAreaContainer";
 import LRC20Assets from "./components/lrc20Assets";
+import { useOverlay } from "../../contexts/overlayContext";
 
-export default function WalletHome({ openOverlay }) {
+export default function WalletHome() {
+  const { openOverlay } = useOverlay();
   const { masterInfoObject } = useGlobalContextProvider();
   const { backgroundColor, backgroundOffset } = useThemeColors();
   const { toggleDidGetToHomepage } = useAppStatus();

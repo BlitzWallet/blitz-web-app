@@ -14,8 +14,10 @@ import ThemeText from "../../../../components/themeText/themeText";
 import { fiatCurrencies } from "../../../../functions/currencyOptions";
 import { useKeysContext } from "../../../../contexts/keysContext";
 import loadNewFiatData from "../../../../functions/saveAndUpdateFiatData";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function DisplayCurrency({ openOverlay }) {
+export default function DisplayCurrency() {
+  const { openOverlay } = useOverlay();
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
   const { contactsPrivateKey, publicKey } = useKeysContext();

@@ -7,6 +7,7 @@ import CustomButton from "../../../components/customButton/customButton";
 import { useThemeContext } from "../../../contexts/themeContext";
 import { Colors } from "../../../constants/theme";
 import useThemeColors from "../../../hooks/useThemeColors";
+import { useOverlay } from "../../../contexts/overlayContext";
 
 export default function ReceiveButtonsContainer({
   generatingInvoiceQRCode,
@@ -14,8 +15,8 @@ export default function ReceiveButtonsContainer({
   receiveOption,
   initialSendAmount,
   description,
-  openOverlay,
 }) {
+  const { openOverlay } = useOverlay();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, darkModeType } = useThemeContext();

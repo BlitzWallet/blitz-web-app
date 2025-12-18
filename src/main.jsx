@@ -70,6 +70,11 @@ const ExpandedContactsPage = lazy(() =>
     "./pages/contacts/components/ExpandedContactsPage/ExpandedContactsPage.jsx"
   )
 );
+const SendAndRequestPage = lazy(() =>
+  import(
+    "./pages/contacts/components/sendAndRequestPage/sendAndRequsetPage.jsx"
+  )
+);
 
 import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
 import {
@@ -115,6 +120,8 @@ import CustomHalfModal from "./pages/customHalfModal/index.jsx";
 import InformationPopup from "./pages/informationPopup/index.jsx";
 import FullLoadingScreen from "./components/fullLoadingScreen/fullLoadingScreen.jsx";
 import { GlobalServerTimeProvider } from "./contexts/serverTime.jsx";
+import { OverlayProvider } from "./contexts/overlayContext.jsx";
+import OverlayHost from "./components/overlayHost.jsx";
 
 const ViewAllTxsPage = lazy(() =>
   import("./pages/viewAllTx/viewAllTxPage.jsx")
@@ -124,75 +131,13 @@ function Root() {
   const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(1);
-  const [overlays, setOverlays] = useState([]);
-
-  const openOverlay = useCallback(
-    (type) => {
-      if (type.for !== "halfModal") {
-        setOverlays([...overlays, type]);
-      } else {
-        setOverlays(overlays.slice(0, -1).concat([type]));
-      }
-    },
-    [overlays]
-  );
-
-  const closeOverlay = useCallback(() => {
-    setOverlays(overlays.slice(0, -1));
-  }, [overlays]);
 
   // Define paths where the bottom navigation should be visible
   const showBottomTabsRoutes = ["/wallet", "/contacts", "/store"];
-  const shouldShowBottomTabs =
-    showBottomTabsRoutes.includes(location.pathname) && !overlays.length;
+  const shouldShowBottomTabs = showBottomTabsRoutes.includes(location.pathname);
   const background = location.state && location.state.background;
 
-  console.log(
-    showBottomTabsRoutes,
-    shouldShowBottomTabs,
-    location.pathname,
-    overlays
-  );
-
-  const overlayElements = useMemo(() => {
-    return overlays.map((overlay, index) => (
-      <div
-        key={index}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {overlay.for === "confirm-action" && (
-          <ConfirmActionPage onClose={closeOverlay} overlay={overlay} />
-        )}
-        {overlay.for === "error" && (
-          <ErrorScreen onClose={closeOverlay} overlay={overlay} />
-        )}
-        {overlay.for === "halfModal" && (
-          <CustomHalfModal
-            onClose={closeOverlay}
-            openOverlay={openOverlay}
-            contentType={overlay.contentType}
-            params={overlay.params}
-          />
-        )}
-        {overlay.for === "informationPopup" && (
-          <InformationPopup
-            onClose={closeOverlay}
-            openOverlay={openOverlay}
-            overlay={overlay}
-          />
-        )}
-      </div>
-    ));
-  }, [
-    overlays,
-    ConfirmActionPage,
-    ErrorScreen,
-    CustomHalfModal,
-    InformationPopup,
-  ]);
+  console.log(showBottomTabsRoutes, shouldShowBottomTabs, location.pathname);
 
   return (
     <NavigationStackProvider>
@@ -211,351 +156,326 @@ function Root() {
                               <LiquidEventProvider>
                                 <ImageCacheProvider>
                                   <GlobalServerTimeProvider>
-                                    <HandleLNURLPayments />
-                                    <AuthGate />
-                                    <AnimatePresence mode="wait">
-                                      <Suspense
-                                        fallback={
-                                          <SafeAreaComponent>
-                                            <div
-                                              style={{
-                                                flex: 1,
-                                                display: "flex",
-                                                width: "100%",
-                                                height: "100%",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                              }}
-                                            >
-                                              <FullLoadingScreen />
-                                            </div>
-                                          </SafeAreaComponent>
-                                        }
-                                      >
-                                        <Routes
-                                          location={background || location}
-                                        >
-                                          {/* Public Routes */}
-                                          <Route
-                                            path="/"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <Home />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/disclaimer"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <DisclaimerPage
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/createAccount"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <CreateSeed
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/createPassword"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <CreatePassword />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/login"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <Login
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/wallet"
-                                            element={
-                                              <>
-                                                <WalletHome
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </>
-                                            }
-                                          />
-                                          <Route
-                                            path="/contacts"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <Contacts
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/expandedAddContactsPage"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <ExpandedAddContactsPage
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/expandedContactsPage"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <ExpandedContactsPage
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-
-                                          <Route
-                                            path="/edit-profile"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <EditMyProfilePage
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/my-profile"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ x: "100%" }}
-                                                animate={{ x: 0 }}
-                                                exitAnimation={{ x: "100%" }}
-                                              >
-                                                <SafeAreaComponent>
-                                                  <MyProfilePage
-                                                    openOverlay={openOverlay}
-                                                  />
-                                                </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/store"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <Store />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/receiveAmount"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <EditReceivePaymentInformation />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/receive"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <ReceiveQRPage
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/send"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <SendPage
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/receive-options"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ y: "100%" }}
-                                                animate={{ y: 0 }}
-                                                exitAnimation={{ y: "100%" }}
-                                              >
-                                                <SafeAreaComponent>
-                                                  <SwitchReceiveOption />
-                                                </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/expanded-tx"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ y: "100%" }}
-                                                animate={{ y: 0 }}
-                                                exitAnimation={{ y: "100%" }}
-                                              >
-                                                <SafeAreaComponent>
-                                                  <ExpandedTxPage />
-                                                </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/technical-details"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ y: "100%" }}
-                                                animate={{ y: 0 }}
-                                                exitAnimation={{ y: "100%" }}
-                                              >
-                                                <SafeAreaComponent>
-                                                  <TechnicalDetailsPage
-                                                    openOverlay={openOverlay}
-                                                  />
-                                                </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/camera"
-                                            element={
-                                              <Camera
-                                                openOverlay={openOverlay}
-                                              />
-                                            }
-                                          />
-                                          <Route
-                                            path="/confirm-page"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{
-                                                  opacity: 0,
+                                    <OverlayProvider>
+                                      <HandleLNURLPayments />
+                                      <AuthGate />
+                                      <AnimatePresence mode="wait">
+                                        <Suspense
+                                          fallback={
+                                            <SafeAreaComponent>
+                                              <div
+                                                style={{
+                                                  flex: 1,
+                                                  display: "flex",
+                                                  width: "100%",
+                                                  height: "100%",
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
                                                 }}
-                                                animate={{ opacity: 1 }}
-                                                exitAnimation={{ opacity: 0 }}
                                               >
+                                                <FullLoadingScreen />
+                                              </div>
+                                            </SafeAreaComponent>
+                                          }
+                                        >
+                                          <Routes
+                                            location={background || location}
+                                          >
+                                            {/* Public Routes */}
+                                            <Route
+                                              path="/"
+                                              element={
                                                 <SafeAreaComponent>
-                                                  <ConfirmPayment />
+                                                  <Home />
                                                 </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/settings"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ x: "100%" }}
-                                                animate={{ x: 0 }}
-                                                exitAnimation={{ x: "100%" }}
-                                              >
+                                              }
+                                            />
+                                            <Route
+                                              path="/disclaimer"
+                                              element={
                                                 <SafeAreaComponent>
-                                                  <SettingsHome
-                                                    openOverlay={openOverlay}
-                                                  />
+                                                  <DisclaimerPage />
                                                 </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/settings-item"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ x: "100%" }}
-                                                animate={{ x: 0 }}
-                                                exitAnimation={{ x: "100%" }}
-                                              >
-                                                <SettingsContentIndex
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/settings-item/SparkSettingsPage"
-                                            element={
-                                              <AnimatedRouteWrapper
-                                                initialAnimation={{ x: "100%" }}
-                                                animate={{ x: 0 }}
-                                                exitAnimation={{ x: "100%" }}
-                                              >
+                                              }
+                                            />
+                                            <Route
+                                              path="/createAccount"
+                                              element={
                                                 <SafeAreaComponent>
-                                                  <SparkSettingsPage
-                                                    openOverlay={openOverlay}
-                                                  />
+                                                  <CreateSeed />
                                                 </SafeAreaComponent>
-                                              </AnimatedRouteWrapper>
-                                            }
-                                          />
-                                          <Route
-                                            path="/key"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <ViewMnemoinc
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/restore"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <RestoreWallet
-                                                  openOverlay={openOverlay}
-                                                />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/viewAllTransactions"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <ViewAllTxsPage />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                          <Route
-                                            path="/connecting"
-                                            element={
-                                              <SafeAreaComponent>
-                                                <LoadingScreen />
-                                              </SafeAreaComponent>
-                                            }
-                                          />
-                                        </Routes>
-
-                                        {/* Render Overlays */}
-                                        {overlayElements}
-
-                                        {/* {location.pathname ===
-                                        "/confirm-action" && (
-                                        <ConfirmActionPage />
-                                      )} */}
-                                        {/* {location.pathname === "/error" && (
-                                        <ErrorScreen />
-                                      )} */}
-                                      </Suspense>
-                                    </AnimatePresence>
-                                    {shouldShowBottomTabs && (
-                                      <BottomTabs
-                                        value={value}
-                                        setValue={setValue}
-                                        Link={Link}
-                                      />
-                                    )}
+                                              }
+                                            />
+                                            <Route
+                                              path="/createPassword"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <CreatePassword />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/login"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <Login />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/wallet"
+                                              element={
+                                                <>
+                                                  <WalletHome />
+                                                </>
+                                              }
+                                            />
+                                            <Route
+                                              path="/contacts"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <Contacts />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/expandedAddContactsPage"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <ExpandedAddContactsPage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/expandedContactsPage"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <ExpandedContactsPage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/sendAndRequestPage"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <SendAndRequestPage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/edit-profile"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <EditMyProfilePage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/my-profile"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    x: "100%",
+                                                  }}
+                                                  animate={{ x: 0 }}
+                                                  exitAnimation={{ x: "100%" }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <MyProfilePage />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/store"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <Store />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/receiveAmount"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <EditReceivePaymentInformation />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/receive"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <ReceiveQRPage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/send"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <SendPage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/receive-options"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    y: "100%",
+                                                  }}
+                                                  animate={{ y: 0 }}
+                                                  exitAnimation={{ y: "100%" }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <SwitchReceiveOption />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/expanded-tx"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    y: "100%",
+                                                  }}
+                                                  animate={{ y: 0 }}
+                                                  exitAnimation={{ y: "100%" }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <ExpandedTxPage />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/technical-details"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    y: "100%",
+                                                  }}
+                                                  animate={{ y: 0 }}
+                                                  exitAnimation={{ y: "100%" }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <TechnicalDetailsPage />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/camera"
+                                              element={<Camera />}
+                                            />
+                                            <Route
+                                              path="/confirm-page"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    opacity: 0,
+                                                  }}
+                                                  animate={{ opacity: 1 }}
+                                                  exitAnimation={{ opacity: 0 }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <ConfirmPayment />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/settings"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    x: "100%",
+                                                  }}
+                                                  animate={{ x: 0 }}
+                                                  exitAnimation={{ x: "100%" }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <SettingsHome />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/settings-item"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    x: "100%",
+                                                  }}
+                                                  animate={{ x: 0 }}
+                                                  exitAnimation={{ x: "100%" }}
+                                                >
+                                                  <SettingsContentIndex />
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/settings-item/SparkSettingsPage"
+                                              element={
+                                                <AnimatedRouteWrapper
+                                                  initialAnimation={{
+                                                    x: "100%",
+                                                  }}
+                                                  animate={{ x: 0 }}
+                                                  exitAnimation={{ x: "100%" }}
+                                                >
+                                                  <SafeAreaComponent>
+                                                    <SparkSettingsPage />
+                                                  </SafeAreaComponent>
+                                                </AnimatedRouteWrapper>
+                                              }
+                                            />
+                                            <Route
+                                              path="/key"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <ViewMnemoinc />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/restore"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <RestoreWallet />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/viewAllTransactions"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <ViewAllTxsPage />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                            <Route
+                                              path="/connecting"
+                                              element={
+                                                <SafeAreaComponent>
+                                                  <LoadingScreen />
+                                                </SafeAreaComponent>
+                                              }
+                                            />
+                                          </Routes>
+                                          <OverlayHost />
+                                        </Suspense>
+                                      </AnimatePresence>
+                                      {shouldShowBottomTabs && (
+                                        <BottomTabs
+                                          value={value}
+                                          setValue={setValue}
+                                          Link={Link}
+                                        />
+                                      )}
+                                    </OverlayProvider>
                                   </GlobalServerTimeProvider>
                                 </ImageCacheProvider>
                               </LiquidEventProvider>

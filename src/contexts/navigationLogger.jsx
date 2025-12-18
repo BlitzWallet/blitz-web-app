@@ -9,8 +9,6 @@ export function NavigationStackProvider({ children }) {
   const [stack, setStack] = useState([]);
   const initialized = useRef(false);
 
-  console.log(stack);
-
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;

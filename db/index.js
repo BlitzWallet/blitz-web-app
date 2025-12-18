@@ -19,6 +19,7 @@ import {
   getCachedMessages,
   queueSetCashedMessages,
 } from "../src/functions/messaging/cachedMessages";
+import { encryptMessage } from "../src/functions/encodingAndDecoding";
 
 export async function addDataToCollection(dataObject, collectionName, uuid) {
   try {
@@ -294,16 +295,22 @@ export async function updateMessage({
   fromPubKey,
   toPubKey,
   onlySaveToLocal,
+  retrivedContact,
+  privateKey,
+  currentTime,
 }) {
   try {
     const messagesRef = collection(db, "contactMessages");
     const timestamp = new Date().getTime();
+    const useEncription = retrivedContact.isUsingEncriptedMessaging;
 
-    const message = {
+    let message = {
       fromPubKey,
       toPubKey,
       message: newMessage,
       timestamp,
+      serverTimestamp: currentTime,
+      isGiftCard: !!newMessage?.giftCardInfo,
     };
 
     if (onlySaveToLocal) {
@@ -312,6 +319,14 @@ export async function updateMessage({
         myPubKey: fromPubKey,
       });
       return true;
+    }
+    if (useEncription) {
+      let messgae =
+        typeof message.message === "string"
+          ? message.message
+          : JSON.stringify(message.message);
+      const encripted = await encryptMessage(privateKey, toPubKey, messgae);
+      message.message = encripted;
     }
 
     await addDoc(messagesRef, message);
@@ -397,4 +412,152 @@ function processWithRAF(allMessages, myPubKey, privateKey, onProgress) {
       data: { allMessages, myPubKey, privateKey },
     });
   });
+}
+
+export async function isValidNip5Name(wantedName) {
+  try {
+    crashlyticsLogReport("Seeing if the unique name exists");
+    const usersRef = collection(db, "nip5Verification");
+    const q = query(
+      usersRef,
+      where("nameLower", "==", wantedName.toLowerCase())
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking unique name:", error);
+    crashlyticsRecordErrorReport(error.message);
+    return false;
+  }
+}
+export async function addNip5toCollection(dataObject, uuid) {
+  try {
+    if (!uuid) throw Error("Not authenticated");
+
+    const db = getFirestore();
+    const docRef = doc(db, "nip5Verification", uuid);
+
+    await setDoc(docRef, dataObject, { merge: true });
+
+    return true;
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    return false;
+  }
+}
+export async function deleteNip5FromCollection(uuid) {
+  try {
+    if (!uuid) throw Error("Not authenticated");
+
+    const db = getFirestore();
+    const docRef = doc(db, "nip5Verification", uuid);
+
+    await deleteDoc(docRef);
+
+    console.log("Document deleted");
+    return true;
+  } catch (e) {
+    console.error("Error deleting document", e);
+    return false;
+  }
+}
+
+export async function addGiftToDatabase(dataObject) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", dataObject.uuid);
+
+    await setDoc(docRef, dataObject, { merge: false });
+
+    console.log("Document merged with ID: ", dataObject.uuid);
+    return true;
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function updateGiftInDatabase(dataObject) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", dataObject.uuid);
+
+    await setDoc(docRef, dataObject, { merge: true });
+
+    console.log("Document merged with ID: ", dataObject.uuid);
+    return true;
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function getGiftCard(cardUUID) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", cardUUID);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      return userData;
+    }
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function deleteGift(uuid) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", uuid);
+
+    await deleteDoc(docRef);
+
+    console.log("Gift deleted:", uuid);
+    return true;
+  } catch (e) {
+    console.error("Error deleting gift:", e);
+    return false;
+  }
+}
+
+export async function handleGiftCheck(cardUUID) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", cardUUID);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) return { didWork: true, wasClaimed: false };
+    else return { didWork: true, wasClaimed: true };
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return { didWork: false };
+  }
+}
+
+export async function reloadGiftsOnDomesday(uuid) {
+  try {
+    const db = getFirestore();
+
+    const q = query(
+      collection(db, "blitzGifts"),
+      where("createdBy", "==", uuid)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const results = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return results;
+  } catch (e) {
+    console.error("Error fetching gifts by creator:", e);
+    return [];
+  }
 }

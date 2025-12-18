@@ -6,8 +6,10 @@ import SettingsItemWithSlider from "../../components/settingsItemWithSlider/sett
 import displayCorrectDenomination from "../../../../functions/displayCorrectDenomination";
 import { useNodeContext } from "../../../../contexts/nodeContext";
 import { useSpark } from "../../../../contexts/sparkContext";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function SparkSettingsPage({ openOverlay }) {
+export default function SparkSettingsPage() {
+  const { openOverlay } = useOverlay();
   const { sparkInformation } = useSpark();
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();

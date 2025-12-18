@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import { useNodeContext } from "../../contexts/nodeContext";
 import ThemeImage from "../../components/ThemeImage/themeImage";
+import { useOverlay } from "../../contexts/overlayContext";
 
 const MAIN_PAYMENTS = [
   ["Lightning", "Instant"],
@@ -29,7 +30,9 @@ const MAIN_PAYMENTS = [
   // ["Rootstock", "~ 1 minute"],
 ];
 
-export default function SwitchReceiveOption({ onClose, params, openOverlay }) {
+export default function SwitchReceiveOption({ params }) {
+  const { openOverlay, closeOverlay } = useOverlay();
+  const onClose = closeOverlay;
   const navigate = useNavigate();
   const { fiatStats } = useNodeContext();
   const { currentWalletMnemonic } = useActiveCustodyAccount();

@@ -22,8 +22,10 @@ import { VALID_USERNAME_REGEX } from "../../../../constants";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { ImagesIconDark, xSmallIconBlack } from "../../../../constants/icons";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function EditMyProfilePage({ navProps, openOverlay }) {
+export default function EditMyProfilePage({ navProps }) {
+  const { openOverlay } = useOverlay();
   const navigate = useNavigate();
   const {
     decodedAddedContacts,

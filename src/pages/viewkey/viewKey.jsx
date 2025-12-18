@@ -12,8 +12,10 @@ import copyToClipboard from "../../functions/copyToClipboard";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
+import { useOverlay } from "../../contexts/overlayContext";
 
-export default function ViewMnemoinc({ openOverlay }) {
+export default function ViewMnemoinc() {
+  const { openOverlay } = useOverlay();
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;

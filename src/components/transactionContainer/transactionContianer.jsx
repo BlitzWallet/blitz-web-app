@@ -17,6 +17,7 @@ import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 import { ArrowDown, ArrowUp, Clock } from "lucide-react";
 import { Colors } from "../../constants/theme";
 import useThemeColors from "../../hooks/useThemeColors";
+import { useAppStatus } from "../../contexts/appStatus";
 const TRANSACTION_CONSTANTS = {
   VIEW_ALL_PAGE: "viewAllTx",
   SPARK_WALLET: "sparkWallet",
@@ -31,6 +32,7 @@ const TRANSACTION_CONSTANTS = {
 
 export default function TransactionContanier({ frompage }) {
   const { t } = useTranslation();
+  const { didGetToHomepage } = useAppStatus();
   const { sparkInformation } = useSpark();
   const { masterInfoObject } = useGlobalContextProvider();
   const currentTime = new Date();
@@ -40,7 +42,11 @@ export default function TransactionContanier({ frompage }) {
   const userBalanceDenomination = masterInfoObject?.userBalanceDenomination;
   const homepageTxPreferance = masterInfoObject?.homepageTxPreferance;
 
-  if (frompage === "home" && sparkInformation.didConnect === null) {
+  if (
+    !sparkInformation.didConnect ||
+    !sparkInformation.identityPubKey ||
+    !didGetToHomepage
+  ) {
     return (
       <div className="transactionContainer">
         <SkeletonLoadingTx theme={theme} darkModeType={darkModeType} />
@@ -100,14 +106,7 @@ export default function TransactionContanier({ frompage }) {
       const transactionPaymentType = currentTransaction.paymentType;
       const paymentStatus = currentTransaction.paymentStatus;
 
-      const paymentDetails =
-        frompage === TRANSACTION_CONSTANTS.SPARK_WALLET
-          ? {
-              time: currentTransaction.createdTime,
-              direction: currentTransaction.transferDirection,
-              amount: currentTransaction.totalValue,
-            }
-          : JSON.parse(currentTransaction.details);
+      const paymentDetails = JSON.parse(currentTransaction.details);
 
       const isLRC20Payment = paymentDetails.isLRC20Payment;
 
@@ -160,7 +159,7 @@ export default function TransactionContanier({ frompage }) {
         <TxItem
           details={paymentDetails}
           navigate={navigate}
-          key={transactionIndex}
+          key={currentTransaction.sparkID}
           tx={{ ...currentTransaction, details: paymentDetails }}
           index={transactionIndex}
           currentTime={currentTime}

@@ -6,6 +6,7 @@ import { SATSPERBITCOIN } from "../../constants";
 import { leftCheveronDark } from "../../constants/icons";
 import ThemeImage from "../ThemeImage/themeImage";
 import useThemeColors from "../../hooks/useThemeColors";
+import { ChevronLeft } from "lucide-react";
 
 function getKeyboardKeys(showDot) {
   return KEYBOARD_KEYS.map((key) => {
@@ -89,14 +90,7 @@ export default function CustomNumberKeyboard({
             className={`keyboard-key ${keyClassName}`}
             onClick={() => addPin(num)}
           >
-            {num === "back" ? (
-              <ThemeImage
-                styles={{ width: 20, height: 20 }}
-                icon={leftCheveronDark}
-              />
-            ) : (
-              num
-            )}
+            {num === "back" ? <ChevronLeft size={20} /> : num}
           </button>
         ))}
       </div>

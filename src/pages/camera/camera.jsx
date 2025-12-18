@@ -16,10 +16,10 @@ import {
   ImagesIcon,
 } from "../../constants/icons";
 import ThemeImage from "../../components/ThemeImage/themeImage";
+import { useOverlay } from "../../contexts/overlayContext";
 
-// QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
-
-export default function Camera({ openOverlay }) {
+export default function Camera() {
+  const { openOverlay } = useOverlay();
   const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();

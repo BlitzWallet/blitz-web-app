@@ -9,8 +9,10 @@ import useThemeColors from "../../../../hooks/useThemeColors";
 import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
 import { Moon, Sun, RefreshCw, Settings } from "lucide-react";
 import NavBarProfileImage from "../../../../components/navBar/profileImage";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function WalletNavBar({ openOverlay, didEnabledLrc20 }) {
+export default function WalletNavBar({ didEnabledLrc20 }) {
+  const { openOverlay } = useOverlay();
   const { theme, toggleTheme, darkModeType } = useThemeContext();
   const { backgroundColor, backgroundOffset } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);

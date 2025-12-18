@@ -319,15 +319,18 @@ export const GlobalContactsList = ({ children }) => {
     // Set up the realtime listener
     unsubscribeMessagesRef.current = onSnapshot(
       combinedMessageQuery,
-      (snapshot) => {
-        if (!snapshot?.docChanges()?.length) return;
+      async (snapshot) => {
+        const changes = snapshot?.docChanges();
+        if (!changes?.length) return;
+
         let newMessages = [];
         let newUniqueIds = new Map();
-        snapshot.docChanges().forEach(async (change) => {
-          console.log("received a new message", change.type);
-          if (change.type === "added") {
-            const newMessage = change.doc.data();
 
+        await Promise.all(
+          changes.map(async (change) => {
+            if (change.type !== "added") return;
+
+            const newMessage = change.doc.data();
             const isReceived =
               newMessage.toPubKey === globalContactsInformation.myProfile.uuid;
             console.log(
@@ -335,44 +338,51 @@ export const GlobalContactsList = ({ children }) => {
               newMessage
             );
 
-            if (typeof newMessage.message === "string") {
-              const sendersPubkey =
-                newMessage.toPubKey === globalContactsInformation.myProfile.uuid
-                  ? newMessage.fromPubKey
-                  : newMessage.toPubKey;
-              const decoded = await decryptMessage(
-                contactsPrivateKey,
+            if (typeof newMessage.message !== "string") {
+              newMessages.push(newMessage);
+              return;
+            }
+
+            const sendersPubkey = isReceived
+              ? newMessage.fromPubKey
+              : newMessage.toPubKey;
+
+            const decoded = await decryptMessage(
+              contactsPrivateKey,
+              sendersPubkey,
+              newMessage.message
+            );
+
+            if (!decoded) return;
+
+            let parsedMessage;
+            try {
+              parsedMessage = JSON.parse(decoded);
+            } catch {
+              return;
+            }
+
+            if (parsedMessage?.senderProfileSnapshot && isReceived) {
+              newUniqueIds.set(
                 sendersPubkey,
-                newMessage.message
+                parsedMessage.senderProfileSnapshot.uniqueName
               );
+            }
 
-              if (!decoded) return;
-              let parsedMessage;
-              try {
-                parsedMessage = JSON.parse(decoded);
-              } catch (err) {
-                console.log("error parsing decoded message", err);
-                return;
-              }
+            newMessages.push({
+              ...newMessage,
+              message: parsedMessage,
+              sendersPubkey,
+              isReceived,
+            });
+          })
+        );
 
-              if (parsedMessage?.senderProfileSnapshot && isReceived) {
-                newUniqueIds.set(
-                  sendersPubkey,
-                  parsedMessage.senderProfileSnapshot?.uniqueName
-                );
-              }
+        if (newUniqueIds.size) {
+          updateContactUniqueName(newUniqueIds);
+        }
 
-              newMessages.push({
-                ...newMessage,
-                message: parsedMessage,
-                sendersPubkey,
-                isReceived,
-              });
-            } else newMessages.push(newMessage);
-          }
-        });
-        updateContactUniqueName(newUniqueIds);
-        if (newMessages.length > 0) {
+        if (newMessages.length) {
           queueSetCashedMessages({
             newMessagesList: newMessages,
             myPubKey: globalContactsInformation.myProfile.uuid,
