@@ -50,10 +50,18 @@ const parseDetails = (details) => {
   else return details;
 };
 
-export const getAllSparkTransactions = async (limit = null, accountId) => {
+export const getAllSparkTransactions = async (options = {}) => {
   try {
     const db = await dbPromise;
     const all = await db.getAll(SPARK_TRANSACTIONS_TABLE_NAME);
+    const {
+      limit = null,
+      offset = null,
+      accountId = null,
+      startRange = null,
+      endRange = null,
+      idsOnly = false,
+    } = options;
 
     // Filter by accountId if provided
     let filtered = all;
@@ -70,7 +78,7 @@ export const getAllSparkTransactions = async (limit = null, accountId) => {
     }));
 
     // Sort by time (newest first). Use numeric fallback 0 when missing.
-    const sorted = normalized.sort((a, b) => {
+    filtered = normalized.sort((a, b) => {
       const aTime = JSON.parse(a.details).time;
       const bTime = JSON.parse(b.details).time;
 
@@ -79,10 +87,10 @@ export const getAllSparkTransactions = async (limit = null, accountId) => {
 
     // Apply limit if provided
     if (limit) {
-      return sorted.slice(0, limit);
+      filtered = filtered.slice(0, limit);
     }
 
-    return sorted;
+    return idsOnly ? filtered.map((row) => row.sparkID) : filtered;
   } catch (err) {
     console.error("getAllSparkTransactions error:", err);
     return [];

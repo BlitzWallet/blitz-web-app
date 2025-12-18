@@ -855,7 +855,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
     sparkInformation.didConnect,
     sparkInformation.identityPubKey,
     didGetToHomepage,
-    isSendingPayment,
   ]);
 
   useEffect(() => {
@@ -1087,7 +1086,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
         depositAddressIntervalRef.current = null;
       }
     };
-  }, [didGetToHomepage, sparkInformation.didConnect, isSendingPayment]);
+  }, [didGetToHomepage, sparkInformation.didConnect]);
 
   // Run fullRestore when didConnect becomes true
   useEffect(() => {
@@ -1232,6 +1231,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       setNumberOfCachedTxs,
       setStartConnectingToSpark,
       connectToSparkWallet,
+      isSendingPaymentRef,
     }),
     [
       sparkInformation,
@@ -1245,6 +1245,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       setNumberOfCachedTxs,
       setStartConnectingToSpark,
       connectToSparkWallet,
+      isSendingPaymentRef,
     ]
   );
 

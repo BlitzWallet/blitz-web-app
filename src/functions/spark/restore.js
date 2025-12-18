@@ -101,7 +101,7 @@ export const restoreSparkTxState = async (
       getAllPendingSparkPayments(accountId),
     ]);
 
-    const savedIds = new Set(savedTxs?.map((tx) => tx.sparkID) || []);
+    const savedIds = new Set(savedTxs || []);
 
     const txsByType = {
       lightning: pendingTxs.filter((tx) => tx.paymentType === "lightning"),

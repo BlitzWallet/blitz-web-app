@@ -443,7 +443,7 @@ export const setPrivacyEnabled = async (mnemonic) => {
 
 export const getCachedSparkTransactions = async (limit, identifyPubKey) => {
   try {
-    const txResponse = await getAllSparkTransactions(limit, identifyPubKey);
+    const txResponse = await getAllSparkTransactions({ limit, identifyPubKey });
 
     if (!txResponse) throw new Error("Unable to get cached spark transactins");
     return txResponse;

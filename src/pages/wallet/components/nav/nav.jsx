@@ -10,31 +10,41 @@ import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
 import { Moon, Sun, RefreshCw, Settings } from "lucide-react";
 import NavBarProfileImage from "../../../../components/navBar/profileImage";
 import { useOverlay } from "../../../../contexts/overlayContext";
+import {
+  SPARK_TX_UPDATE_ENVENT_NAME,
+  sparkTransactionsEventEmitter,
+} from "../../../../functions/spark/transactions";
 
 export default function WalletNavBar({ didEnabledLrc20 }) {
-  const { openOverlay } = useOverlay();
   const { theme, toggleTheme, darkModeType } = useThemeContext();
   const { backgroundColor, backgroundOffset } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { sparkInformation } = useSpark();
+  const { sparkInformation, isSendingPaymentRef } = useSpark();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
+    try {
+      setIsRefreshing(true);
 
-    await fullRestoreSparkState({
-      sparkAddress: sparkInformation.sparkAddress,
-      batchSize: 5,
-      isSendingPayment: false,
-      mnemonic: currentWalletMnemoinc,
-      identityPubKey: sparkInformation.identityPubKey,
-    });
-
-    setIsRefreshing(false);
-    openOverlay({
-      for: "error",
-      errorMessage: "Your wallet was successfully refreshed.",
-    });
-  }, []);
+      const response = await fullRestoreSparkState({
+        sparkAddress: sparkInformation.sparkAddress,
+        batchSize: 2,
+        isSendingPayment: isSendingPaymentRef.current,
+        mnemonic: currentWalletMnemoinc,
+        identityPubKey: sparkInformation.identityPubKey,
+        isInitialRestore: false,
+      });
+      if (!response) {
+        sparkTransactionsEventEmitter.emit(
+          SPARK_TX_UPDATE_ENVENT_NAME,
+          "fullUpdate"
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [sparkInformation, currentWalletMnemoinc]);
   return (
     <div style={{ backgroundColor }} className="walletNavBar">
       <div className="themeContainer" onClick={() => toggleTheme(!theme)}>
