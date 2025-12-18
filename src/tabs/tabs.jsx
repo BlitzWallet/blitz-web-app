@@ -29,10 +29,10 @@ export default function BottomTabs({ setValue, value, Link }) {
     <div
       style={{
         position: "fixed",
-        bottom: "10px",
+        bottom: "25px",
         left: "50%",
         transform: "translateX(-50%)",
-        width: "calc(100% - 40px)",
+        width: "max-content",
         maxWidth: "400px",
         zIndex: 1000,
       }}
@@ -56,6 +56,7 @@ export default function BottomTabs({ setValue, value, Link }) {
             backgroundColor: "transparent",
             borderRadius: "20px",
             height: "45px",
+            gap: "20px",
           }}
           sx={{
             "& .MuiBottomNavigationAction-root": {
@@ -72,6 +73,12 @@ export default function BottomTabs({ setValue, value, Link }) {
           <BottomNavigationAction
             disableRipple
             sx={{
+              flex: 0,
+              width: "50px",
+              "& .MuiButtonBase-root": {
+                flex: 0,
+                width: "50px",
+              },
               "& .MuiBottomNavigationAction-label": {
                 color: textColor,
               },
@@ -93,6 +100,8 @@ export default function BottomTabs({ setValue, value, Link }) {
           <BottomNavigationAction
             disableRipple
             sx={{
+              flex: 0,
+              width: "50px",
               "& .MuiBottomNavigationAction-label": {
                 color: textColor,
               },
@@ -114,6 +123,8 @@ export default function BottomTabs({ setValue, value, Link }) {
           <BottomNavigationAction
             disableRipple
             sx={{
+              flex: 0,
+              width: "50px",
               "& .MuiBottomNavigationAction-label": {
                 color: textColor,
               },

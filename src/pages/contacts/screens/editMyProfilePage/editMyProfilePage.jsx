@@ -186,7 +186,7 @@ function InnerContent({
   return (
     <div className="editProfileInnerContainer">
       <div
-        style={{ paddingTop: fromSettings ? 40 : 0 }}
+        style={{ paddingTop: fromSettings ? 30 : 0 }}
         className="editProfileScrollContainer"
       >
         <div
@@ -253,7 +253,7 @@ function InnerContent({
             nameRef.current.focus();
           }}
         >
-          <ThemeText textContent={"Name"} />
+          <ThemeText className="input-label" textContent={"Name"} />
           <CustomInput
             containerClassName={"editPageContainer"}
             onchange={(data) => {
@@ -270,14 +270,12 @@ function InnerContent({
           />
           <ThemeText
             textStyles={{
-              textAlign: "right",
               color:
                 inputs.name.length < 30
                   ? textColor
                   : Colors.constants.cancelRed,
-              marginTop: 20,
-              marginBottom: 0,
             }}
+            className="charCount-label"
             textContent={`${inputs.name.length} / ${30}`}
           />
         </div>
@@ -288,7 +286,7 @@ function InnerContent({
               receiveAddressRef.current.focus();
             }}
           >
-            <ThemeText textContent={"Lnurl"} />
+            <ThemeText className="input-label" textContent={"Lnurl"} />
             <CustomInput
               containerClassName={"editPageContainer"}
               onchange={(data) => {
@@ -305,14 +303,12 @@ function InnerContent({
             />
             <ThemeText
               styles={{
-                textAlign: "right",
                 color:
                   inputs.receiveAddress.length < 60
                     ? textColor
                     : Colors.constants.cancelRed,
-                marginTop: 20,
-                marginBottom: 0,
               }}
+              className="charCount-label"
               content={`${inputs.receiveAddress.length} / ${60}`}
             />
           </div>
@@ -326,7 +322,7 @@ function InnerContent({
               uniquenameRef.current.focus();
             }}
           >
-            <ThemeText textContent={"Username"} />
+            <ThemeText className="input-label" textContent={"Username"} />
             <CustomInput
               containerClassName={"editPageContainer"}
               onchange={(data) => {
@@ -343,14 +339,12 @@ function InnerContent({
             />
             <ThemeText
               textStyles={{
-                textAlign: "right",
                 color:
                   inputs.uniquename.length < 30
                     ? textColor
                     : Colors.constants.cancelRed,
-                marginTop: 20,
-                marginBottom: 0,
               }}
+              className="charCount-label"
               textContent={`${inputs.uniquename.length} / ${30}`}
             />
           </div>
@@ -361,7 +355,7 @@ function InnerContent({
             bioRef.current.focus();
           }}
         >
-          <ThemeText textContent={"Bio"} />
+          <ThemeText className="input-label" textContent={"Bio"} />
           <CustomInput
             containerClassName={"editPageContainer"}
             onchange={(data) => {
@@ -381,12 +375,12 @@ function InnerContent({
 
           <ThemeText
             textStyles={{
-              textAlign: "right",
               color:
                 inputs.bio.length < 150
                   ? textColor
                   : Colors.constants.cancelRed,
             }}
+            className="charCount-label"
             textContent={`${inputs.bio.length} / ${150}`}
           />
         </div>

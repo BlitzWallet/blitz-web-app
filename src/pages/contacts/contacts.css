@@ -51,6 +51,7 @@
   align-items: center;
   padding: 10px 0;
   cursor: pointer;
+  max-width: 80px;
 }
 #contactsPage .pinnedContactScrollview {
   display: flex;
@@ -65,6 +66,7 @@
 
 #contactsPage .pinned-contact-image-container {
   width: 100%;
+
   aspect-ratio: 1;
   border-radius: 9999px;
   display: flex;
@@ -98,6 +100,7 @@
   align-items: center;
   padding: 15px 0;
   cursor: pointer;
+  margin: 0 auto;
 }
 
 #contactsPage .contact-image-container {

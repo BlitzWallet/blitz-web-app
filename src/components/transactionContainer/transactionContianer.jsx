@@ -11,8 +11,6 @@ import {
 } from "../../constants";
 import ThemeText from "../themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
-import { pendingTx, smallArrowLeft } from "../../constants/icons";
-import ThemeImage from "../ThemeImage/themeImage";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";

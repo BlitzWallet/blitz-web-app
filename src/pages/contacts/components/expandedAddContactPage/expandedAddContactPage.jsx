@@ -61,6 +61,7 @@ const MemoizedNavBar = memo(
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
+            size={30}
           />
         </button>
         {selectedContact && isContactAdded && (
@@ -77,6 +78,7 @@ const MemoizedNavBar = memo(
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
+            size={30}
           />
         )}
         {selectedContact && isContactAdded && (
@@ -85,6 +87,7 @@ const MemoizedNavBar = memo(
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
+            size={30}
           />
         )}
       </div>

@@ -20,18 +20,10 @@ export default function AddContactPage({ selectedContact }) {
 
   return (
     <div className="container">
-      <ThemeText
-        textStyles={{ marginTop: 0 }}
-        className="name-text"
-        textContent={name}
-      />
+      <ThemeText className="name-text" textContent={name} />
 
       {!!username && (
-        <ThemeText
-          textStyles={{ marginTop: 0 }}
-          className="username-text"
-          textContent={`@${username}`}
-        />
+        <ThemeText className="username-text" textContent={`@${username}`} />
       )}
 
       {!!lnurl && (

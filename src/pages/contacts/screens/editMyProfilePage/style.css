@@ -20,6 +20,7 @@
   position: relative;
   width: max-content;
   align-self: center;
+  margin-bottom: 25px;
 }
 #editMyProfile .profileImageBackground {
   width: 150px;
@@ -57,4 +58,13 @@
   width: 100%;
   margin: 0;
   max-width: unset;
+}
+
+#editMyProfile .input-label {
+  margin: 0;
+  margin-bottom: 5px;
+}
+#editMyProfile .charCount-label {
+  text-align: right;
+  margin: 10px 0 15px;
 }

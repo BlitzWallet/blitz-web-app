@@ -3,8 +3,12 @@ import "./style.css";
 import ThemeImage from "../ThemeImage/themeImage";
 import { smallArrowLeft } from "../../constants/icons";
 import { WHITE_FILTER } from "../../constants";
+import { ArrowLeft } from "lucide-react";
+import useThemeColors from "../../hooks/useThemeColors";
+import { Colors } from "../../constants/theme";
 
 export default function BackArrow({ backFunction, showWhite = false }) {
+  const { theme, darkModeType } = useThemeColors();
   const navigate = useNavigate();
   return (
     <div
@@ -17,9 +21,15 @@ export default function BackArrow({ backFunction, showWhite = false }) {
       }}
       className="backArrowContainer"
     >
-      <ThemeImage
-        icon={smallArrowLeft}
-        filter={showWhite ? WHITE_FILTER : undefined}
+      <ArrowLeft
+        color={
+          showWhite
+            ? Colors.dark.text
+            : theme && darkModeType
+            ? Colors.dark.text
+            : Colors.constants.blue
+        }
+        size={30}
       />
     </div>
   );

@@ -335,7 +335,7 @@ export default function ExpandedContactsPage({
       </div>
     );
   }
-  console.log(selectedContact);
+
   return (
     <div className="expandedContactsPage">
       <div className="top-bar">
@@ -344,6 +344,7 @@ export default function ExpandedContactsPage({
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
+            size={30}
           />
         </button>
         {selectedContact && (
@@ -360,6 +361,7 @@ export default function ExpandedContactsPage({
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
+            size={30}
           />
         )}
         {selectedContact && (
@@ -368,6 +370,7 @@ export default function ExpandedContactsPage({
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
+            size={30}
           />
         )}
       </div>
