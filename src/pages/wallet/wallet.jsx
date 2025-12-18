@@ -22,7 +22,7 @@ export default function WalletHome() {
   useEffect(() => {
     toggleDidGetToHomepage(true);
   }, []);
-  console.log(masterInfoObject);
+
   return (
     <SafeAreaComponent
       backgroundColor={didEnabledLrc20 ? backgroundOffset : "transparent"}
