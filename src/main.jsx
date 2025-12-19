@@ -151,8 +151,8 @@ function Root() {
                 <ActiveCustodyAccountProvider>
                   <AppStatusProvider>
                     <ThemeContextProvider>
-                      <GLobalNodeContextProider>
-                        <SparkWalletProvider navigate={navigate}>
+                      <SparkWalletProvider navigate={navigate}>
+                        <GLobalNodeContextProider>
                           <BitcoinPriceProvider>
                             <GlobalAppDataProvider>
                               <LiquidEventProvider>
@@ -503,8 +503,8 @@ function Root() {
                               </LiquidEventProvider>
                             </GlobalAppDataProvider>
                           </BitcoinPriceProvider>
-                        </SparkWalletProvider>
-                      </GLobalNodeContextProider>
+                        </GLobalNodeContextProider>
+                      </SparkWalletProvider>
                     </ThemeContextProvider>
                   </AppStatusProvider>
                 </ActiveCustodyAccountProvider>

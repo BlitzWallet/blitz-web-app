@@ -85,8 +85,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { didGetToHomepage, minMaxLiquidSwapAmounts, appState } =
     useAppStatus();
-  const { liquidNodeInformation } = useNodeContext();
-  const [isSendingPayment, setIsSendingPayment] = useState(false);
   const { toggleGlobalContactsInformation, globalContactsInformation } =
     useGlobalContacts();
   const prevAccountMnemoincRef = useRef(null);
@@ -104,7 +102,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
   const [restoreCompleted, setRestoreCompleted] = useState(false);
   const [reloadNewestPaymentTimestamp, setReloadNewestPaymentTimestamp] =
     useState(0);
-  const [pendingLiquidPayment, setPendingLiquidPayment] = useState(null);
   const depositAddressIntervalRef = useRef(null);
   const sparkDBaddress = useRef(null);
   const updatePendingPaymentsIntervalRef = useRef(null);
@@ -132,7 +129,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
   const initialBitcoinIntervalRun = useRef(null);
   const prevAppState = useRef(appState);
   const prevListenerType = useRef(null);
-  const [numberOfCachedTxs, setNumberOfCachedTxs] = useState(0);
 
   const showTokensInformation =
     masterInfoObject.enabledBTKNTokens === null
@@ -152,7 +148,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
   const [numberOfIncomingLNURLPayments, setNumberOfIncomingLNURLPayments] =
     useState(0);
   const [numberOfConnectionTries, setNumberOfConnectionTries] = useState(0);
-  const [startConnectingToSpark, setStartConnectingToSpark] = useState(false);
 
   const cleanStatusAndLRC20Intervals = () => {
     try {
@@ -1192,32 +1187,6 @@ const SparkWalletProvider = ({ children, navigate }) => {
     };
   }, []);
 
-  // This function checks to see if there are any liquid funds that need to be sent to spark
-  useEffect(() => {
-    async function swapLiquidToSpark() {
-      try {
-        if (liquidNodeInformation.userBalance > minMaxLiquidSwapAmounts.min) {
-          setPendingLiquidPayment(true);
-          await liquidToSparkSwap(
-            globalContactsInformation.myProfile.uniqueName
-          );
-        }
-      } catch (err) {
-        console.log("transfering liquid to spark error", err);
-      }
-    }
-
-    if (!didGetToHomepage) return;
-    if (!sparkInformation.didConnect) return;
-    swapLiquidToSpark();
-  }, [
-    didGetToHomepage,
-    liquidNodeInformation,
-    minMaxLiquidSwapAmounts,
-    sparkInformation.didConnect,
-    globalContactsInformation?.myProfile?.uniqueName,
-  ]);
-
   const contextValue = useMemo(
     () => ({
       sparkInformation,
@@ -1227,9 +1196,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       numberOfIncomingLNURLPayments,
       setNumberOfIncomingLNURLPayments,
       numberOfConnectionTries,
-      numberOfCachedTxs,
-      setNumberOfCachedTxs,
-      setStartConnectingToSpark,
+
       connectToSparkWallet,
       isSendingPaymentRef,
     }),
@@ -1241,9 +1208,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
       numberOfIncomingLNURLPayments,
       setNumberOfIncomingLNURLPayments,
       numberOfConnectionTries,
-      numberOfCachedTxs,
-      setNumberOfCachedTxs,
-      setStartConnectingToSpark,
+
       connectToSparkWallet,
       isSendingPaymentRef,
     ]

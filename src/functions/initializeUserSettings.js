@@ -1,6 +1,6 @@
 import { getDataFromCollection } from "../../db";
 import fetchBackend from "../../db/handleBackend";
-import { initializeFirebase } from "../../db/initializeFirebase";
+import { auth, initializeFirebase } from "../../db/initializeFirebase";
 import { sendDataToDB } from "../../db/interactionManager";
 import { MIN_CHANNEL_OPEN_FEE, QUICK_PAY_STORAGE_KEY } from "../constants";
 import { generateRandomContact } from "./contacts";
@@ -13,13 +13,15 @@ import {
   isNewDaySince,
 } from "./rotateAddressDateChecker";
 import { getPublicKey, privateKeyFromSeedWords } from "./seed";
-export default async function initializeUserSettings(
+export default async function initializeUserSettings({
   mnemoinc,
   toggleContactsPrivateKey,
   setMasterInfoObject,
   toggleGlobalContactsInformation,
-  toggleGlobalAppDataInformation
-) {
+  toggleGlobalAppDataInformation,
+  preloadedData,
+  setPreLoadedUserData,
+}) {
   try {
     let needsToUpdate = false;
     let tempObject = {};
@@ -30,7 +32,7 @@ export default async function initializeUserSettings(
     if (!privateKey || !publicKey) throw Error("Failed to retrieve keys");
 
     const [
-      _,
+      initResponse,
       // pastExploreData,
       // savedNWCData,
     ] = await Promise.all([
@@ -47,7 +49,9 @@ export default async function initializeUserSettings(
       localStoredData,
       //  freshExploreData
     ] = await Promise.all([
-      getDataFromCollection("blitzWalletUsers", publicKey),
+      preloadedData && auth.currentUser.uid === publicKey
+        ? Promise.resolve(preloadedData)
+        : getDataFromCollection("blitzWalletUsers", publicKey),
       fetchLocalStorageItems(),
       // shouldLoadExporeDataResp
       //   ? fetchBackend(
@@ -58,6 +62,11 @@ export default async function initializeUserSettings(
       //     )
       //   : Promise.resolve(null),
     ]);
+
+    if (preloadedData) {
+      // clear refrenace to remove uneeded object
+      setPreLoadedUserData({});
+    }
 
     let {
       storedUserTxPereferance,
@@ -74,17 +83,23 @@ export default async function initializeUserSettings(
       enabledDeveloperSupport,
       didViewNWCMessage,
       userSelectedLanguage,
-      // nwc_identity_pub_key,
+      nwc_identity_pub_key,
       userBalanceDenomination,
+      didViewSeedPhrase,
+      enabledBTKNTokens,
+      defaultSpendToken,
+      thousandsSeperator,
     } = localStoredData;
 
     if (blitzStoredData === null) throw Error("Failed to retrive");
     blitzStoredData = blitzStoredData || {};
+
     toggleContactsPrivateKey(privateKey);
 
     const generatedUniqueName = blitzStoredData?.contacts?.uniqueName
       ? ""
       : generateRandomContact();
+
     let contacts = blitzStoredData.contacts || {
       myProfile: {
         uniqueName: generatedUniqueName.uniqueName,
@@ -112,6 +127,8 @@ export default async function initializeUserSettings(
       blitzStoredData.userBalanceDenomination || "sats";
 
     const selectedLanguage = userSelectedLanguage;
+    const currentDerivedGiftIndex =
+      blitzStoredData.currentDerivedGiftIndex || 1;
 
     let pushNotifications = blitzStoredData.pushNotifications || {
       isEnabled: false,
@@ -143,7 +160,7 @@ export default async function initializeUserSettings(
       minAutoSwapAmount: 10000, //sats
     };
     let ecashWalletSettings = blitzStoredData.ecashWalletSettings;
-    let lrc20Settings = blitzStoredData.lrc20Settings;
+    // let lrc20Settings = blitzStoredData.lrc20Settings;
 
     // const eCashInformation =
     //   blitzStoredData.eCashInformation ||
@@ -291,11 +308,11 @@ export default async function initializeUserSettings(
       needsToUpdate = true;
     }
 
-    if (!lrc20Settings) {
-      lrc20Settings = {
-        isEnabled: false,
-      };
-    }
+    // if (!lrc20Settings) {
+    //   lrc20Settings = {
+    //     isEnabled: false,
+    //   };
+    // }
 
     // if (!nwc_identity_pub_key) {
     //   const didInit = await initializeNWCWallet();
@@ -310,6 +327,11 @@ export default async function initializeUserSettings(
     if (!userBalanceDenomination) {
       userBalanceDenomination = dbUserBalanceDenomination;
       Storage.setItem("userBalanceDenomination", dbUserBalanceDenomination);
+    }
+
+    if (didViewSeedPhrase === null) {
+      didViewSeedPhrase = true;
+      Storage.setItem("didViewSeedPhrase", true);
     }
 
     // if (!lnurlPubKey) {
@@ -356,7 +378,12 @@ export default async function initializeUserSettings(
     // tempObject['lnurlPubKey'] = lnurlPubKey;
     tempObject["isUsingEncriptedMessaging"] = isUsingEncriptedMessaging;
     tempObject["isUsingNewNotifications"] = isUsingNewNotifications;
-    tempObject["lrc20Settings"] = lrc20Settings;
+    // tempObject['lrc20Settings'] = lrc20Settings;
+    tempObject["didViewSeedPhrase"] = didViewSeedPhrase;
+    tempObject["enabledBTKNTokens"] = enabledBTKNTokens;
+    tempObject["defaultSpendToken"] = defaultSpendToken;
+    tempObject["currentDerivedGiftIndex"] = currentDerivedGiftIndex;
+    tempObject["thousandsSeperator"] = thousandsSeperator;
 
     // store in contacts context
     tempObject["contacts"] = contacts;

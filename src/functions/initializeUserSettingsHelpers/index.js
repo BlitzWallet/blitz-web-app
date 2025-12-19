@@ -20,6 +20,10 @@ const keys = [
   "userSelectedLanguage",
   NWC_IDENTITY_PUB_KEY,
   "userBalanceDenomination",
+  "didViewSeedPhrase",
+  "enabledBTKNTokens",
+  "defaultSpendToken",
+  "thousandsSeperator",
 ];
 
 const defaultValues = {
@@ -50,6 +54,10 @@ const defaultValues = {
   userSelectedLanguage: "en",
   [NWC_IDENTITY_PUB_KEY]: "",
   userBalanceDenomination: "",
+  didViewSeedPhrase: null,
+  enabledBTKNTokens: null,
+  defaultSpendToken: "Bitcoin",
+  thousandsSeperator: "space",
 };
 
 export const fetchLocalStorageItems = async () => {
@@ -89,20 +97,41 @@ export const fetchLocalStorageItems = async () => {
       parsedResults[14] ?? defaultValues[NWC_IDENTITY_PUB_KEY],
     userBalanceDenomination:
       parsedResults[15] ?? defaultValues.userBalanceDenomination,
+    didViewSeedPhrase: parsedResults[16] ?? defaultValues.didViewSeedPhrase,
+    enabledBTKNTokens: parsedResults[17] ?? defaultValues.enabledBTKNTokens,
+    defaultSpendToken: parsedResults[18] ?? defaultValues.defaultSpendToken,
+    thousandsSeperator: parsedResults[19] ?? defaultValues.thousandsSeperator,
   };
 };
 
 export function shouldLoadExploreData(savedExploreRawData) {
   let shouldFetchUserCount = false;
+
   try {
+    if (!savedExploreRawData?.lastUpdated) {
+      return true;
+    }
+
+    const UTC_MINUS_6_OFFSET = -6;
+
+    const targetTimezoneMs =
+      currentServerTime + UTC_MINUS_6_OFFSET * 60 * 60 * 1000;
+    const targetDate = new Date(targetTimezoneMs);
+    targetDate.setUTCHours(12, 0, 0, 0);
+
+    const current12PMUtcMinus6 = targetDate.getTime();
+
+    // Check if we've passed 12 PM UTC-6 since last update
     if (
-      !savedExploreRawData?.lastUpdated ||
-      isNewDaySince(savedExploreRawData?.lastUpdated)
+      currentServerTime >= current12PMUtcMinus6 &&
+      savedExploreRawData.lastUpdated < current12PMUtcMinus6
     ) {
       shouldFetchUserCount = true;
     }
   } catch (err) {
     console.log("error in should load explore data", err);
+    // Default to fetching on error to be safe
+    shouldFetchUserCount = true;
   }
 
   return shouldFetchUserCount;
