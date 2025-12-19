@@ -34,7 +34,12 @@ export default function ConfirmPayment() {
   const formmatingType = location.state?.formattingType;
   const didSucceed = transaction?.paymentStatus !== "failed" || isLNURLAuth;
   const paymentFee = transaction?.details.fee;
-  const paymentNetwork = transaction?.paymentType;
+  const sendingContactUUID = transaction.details?.sendingUUID;
+  const paymentNetwork = sendingContactUUID
+    ? t("screens.inAccount.expandedTxPage.contactPaymentType")
+    : transaction.details.isGift
+    ? t("constants.gift")
+    : transaction.paymentType;
   const errorMessage = transaction?.details.error || "Unknown Error";
   const amount = transaction?.details.amount;
   const showPendingMessage = transaction?.paymentStatus === "pending";

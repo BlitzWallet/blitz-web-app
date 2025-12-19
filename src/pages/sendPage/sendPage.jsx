@@ -57,6 +57,7 @@ export default function SendPage() {
     comingFromAccept,
     enteredPaymentInfo,
     errorMessage: globalError,
+    contactInfo,
   } = params;
   console.log(params, "oi");
   const [paymentInfo, setPaymentInfo] = useState({});
@@ -233,6 +234,8 @@ export default function SendPage() {
         usingZeroAmountInvoice: paymentInfo.usingZeroAmountInvoice,
         seletctedToken: selectedLRC20Asset,
         mnemonic: currentWalletMnemoinc,
+        contactInfo,
+        fromMainSendScreen: true,
       };
       // Shouuld be same for all paymetns
       const paymentResponse = await sparkPaymenWrapper(paymentObject);

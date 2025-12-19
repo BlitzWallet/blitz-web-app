@@ -59,7 +59,7 @@ export default function ExpandedTxPage() {
     transaction.details.amount,
     selectedToken?.tokenMetadata?.decimals
   );
-  console.log(transaction);
+  console.log(transaction, sendingContactUUID);
   const paymentType = sendingContactUUID
     ? t("screens.inAccount.expandedTxPage.contactPaymentType")
     : transaction.details.isGift
