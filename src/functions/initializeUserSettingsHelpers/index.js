@@ -104,7 +104,7 @@ export const fetchLocalStorageItems = async () => {
   };
 };
 
-export function shouldLoadExploreData(savedExploreRawData) {
+export function shouldLoadExploreData(savedExploreRawData, currentServerTime) {
   let shouldFetchUserCount = false;
 
   try {
