@@ -1,18 +1,15 @@
-import { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { getImageFromLibrary } from '../../../../../functions/imagePickerWrapper';
-import { useGlobalContacts } from '../../../../../../context-store/globalContacts';
-import { useImageCache } from '../../../../../../context-store/imageCache';
+import React, { useState, useRef, createContext, useContext } from "react";
+import { useOverlay } from "../../../contexts/overlayContext";
+import { useGlobalContacts } from "../../../contexts/globalContacts";
+import { useImageCache } from "../../../contexts/imageCacheContext";
 import {
   deleteDatabaseImage,
   setDatabaseIMG,
-} from '../../../../../../db/photoStorage';
+} from "../../../../db/photoStorage";
 
+// Profile Image Hook
 export function useProfileImage() {
-  const navigate = useNavigation();
-  const { t } = useTranslation();
+  const { openOverlay } = useOverlay();
   const { globalContactsInformation, toggleGlobalContactsInformation } =
     useGlobalContacts();
   const { refreshCache, removeProfileImageFromCache } = useImageCache();
@@ -20,36 +17,98 @@ export function useProfileImage() {
   const [isAddingImage, setIsAddingImage] = useState(false);
 
   /**
-   * gets a profile picture for a contact
+   * Opens file picker and gets image from library
+   */
+  const getImageFromLibrary = async () => {
+    return new Promise((resolve) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+
+      input.onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+          resolve({ didRun: false });
+          return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+          resolve({ didRun: true, error: "Please select a valid image file" });
+          return;
+        }
+
+        try {
+          const imgURL = await fileToImageData(file);
+          resolve({ didRun: true, imgURL, file });
+        } catch (error) {
+          resolve({ didRun: true, error: "Failed to load image" });
+        }
+      };
+
+      input.click();
+    });
+  };
+
+  /**
+   * Converts File to image data with dimensions
+   */
+  const fileToImageData = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          resolve({
+            uri: e.target.result,
+            width: img.width,
+            height: img.height,
+            file,
+          });
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  /**
+   * Gets a profile picture for a contact
    */
   const getProfileImage = async () => {
     try {
-      const imagePickerResponse = await getImageFromLibrary({ quality: 1 });
+      const imagePickerResponse = await getImageFromLibrary();
       const { didRun, error, imgURL } = imagePickerResponse;
 
       if (!didRun) return;
 
       if (error) {
-        navigate.navigate('ErrorScreen', { errorMessage: t(error) });
+        openOverlay({
+          for: "error",
+          errorMessage: error,
+        });
         return;
       }
+
       const startTime = Date.now();
       setIsAddingImage(true);
 
       const savedImage = await resizeImage({ imgURL });
 
       if (!savedImage.uri) return;
+
       const offsetTime = Date.now() - startTime;
       const remainingTime = Math.max(0, 700 - offsetTime);
 
       if (remainingTime > 0) {
-        console.log(`Waiting ${remainingTime}ms to reach minimum 1s duration`);
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
+      console.log(savedImage, imgURL, "test");
       return { comparison: savedImage, imgURL };
     } catch (err) {
-      console.log('error getting profile iamge', err);
+      console.log("error getting profile image", err);
     } finally {
       setIsAddingImage(false);
     }
@@ -57,18 +116,17 @@ export function useProfileImage() {
 
   /**
    * Saves a profile picture for a contact
-   * @param {string} imgURL - Imgae URI
-   * @param {boolean} isEditingMyProfile - Whether editing own profile
    */
   const saveProfileImage = async (
     imgData,
     isEditingMyProfile,
-    selectedContact,
+    selectedContact
   ) => {
     try {
       if (isEditingMyProfile) {
         const response = await uploadProfileImage({
-          imgURL: imgData.comparison.uri,
+          imgBlob: imgData.comparison.blob, // Pass the blob, not the URI
+          imgURL: imgData.comparison.uri, // Keep URI for cache
           uuid: globalContactsInformation.myProfile.uuid,
         });
 
@@ -82,84 +140,89 @@ export function useProfileImage() {
             },
             addedContacts: globalContactsInformation.addedContacts,
           },
-          true,
+          true
         );
         return;
       }
 
-      // For other contacts, just refresh cache
       if (selectedContact) {
         await refreshCache(selectedContact.uuid, imgData.comparison.uri, false);
       }
     } catch (err) {
-      console.log('error saving profile image', err);
+      console.log("error saving profile image", err);
     }
   };
 
   /**
    * Resizes and crops an image to a circle for profile pictures
-   * @param {object} params - Upload parameters
-   * @param {object} params.imgURL - Image URL object
    */
   const resizeImage = async ({ imgURL }) => {
     try {
-      const { width: originalWidth, height: originalHeight } = imgURL;
+      const { width: originalWidth, height: originalHeight, uri } = imgURL;
       const photoWidth = originalWidth * 0.95;
       const photoHeight = originalHeight * 0.95;
-      const targetSize = 250; // Match your largest display size
+      const targetSize = 250;
 
       const smallerDimension = Math.min(photoWidth, photoHeight);
       const cropSize = smallerDimension;
       const cropX = (photoWidth - cropSize) / 2;
       const cropY = (photoHeight - cropSize) / 2;
 
-      // Get image dimensions to calculate center crop
-      const manipulator = ImageManipulator.ImageManipulator.manipulate(
-        imgURL.uri,
-      );
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+          const ctx = canvas.getContext("2d");
 
-      const cropped = manipulator.crop({
-        originX: cropX,
-        originY: cropY,
-        width: cropSize,
-        height: cropSize,
+          ctx.drawImage(
+            img,
+            cropX,
+            cropY,
+            cropSize,
+            cropSize,
+            0,
+            0,
+            targetSize,
+            targetSize
+          );
+
+          canvas.toBlob(
+            (blob) => {
+              const resizedUri = URL.createObjectURL(blob);
+              resolve({
+                uri: resizedUri,
+                width: targetSize,
+                height: targetSize,
+                blob,
+              });
+            },
+            "image/webp",
+            0.4
+          );
+        };
+        img.src = uri;
       });
-
-      const resized = cropped.resize({
-        width: targetSize,
-        height: targetSize,
-      });
-
-      const image = await resized.renderAsync();
-      const savedImage = await image.saveAsync({
-        compress: 0.4,
-        format: ImageManipulator.SaveFormat.WEBP,
-      });
-
-      return savedImage;
     } catch (err) {
-      console.log('Error resizing image', err);
+      console.log("Error resizing image", err);
       return {};
     }
   };
 
   /**
    * Uploads and processes a profile image
-   * @param {object} params - Upload parameters
-   * @param {object} params.imgURL - Image URL object
-   * @param {string} params.uuid - UUID of the profile
-   * @param {boolean} params.removeImage - Whether to remove the image
    */
-  const uploadProfileImage = async ({ imgURL, uuid, removeImage }) => {
+  const uploadProfileImage = async ({ imgBlob, imgURL, uuid, removeImage }) => {
     try {
       if (!removeImage) {
-        const response = await setDatabaseIMG(uuid, { uri: imgURL });
-
+        console.log(imgURL);
+        const response = await setDatabaseIMG(uuid, imgBlob);
         if (response) {
           await refreshCache(uuid, imgURL, false);
           return true;
         } else {
-          throw new Error(t('contacts.editMyProfilePage.unableToSaveError'));
+          throw new Error("Unable to save profile image");
         }
       } else {
         await deleteDatabaseImage(uuid);
@@ -168,22 +231,21 @@ export function useProfileImage() {
       }
     } catch (err) {
       console.log(err);
-      navigate.navigate('ErrorScreen', { errorMessage: err.message });
+      openOverlay({ for: "error", errorMessage: err.message });
       return false;
     }
   };
 
   /**
    * Deletes a profile picture
-   * @param {boolean} isEditingMyProfile - Whether editing own profile
-   * @param {object} selectedContact - The contact object (only needed if not editing own profile)
    */
   const deleteProfilePicture = async (
     isEditingMyProfile,
-    selectedContact = null,
+    selectedContact = null
   ) => {
     try {
       if (isEditingMyProfile) {
+        console.log(globalContactsInformation.myProfile.uuid);
         const response = await uploadProfileImage({
           removeImage: true,
           uuid: globalContactsInformation.myProfile.uuid,
@@ -199,7 +261,7 @@ export function useProfileImage() {
             },
             addedContacts: globalContactsInformation.addedContacts,
           },
-          true,
+          true
         );
         return;
       }
@@ -208,8 +270,9 @@ export function useProfileImage() {
         await removeProfileImageFromCache(selectedContact.uuid);
       }
     } catch (err) {
-      navigate.navigate('ErrorScreen', {
-        errorMessage: t('contacts.editMyProfilePage.deleteProfileImageError'),
+      openOverlay({
+        for: "error",
+        errorMessage: "Failed to delete profile image",
       });
       console.log(err);
     }

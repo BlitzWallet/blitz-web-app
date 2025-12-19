@@ -86,14 +86,14 @@
 .lnurl-text {
   text-align: center;
   margin-bottom: 8px;
-  color: #374151;
+  opacity: 0.6;
 }
 
 .lnurl-address {
   text-align: center;
+  margin: 0;
   margin-bottom: 24px;
-  font-weight: 600;
-  color: #111827;
+  font-weight: 500;
 }
 
 .continue-button {

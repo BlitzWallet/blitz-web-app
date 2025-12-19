@@ -174,8 +174,9 @@ export default function SendAndRequestPage(props) {
 
         setAmountValue(convertedMax);
       } catch (err) {
-        navigate("/error", {
-          state: { errorMessage: t("errormessages.genericError") },
+        openOverlay({
+          for: "error",
+          errorMessage: t("errormessages.genericError"),
         });
       } finally {
         setIsGettingMax(false);
@@ -213,9 +214,11 @@ export default function SendAndRequestPage(props) {
 
   const handleSubmit = useCallback(async () => {
     if (!isConnectedToTheInternet) {
-      navigate("/error", {
-        state: { errorMessage: t("errormessages.nointernet") },
+      openOverlay({
+        for: "error",
+        errorMessage: t("errormessages.nointernet"),
       });
+
       return;
     }
     try {

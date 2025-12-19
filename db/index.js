@@ -468,7 +468,7 @@ export async function addGiftToDatabase(dataObject) {
 
     await setDoc(docRef, dataObject, { merge: false });
 
-    console.log("Document merged with ID: ", dataObject.uuid);
+    console.log("Gift added to database with ID: ", dataObject.uuid);
     return true;
   } catch (e) {
     console.error("Error adding gift to database: ", e);
@@ -483,7 +483,7 @@ export async function updateGiftInDatabase(dataObject) {
 
     await setDoc(docRef, dataObject, { merge: true });
 
-    console.log("Document merged with ID: ", dataObject.uuid);
+    console.log("Gift updated with ID: ", dataObject.uuid);
     return true;
   } catch (e) {
     console.error("Error adding gift to database: ", e);

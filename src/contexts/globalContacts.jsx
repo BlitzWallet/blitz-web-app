@@ -46,6 +46,7 @@ export const GlobalContactsList = ({ children }) => {
   );
   const [contactsMessags, setContactsMessagses] = useState({});
   const [decodedAddedContacts, setDecodedAddedContacts] = useState([]);
+  const [updateDB, setUpdateDB] = useState(null);
 
   const didTryToUpdate = useRef(false);
   const lookForNewMessages = useRef(true);
@@ -57,26 +58,39 @@ export const GlobalContactsList = ({ children }) => {
 
   const addedContacts = globalContactsInformation.addedContacts;
 
+  useEffect(() => {
+    globalContactsInformationRef.current = globalContactsInformation;
+  }, [globalContactsInformation]);
+
   const toggleGlobalContactsInformation = useCallback(
     (newData, writeToDB) => {
-      setGlobalContactsInformation((prev) => {
-        const newContacts = { ...prev, ...newData };
-        if (writeToDB) {
-          addDataToCollection(
-            { contacts: newContacts },
-            "blitzWalletUsers",
-            publicKey
-          );
-        }
-        return newContacts;
-      });
+      setUpdateDB({ newData, writeToDB });
     },
     [publicKey]
   );
 
   useEffect(() => {
-    globalContactsInformationRef.current = globalContactsInformation;
-  }, [globalContactsInformation]);
+    if (!updateDB) return;
+
+    async function handleUpdate() {
+      const { newData, writeToDB } = updateDB;
+      const newContacts = {
+        ...globalContactsInformationRef.current,
+        ...newData,
+      };
+      setGlobalContactsInformation(newContacts);
+      if (writeToDB) {
+        addDataToCollection(
+          { contacts: newContacts },
+          "blitzWalletUsers",
+          publicKey
+        );
+      }
+
+      setUpdateDB(null);
+    }
+    handleUpdate();
+  }, [updateDB]);
 
   useEffect(() => {
     decodedAddedContactsRef.current = decodedAddedContacts;

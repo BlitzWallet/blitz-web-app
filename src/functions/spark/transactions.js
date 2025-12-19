@@ -10,7 +10,7 @@ export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
 let bulkUpdateTransactionQueue = [];
 let isProcessingBulkUpdate = false;
 
-let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 1, {
+let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 2, {
   upgrade(db) {
     if (!db.objectStoreNames.contains(SPARK_TRANSACTIONS_TABLE_NAME)) {
       const txStore = db.createObjectStore(SPARK_TRANSACTIONS_TABLE_NAME, {
@@ -130,7 +130,7 @@ export const getAllPendingSparkPayments = async (accountId) => {
 export const getAllSparkContactInvoices = async () => {
   try {
     const db = await dbPromise;
-    return await db.getAll(SPARK_TRANSACTIONS_TABLE_NAME);
+    return await db.getAll(SPARK_REQUEST_IDS_TABLE_NAME);
   } catch (error) {
     console.error("Error fetching contacts saved transactions:", error);
   }

@@ -1,332 +1,391 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import BackArrow from "../../components/backArrow/backArrow";
+import { useMemo, useRef, useState } from "react";
 import "./style.css";
-import { Colors } from "../../constants/theme";
+
 import ThemeText from "../../components/themeText/themeText";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
-import { useThemeContext } from "../../contexts/themeContext";
-import { useEffect, useState } from "react";
 import CustomButton from "../../components/customButton/customButton";
-import useThemeColors from "../../hooks/useThemeColors";
-import { check, pendingTx, xSmallIconBlack } from "../../constants/icons";
-import formatBalanceAmount from "../../functions/formatNumber";
-import { useSpark } from "../../contexts/sparkContext";
-import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
-import { useTranslation } from "react-i18next";
+import BackArrow from "../../components/backArrow/backArrow";
+
+import { Colors } from "../../constants/theme";
 import { TOKEN_TICKER_MAX_LENGTH } from "../../constants";
 
+import { useThemeContext } from "../../contexts/themeContext";
+import { useGlobalContacts } from "../../contexts/globalContacts";
+import { useImageCache } from "../../contexts/imageCacheContext";
+import { useSpark } from "../../contexts/sparkContext";
+import useThemeColors from "../../hooks/useThemeColors";
+
+import { bulkUpdateSparkTransactions } from "../../functions/spark/transactions";
+import { formatLocalTimeShort } from "../../functions/timeFormatter";
+import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
+
+import { Check, Clock, X, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
+import { useNodeContext } from "../../contexts/nodeContext";
+
 export default function ExpandedTxPage() {
-  const { sparkInformation } = useSpark();
-  const { t } = useTranslation();
   const location = useLocation();
-  const props = location.state;
   const navigate = useNavigate();
-  const [windowWidth, setWindowWidth] = useState(0);
+  const { t } = useTranslation();
+
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, backgroundColor } = useThemeColors();
+  const { decodedAddedContacts } = useGlobalContacts();
+  const { masterInfoObject } = useGlobalContextProvider();
+  const { fiatStats } = useNodeContext();
+  const { cache } = useImageCache();
+  const { sparkInformation } = useSpark();
 
-  const transaction = props?.transaction;
-  const paymentType = transaction.paymentType;
+  const [transaction, setTransaction] = useState(location.state.transaction);
 
-  const isFailed = transaction.paymentStatus === "failed";
+  const sendingContactUUID = transaction.details?.sendingUUID;
+
+  const selectedContact = useMemo(() => {
+    return decodedAddedContacts?.find((c) => c.uuid === sendingContactUUID);
+  }, [decodedAddedContacts, sendingContactUUID]);
+
   const isPending = transaction.paymentStatus === "pending";
-
-  const paymentDate = new Date(transaction.details.time);
-
-  const description = transaction.details.description;
+  const isFailed = transaction.paymentStatus === "failed";
 
   const isLRC20Payment = transaction.details.isLRC20Payment;
   const selectedToken = isLRC20Payment
     ? sparkInformation.tokens?.[transaction.details.LRC20Token]
-    : "";
+    : undefined;
+
   const formattedTokensBalance = formatTokensNumber(
-    transaction?.details?.amount,
+    transaction.details.amount,
     selectedToken?.tokenMetadata?.decimals
   );
+  console.log(transaction);
+  const paymentType = sendingContactUUID
+    ? t("screens.inAccount.expandedTxPage.contactPaymentType")
+    : transaction.details.isGift
+    ? t("constants.gift")
+    : transaction.paymentType;
 
-  console.log(isLRC20Payment, formattedTokensBalance);
+  const paymentDate = new Date(transaction.details.time);
 
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", (e) => {
-      setWindowWidth(window.innerWidth);
-    });
-  }, []);
-  const renderLRC20TokenRow = () => {
-    if (!isLRC20Payment) return null;
-
-    return (
-      <>
-        <ThemeText textContent={t("constants.token")} />
-        <ThemeText
-          textStyles={{ textAlign: windowWidth > 320 ? "right" : "center" }}
-          textContent={selectedToken?.tokenMetadata?.tokenTicker
-            ?.toUpperCase()
-            ?.slice(0, TOKEN_TICKER_MAX_LENGTH)}
-        />
-      </>
+  const handleSave = async (memoText) => {
+    if (memoText === transaction.details.description) return;
+    const newTx = structuredClone(transaction);
+    newTx.details.description = memoText;
+    newTx.useTempId = true;
+    newTx.id = transaction.sparkID;
+    newTx.tempID = transaction.sparkID;
+    await bulkUpdateSparkTransactions(
+      [newTx],
+      undefined,
+      undefined,
+      undefined,
+      true
     );
+    setTransaction(newTx);
   };
+
+  const statusColors = getStatusColors({
+    theme,
+    darkModeType,
+    isPending,
+    isFailed,
+  });
 
   return (
     <>
       <BackArrow backFunction={() => navigate(-1)} />
+
       <div className="expandedTxContainer">
         <div
+          className="receiptContainer"
           style={{
             backgroundColor: theme
               ? backgroundOffset
               : Colors.light.expandedTxReceitBackground,
           }}
-          className="receiptContainer"
         >
-          <div
-            style={{ backgroundColor: backgroundColor }}
-            className="paymentStatusOuterContainer"
-          >
-            <div
-              style={{
-                backgroundColor: isPending
-                  ? theme
-                    ? Colors.dark.expandedTxPendingOuter
-                    : Colors.light.expandedTxPendingOuter
-                  : isFailed
-                  ? theme && darkModeType
-                    ? Colors.lightsout.backgroundOffset
-                    : Colors.light.expandedTxFailed
-                  : theme
-                  ? Colors.dark.expandedTxConfimred
-                  : Colors.light.expandedTxConfimred,
-              }}
-              className="paymentStatusFirstCircle"
-            >
-              <div
-                style={{
-                  backgroundColor: isPending
-                    ? theme
-                      ? Colors.dark.expandedTxPendingInner
-                      : Colors.light.expandedTxPendingInner
-                    : isFailed
-                    ? theme && darkModeType
-                      ? Colors.dark.text
-                      : Colors.constants.cancelRed
-                    : theme
-                    ? Colors.dark.text
-                    : Colors.light.blue,
-                }}
-                className="paymentStatusSecondCircle"
-              >
-                <img
-                  style={{
-                    filter: isPending
-                      ? theme
-                        ? "brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(307deg) brightness(103%) contrast(101%)" // white
-                        : "brightness(0) saturate(100%) invert(97%) sepia(31%) saturate(97%) hue-rotate(195deg) brightness(110%) contrast(84%)"
-                      : backgroundColor === "#EBEBEB"
-                      ? "brightness(0) saturate(100%) invert(97%) sepia(31%) saturate(97%) hue-rotate(195deg) brightness(110%) contrast(84%)"
-                      : backgroundColor === "#000000"
-                      ? "brightness(0) saturate(100%) invert(0%) sepia(100%) saturate(7459%) hue-rotate(44deg) brightness(92%) contrast(101%)"
-                      : "brightness(0) saturate(100%) invert(12%) sepia(40%) saturate(2530%) hue-rotate(188deg) brightness(100%) contrast(107%)",
-                  }}
-                  className="paymentStatusIcon"
-                  src={
-                    isFailed ? xSmallIconBlack : isPending ? pendingTx : check
-                  }
-                />
-              </div>
-            </div>
-          </div>
-          <ThemeText
-            className={"receiveAmountLabel"}
-            textContent={`${
-              transaction.details.direction === "OUTGOING" ? "Sent" : "Received"
-            } amount`}
+          <StatusCircle
+            isPending={isPending}
+            isFailed={isFailed}
+            colors={statusColors}
+            backgroundColor={backgroundColor}
+            theme={theme}
           />
+
+          <ThemeText
+            className="receiveAmountLabel"
+            textContent={t("screens.inAccount.expandedTxPage.confirmMessage", {
+              context:
+                transaction.details.direction === "OUTGOING" || isFailed
+                  ? "sent"
+                  : "received",
+            })}
+          />
+
           <FormattedSatText
-            containerStyles={{ marginTop: "-5px" }}
             neverHideBalance={true}
-            styles={{
-              fontSize: windowWidth < 200 ? "30px" : "40px",
-              margin: 0,
-            }}
             balance={
-              isLRC20Payment && formattedTokensBalance > 1
+              isLRC20Payment && formattedTokensBalance >= 1
                 ? formattedTokensBalance
                 : transaction.details.amount
             }
             useCustomLabel={isLRC20Payment}
             customLabel={selectedToken?.tokenMetadata?.tokenTicker}
             useMillionDenomination={true}
+            styles={{ margin: 0, fontSize: "1.5em" }}
           />
-          <div className="paymentStatusTextContanier">
-            <ThemeText textContent={"Payment status"} />
-            <div
-              className="paymentStatusPillContiner"
-              style={{
-                backgroundColor: isPending
-                  ? theme
-                    ? Colors.dark.expandedTxPendingInner
-                    : Colors.light.expandedTxPendingOuter
-                  : isFailed
-                  ? theme && darkModeType
-                    ? Colors.lightsout.background
-                    : Colors.light.expandedTxFailed
-                  : theme
-                  ? Colors.dark.expandedTxConfimred
-                  : Colors.light.expandedTxConfimred,
-              }}
-            >
+
+          <PaymentStatus
+            isPending={isPending}
+            isFailed={isFailed}
+            colors={statusColors}
+          />
+
+          <Border backgroundColor={backgroundColor} />
+
+          {sendingContactUUID && (
+            <div className="contactRow">
+              <div className="profileImage" style={{ backgroundColor }}>
+                <img src={cache[sendingContactUUID]?.localUri} alt="contact" />
+              </div>
               <ThemeText
-                textStyles={{
-                  color: isPending
-                    ? theme
-                      ? Colors.dark.text
-                      : Colors.light.expandedTxPendingInner
-                    : isFailed
-                    ? theme && darkModeType
-                      ? Colors.dark.text
-                      : Colors.constants.cancelRed
-                    : theme
-                    ? Colors.dark.text
-                    : Colors.light.blue,
-                }}
                 textContent={
-                  isPending ? "Pending" : isFailed ? "Failed" : "Successful"
+                  selectedContact?.name || selectedContact?.uniqueName
                 }
               />
             </div>
-          </div>
-          <Border windowWidth={windowWidth} />
-          <div className="infoGridContainer">
-            <ThemeText textContent={"Time"} />
-            <ThemeText
-              textStyles={{ textAlign: windowWidth > 320 ? "right" : "center" }}
-              textContent={`${
-                paymentDate.getHours() <= 9
-                  ? "0" + paymentDate.getHours()
-                  : paymentDate.getHours()
-              }:${
-                paymentDate.getMinutes() <= 9
-                  ? "0" + paymentDate.getMinutes()
-                  : paymentDate.getMinutes()
-              }`}
-            />
-            <ThemeText textContent={"Fee"} />
-            <FormattedSatText
-              containerStyles={{
-                justifyContent: windowWidth > 320 ? "end" : "center",
-              }}
-              styles={{ marginTop: 0, marginBottom: 0 }}
-              neverHideBalance={true}
-              balance={isFailed ? 0 : transaction.details.fee}
-            />
-            <ThemeText textContent={"Type"} />
-            <ThemeText
-              textStyles={{
-                textTransform: "capitalize",
-                textAlign: windowWidth > 320 ? "right" : "center",
-              }}
-              textContent={paymentType}
-            />
-            {isPending && transaction.paymentType === "bitcoin" && (
-              <>
-                <ThemeText textContent={"Confs required"} />
-                <ThemeText
-                  textStyles={{
-                    textAlign: windowWidth > 320 ? "right" : "center",
-                  }}
-                  textContent={
-                    transaction.details.direction === "INCOMING" ? "3" : "2"
-                  }
-                />
-              </>
-            )}
-            {renderLRC20TokenRow()}
-          </div>
-          {description && (
-            <div className="descriptionContainer">
-              <ThemeText textContent={"Memo"} />
-              <div
-                className="descriptionScrollviewContainer"
-                style={{ backgroundColor: backgroundColor }}
-              >
-                <ThemeText textContent={description} />
-              </div>
-            </div>
           )}
+
+          <div className="infoGridContainer">
+            <Info
+              label={t("transactionLabelText.date")}
+              value={formatLocalTimeShort(paymentDate)}
+            />
+            <Info
+              label={t("transactionLabelText.time")}
+              value={formatTime(paymentDate)}
+            />
+            <Info
+              label={t("constants.fee")}
+              value={displayCorrectDenomination({
+                amount: transaction.details.fee || 0,
+                fiatStats,
+                masterInfoObject,
+              })}
+            />
+            <Info label={t("constants.type")} value={paymentType} />
+            {isLRC20Payment && (
+              <Info
+                label={t("constants.token")}
+                value={selectedToken?.tokenMetadata?.tokenTicker
+                  ?.toUpperCase()
+                  ?.slice(0, TOKEN_TICKER_MAX_LENGTH)}
+              />
+            )}
+          </div>
+
+          <MemoSection
+            initialValue={transaction.details.description}
+            onSave={handleSave}
+            theme={theme}
+            backgroundColor={backgroundColor}
+          />
+
           <CustomButton
-            actionFunction={() =>
-              navigate("/technical-details", { state: { transaction } })
-            }
+            textContent={t("screens.inAccount.expandedTxPage.detailsBTN")}
             buttonStyles={{
-              width: "100%",
-              maxWidth: "max-content",
-              minWidth: "unset",
               backgroundColor: theme ? Colors.dark.text : Colors.light.blue,
               margin: "30px auto",
             }}
             textStyles={{ color: theme ? Colors.light.text : Colors.dark.text }}
-            textContent={"Technical details"}
+            actionFunction={() =>
+              navigate("/technical-details", { state: { transaction } })
+            }
           />
-          <ReceiptDots windowWidth={windowWidth} />
+
+          <ReceiptDots />
         </div>
       </div>
     </>
   );
 }
 
-function Border({ windowWidth }) {
-  console.log(windowWidth);
-  const { theme } = useThemeContext();
-  const dotsWidth = windowWidth * 0.95 - 30;
-  const numDots = Math.floor(dotsWidth / 25);
-
-  let dotElements = [];
-
-  for (let index = 0; index < numDots; index++) {
-    dotElements.push(
-      <div
-        key={index}
-        style={{
-          width: "20px",
-          height: "2px",
-          marginRight: "5px",
-          backgroundColor: theme ? Colors.dark.text : Colors.light.background,
-        }}
-      />
-    );
-  }
-
+function StatusCircle({ isPending, isFailed, colors, backgroundColor, theme }) {
   return (
-    <div className="borderElementsContainer">
-      <div className="borderElementScroll">{dotElements}</div>
+    <div className="paymentStatusContainer" style={{ backgroundColor }}>
+      <div
+        className="paymentStatusOuterContainer"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <div
+          className="paymentStatusFirstCircle"
+          style={{ backgroundColor: colors.outer }}
+        >
+          <div
+            className="paymentStatusSecondCircle"
+            style={{ backgroundColor: colors.inner }}
+          >
+            {isPending ? (
+              <Clock color={theme ? Colors.dark.text : backgroundColor} />
+            ) : isFailed ? (
+              <X color={backgroundColor} />
+            ) : (
+              <Check color={backgroundColor} />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function ReceiptDots({ windowWidth }) {
-  const { backgroundColor } = useThemeColors();
-  let dotElements = [];
-  const dotsWidth = windowWidth;
-  const numDots = Math.floor(dotsWidth / 20);
-
-  for (let index = 0; index < numDots; index++) {
-    dotElements.push(
-      <div
-        key={index}
-        style={{
-          width: "20px",
-          height: "20px",
-          borderRadius: "10px",
-          backgroundColor: backgroundColor,
-        }}
-      />
-    );
-  }
-
+function PaymentStatus({ isPending, isFailed, colors }) {
   return (
-    <div className="dotElementsContainer">
-      <div className="borderElementScroll">{dotElements}</div>
+    <div className="paymentStatusTextContanier">
+      <ThemeText textStyles={{ margin: 0 }} textContent="Payment status" />
+      <div
+        className="paymentStatusPillContiner"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <ThemeText
+          textStyles={{ color: colors.text }}
+          textContent={
+            isPending ? "Pending" : isFailed ? "Failed" : "Successful"
+          }
+        />
+      </div>
     </div>
   );
+}
+
+function Info({ label, value }) {
+  return (
+    <>
+      <ThemeText textStyles={{ margin: 0 }} textContent={label} />
+      <ThemeText textStyles={{ margin: 0 }} textContent={value} />
+    </>
+  );
+}
+
+function MemoSection({ initialValue, onSave, backgroundColor }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(initialValue || "");
+  const ref = useRef();
+
+  return (
+    <div className="descriptionContainer">
+      <div className="memoHeader">
+        <ThemeText textStyles={{ margin: 0 }} textContent="Memo" />
+        {/* <button className="iconButton" onClick={() => setEditing(true)}>
+          <Pencil size={16} />
+        </button> */}
+      </div>
+
+      {(editing || initialValue) && (
+        <div
+          className="descriptionScrollviewContainer"
+          style={{ backgroundColor }}
+        >
+          {editing ? (
+            <textarea
+              ref={ref}
+              value={value}
+              maxLength={200}
+              onChange={(e) => setValue(e.target.value)}
+              onBlur={async () => {
+                await onSave(value);
+                setEditing(false);
+              }}
+            />
+          ) : (
+            <ThemeText textStyles={{ margin: 0 }} textContent={value} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Border({ backgroundColor }) {
+  return (
+    <div className="borderElementsContainer">
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+      <div style={{ backgroundColor }} className="border-element" />
+    </div>
+  );
+}
+
+function ReceiptDots() {
+  return <div className="dotElementsContainer" />;
+}
+
+function formatTime(date) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes()
+  ).padStart(2, "0")}`;
+}
+
+function getStatusColors({ theme, darkModeType, isPending, isFailed }) {
+  if (isPending) {
+    return {
+      outer: theme
+        ? Colors.dark.expandedTxPendingOuter
+        : Colors.light.expandedTxPendingOuter,
+      inner: theme
+        ? Colors.dark.expandedTxPendingInner
+        : Colors.light.expandedTxPendingInner,
+      text: theme ? Colors.dark.text : Colors.light.expandedTxPendingInner,
+      bg: theme
+        ? Colors.dark.expandedTxPendingInner
+        : Colors.light.expandedTxPendingOuter,
+    };
+  }
+
+  if (isFailed) {
+    return {
+      outer:
+        theme && darkModeType
+          ? Colors.lightsout.backgroundOffset
+          : Colors.light.expandedTxFailed,
+      inner:
+        theme && darkModeType ? Colors.dark.text : Colors.constants.cancelRed,
+      text:
+        theme && darkModeType ? Colors.dark.text : Colors.constants.cancelRed,
+      bg:
+        theme && darkModeType
+          ? Colors.lightsout.background
+          : Colors.light.expandedTxFailed,
+    };
+  }
+
+  return {
+    outer: theme
+      ? Colors.dark.expandedTxConfimred
+      : Colors.light.expandedTxConfimred,
+    inner: theme ? Colors.dark.text : Colors.constants.blue,
+    text: theme ? Colors.dark.text : Colors.constants.blue,
+    bg: theme
+      ? Colors.dark.expandedTxConfimred
+      : Colors.light.expandedTxConfimred,
+  };
 }

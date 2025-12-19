@@ -25,6 +25,7 @@ export default function WalletHome() {
 
   return (
     <SafeAreaComponent
+      addedClassName={"customWalletHomeStyle"}
       backgroundColor={didEnabledLrc20 ? backgroundOffset : "transparent"}
       customStyles={{ paddingTop: 0, width: "100%" }}
     >
@@ -35,13 +36,15 @@ export default function WalletHome() {
           }}
           className="lrc20Overlay"
         >
-          <WalletNavBar
-            didEnabledLrc20={didEnabledLrc20}
-            openOverlay={openOverlay}
-          />
-          <UserBalance />
-          <SendAndRequestBtns openOverlay={openOverlay} />
-          {didEnabledLrc20 && <LRC20Assets openOverlay={openOverlay} />}
+          <div className="lrc20ContentContiner">
+            <WalletNavBar
+              didEnabledLrc20={didEnabledLrc20}
+              openOverlay={openOverlay}
+            />
+            <UserBalance />
+            <SendAndRequestBtns openOverlay={openOverlay} />
+            {didEnabledLrc20 && <LRC20Assets openOverlay={openOverlay} />}
+          </div>
         </div>
 
         <div style={{ background: backgroundOffset }} className="txsContainer">

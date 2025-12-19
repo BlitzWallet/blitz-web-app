@@ -22,7 +22,7 @@ export default async function navigateToExpandedContact(
     toggleGlobalContactsInformation(
       {
         myProfile: { ...globalContactsInformation.myProfile },
-        addedContacts: encryptMessage(
+        addedContacts: await encryptMessage(
           contactsPrivateKey,
           publicKey,
           JSON.stringify(newAddedContacts)

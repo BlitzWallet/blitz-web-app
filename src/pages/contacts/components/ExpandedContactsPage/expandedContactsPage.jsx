@@ -24,11 +24,13 @@ import {
   HIDDEN_OPACITY,
   INSET_WINDOW_WIDTH,
 } from "../../../../constants/theme";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
 export default function ExpandedContactsPage({
   uuid,
   hideProfileImage: globalHide,
 }) {
+  const { openOverlay } = useOverlay();
   const navigate = useNavigate();
   const location = useLocation();
   const props = location.state;
@@ -191,8 +193,9 @@ export default function ExpandedContactsPage({
             btnType={"send"}
             btnFunction={() => {
               if (!isConnectedToTheInternet) {
-                navigate("/error", {
-                  state: { errorMessage: t("errormessages.nointernet") },
+                openOverlay({
+                  for: "error",
+                  errorMessage: t("errormessages.nointernet"),
                 });
                 return;
               }
@@ -220,18 +223,18 @@ export default function ExpandedContactsPage({
             activeOpacity={selectedContact.isLNURL ? 1 : undefined}
             btnFunction={() => {
               if (selectedContact.isLNURL) {
-                navigate("/error", {
-                  state: {
-                    errorMessage: t(
-                      "contacts.expandedContactPage.requestLNURLError"
-                    ),
-                  },
+                openOverlay({
+                  for: "error",
+                  errorMessage: t(
+                    "contacts.expandedContactPage.requestLNURLError"
+                  ),
                 });
                 return;
               }
               if (!isConnectedToTheInternet) {
-                navigate("/error", {
-                  state: { errorMessage: t("errormessages.nointernet") },
+                openOverlay({
+                  for: "error",
+                  errorMessage: t("errormessages.nointernet"),
                 });
                 return;
               }
@@ -351,7 +354,7 @@ export default function ExpandedContactsPage({
         {selectedContact && (
           <Star
             onClick={() => handleFavortie({ selectedContact })}
-            style={{ marginRight: "10px" }}
+            style={{ marginRight: "10px", cursor: "pointer" }}
             fill={
               selectedContact?.isFavorite
                 ? theme && darkModeType
@@ -367,6 +370,7 @@ export default function ExpandedContactsPage({
         )}
         {selectedContact && (
           <Settings
+            style={{ cursor: "pointer" }}
             onClick={() => handleSettings({ selectedContact })}
             color={
               theme && darkModeType ? Colors.dark.text : Colors.constants.blue

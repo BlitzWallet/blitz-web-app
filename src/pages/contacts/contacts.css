@@ -6,6 +6,7 @@
 }
 /* navbar */
 #contactsPage .contactsPageTopBar {
+  min-height: 40px;
   display: flex;
   justify-content: end;
   align-items: center;
@@ -42,6 +43,29 @@
   align-items: center;
   justify-content: center;
   padding: 20px 0;
+}
+
+#contactsPage .not-found-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 25px;
+}
+#contactsPage .not-found-username {
+  font-weight: 500;
+  margin: 0;
+  font-size: 1.25em;
+  line-height: 1;
+  text-align: center;
+}
+#contactsPage .not-found-label {
+  opacity: 0.6;
+  margin: 0;
+  font-size: 0.8em;
+  line-height: 1;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 /* row items */

@@ -24,6 +24,15 @@ export default function SettingsContentIndex() {
   if (selectedPage === "point-of-sale") {
     return <>{selectedPage === "point-of-sale" && <PosSettingsPage />}</>;
   }
+
+  if (selectedPage === "edit contact profile") {
+    return (
+      <EditMyProfilePage
+        navProps={{ fromSettings: true, pageType: "myProfile" }}
+      />
+    );
+  }
+
   return (
     <SafeAreaComponent addedClassName={"settingsContentIndexContianer"}>
       <CustomSettingsNavbar
@@ -41,12 +50,6 @@ export default function SettingsContentIndex() {
         {selectedPage === "display currency" && <DisplayCurrency />}
         {selectedPage === "node info" && <NodeInfo />}
         {selectedPage === "display options" && <DisplayOptions />}
-
-        {selectedPage === "edit contact profile" && (
-          <EditMyProfilePage
-            navProps={{ fromSettings: true, pageType: "myProfile" }}
-          />
-        )}
 
         {selectedPage === "fast pay" && <FastPay />}
 

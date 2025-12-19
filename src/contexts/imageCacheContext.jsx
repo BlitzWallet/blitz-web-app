@@ -155,7 +155,7 @@ export function ImageCacheProvider({ children }) {
         updated: new Date().getTime(),
       };
 
-      deleteCachedImage(key);
+      await deleteCachedImage(key);
       setCache((prev) => ({ ...prev, [uuid]: newCacheEntry }));
       return newCacheEntry;
     } catch (err) {

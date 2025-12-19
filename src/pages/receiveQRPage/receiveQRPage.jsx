@@ -83,18 +83,6 @@ export default function ReceiveQRPage() {
     globalContactsInformation?.myProfile?.uniqueName,
   ]);
 
-  useEffect(() => {
-    if (selectedRecieveOption !== "bitcoin") return;
-    // requestAnimationFrame(() => {
-    //   navigate("/error", {
-    //     state: {
-    //       errorMessage:
-    //         "Currently, on-chain payment addresses are single-use only...",
-    //     },
-    //   });
-    // });
-  }, [selectedRecieveOption, navigate]);
-
   return (
     <div className="receiveQrPage">
       <TopBar

@@ -93,6 +93,7 @@ export default function CustomHalfModal({
             setContentHeight={setContentHeight}
             openOverlay={openOverlay}
             onClose={handleClose}
+            params={params}
           />
         );
       case "confirmSMS":

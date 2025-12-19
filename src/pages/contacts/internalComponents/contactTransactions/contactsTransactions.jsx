@@ -300,11 +300,9 @@ export default function ContactsTransactionItem(props) {
       });
 
       if (!didWork) {
-        navigate("/error", {
-          state: {
-            errorMessage: error,
-            useTranslationString: true,
-          },
+        openOverlay({
+          for: "error",
+          errorMessage: t(error),
         });
         return;
       }

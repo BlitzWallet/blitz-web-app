@@ -277,7 +277,7 @@ export default function Contacts() {
           <CustomInput
             placeholder={"Search added contacts..."}
             inputText={inputText}
-            setInputText={setInputText}
+            onchange={setInputText}
             containerStyles={{
               width: "100%",
               maxWidth: "unset",
@@ -285,13 +285,41 @@ export default function Contacts() {
               marginBottom: 15,
             }}
           />
-          {contactElements}
+          {contactElements.length ? (
+            contactElements
+          ) : (
+            <div className="not-found-container">
+              <ThemeText
+                className="not-found-username"
+                textContent={
+                  `"${inputText}" ` + t("contacts.contactsPage.notFound")
+                }
+              />
+              <ThemeText
+                className="not-found-label"
+                textContent={t("contacts.contactsPage.noContactSearch")}
+              />
+              <CustomButton
+                cl
+                actionFunction={() =>
+                  openOverlay({
+                    for: "halfModal",
+                    contentType: "addContactsHalfModal",
+                    params: {
+                      startingSearchValue: inputText.trim(),
+                    },
+                  })
+                }
+                textContent={t("constants.search")}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="noContactsContainer">
           <ThemeImage
             icon={questionMarkSVG}
-            styles={{ width: "95%", maxWidth: 300, height: "auto" }}
+            styles={{ width: "95%", maxWidth: 200, height: "auto" }}
             alt="question mark to show no contact has been created"
           />
           <ThemeText
@@ -423,7 +451,7 @@ export const ContactElement = memo(
           t
         )
       : "";
-    console.log(cache[contact.uuid]);
+
     return (
       <div
         className="contact-row"

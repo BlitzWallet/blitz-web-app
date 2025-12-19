@@ -2,6 +2,8 @@ import { deleteDB, openDB } from "idb";
 import Storage from "../localStorage";
 import { getTwoWeeksAgoDate } from "../rotateAddressDateChecker";
 import EventEmitter from "events";
+import { addBulkUnpaidSparkContactTransactions } from "../spark/transactions";
+import i18next from "i18next";
 
 export const CACHED_MESSAGES_KEY = "CASHED_CONTACTS_MESSAGES";
 export const DB_NAME = `${CACHED_MESSAGES_KEY}`;
@@ -102,13 +104,41 @@ const processQueue = async () => {
   while (messageQueue.length > 0) {
     const { newMessagesList, myPubKey } = messageQueue.shift();
     try {
-      await setCashedMessages({ newMessagesList, myPubKey });
+      await Promise.all([
+        addUnpaidContactTransactions({ newMessagesList, myPubKey }),
+        setCashedMessages({
+          newMessagesList,
+          myPubKey,
+        }),
+      ]);
     } catch (err) {
       console.error("Error processing batch in queue:", err);
     }
   }
 
   isProcessing = false;
+};
+
+const addUnpaidContactTransactions = async ({ newMessagesList, myPubKey }) => {
+  let formatted = [];
+  for (const message of newMessagesList) {
+    const parsedMessage = message.message;
+    if (message.isReceived && parsedMessage?.txid) {
+      formatted.push({
+        id: parsedMessage.txid,
+        description:
+          parsedMessage.description ||
+          i18next.t("contacts.sendAndRequestPage.contactMessage", {
+            name: parsedMessage?.name || "",
+          }),
+        sendersPubkey: message.sendersPubkey,
+        details: "",
+      });
+    }
+  }
+  if (formatted.length > 0) {
+    await addBulkUnpaidSparkContactTransactions(formatted);
+  }
 };
 
 const setCashedMessages = async ({ newMessagesList, myPubKey }) => {

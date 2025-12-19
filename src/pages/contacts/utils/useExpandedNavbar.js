@@ -7,6 +7,7 @@ import {
   encryptMessage,
 } from "../../../functions/encodingAndDecoding";
 import { useKeysContext } from "../../../contexts/keysContext";
+import { useOverlay } from "../../../contexts/overlayContext";
 
 /**
  * Custom hook for managing profile image operations
@@ -15,6 +16,7 @@ import { useKeysContext } from "../../../contexts/keysContext";
 export function useExpandedNavbar() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { openOverlay } = useOverlay();
   const { contactsPrivateKey, publicKey } = useKeysContext();
   const { isConnectedToTheInternet } = useAppStatus();
   const { globalContactsInformation, toggleGlobalContactsInformation } =
@@ -69,15 +71,18 @@ export function useExpandedNavbar() {
    */
   const handleSettings = ({ selectedContact }) => {
     if (!isConnectedToTheInternet) {
-      navigate("ErrorScreen", {
+      openOverlay({
+        for: "error",
         errorMessage: t("errormessages.nointernet"),
       });
       return;
     }
     if (!selectedContact) return;
-    navigate.navigate("EditMyProfilePage", {
-      pageType: "addedContact",
-      selectedAddedContact: selectedContact,
+    navigate("/edit-profile", {
+      state: {
+        pageType: "addedContact",
+        selectedAddedContact: selectedContact,
+      },
     });
   };
 

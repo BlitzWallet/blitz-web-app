@@ -14,11 +14,16 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeText from "../../../../components/themeText/themeText";
 import { useNavigate } from "react-router-dom";
+import CustomButton from "../../../../components/customButton/customButton";
+import { useTranslation } from "react-i18next";
 
 // Main Component
-export default function AddContactsModal({ onClose }) {
+export default function AddContactsModal({ onClose, params }) {
   const navigate = useNavigate();
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(
+    params.startingSearchValue || ""
+  );
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isKeyboardActive, setIsKeyboardActive] = useState(false);
@@ -174,9 +179,10 @@ export default function AddContactsModal({ onClose }) {
         <div className="lnurl-container">
           <p className="lnurl-text">Add Lightning Address:</p>
           <p className="lnurl-address">{searchInput}</p>
-          <button onClick={clearHalfModalForLNURL} className="continue-button">
-            Continue
-          </button>
+          <CustomButton
+            actionFunction={clearHalfModalForLNURL}
+            textContent={t("constants.continue")}
+          />
         </div>
       ) : (
         <div className="users-list">
