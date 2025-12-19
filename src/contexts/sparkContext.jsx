@@ -63,8 +63,8 @@ import { useLocation } from "react-router-dom";
 export const isSendingPayingEventEmiiter = new EventEmitter();
 export const SENDING_PAYMENT_EVENT_NAME = "SENDING_PAYMENT_EVENT";
 
-if (!global.blitzWalletSparkIntervalState) {
-  global.blitzWalletSparkIntervalState = {
+if (!globalThis.blitzWalletSparkIntervalState) {
+  globalThis.blitzWalletSparkIntervalState = {
     intervalTracker: new Map(),
     listenerLock: new Map(),
     allIntervalIds: new Set(),
@@ -72,7 +72,7 @@ if (!global.blitzWalletSparkIntervalState) {
   };
 }
 const { intervalTracker, listenerLock, allIntervalIds, depositIntervalIds } =
-  global.blitzWalletSparkIntervalState;
+  globalThis.blitzWalletSparkIntervalState;
 
 // Initiate context
 const SparkWalletManager = createContext(null);

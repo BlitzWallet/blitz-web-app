@@ -399,13 +399,12 @@ function InnerContent({
   if (hideProfileImage) {
     return (
       <>
-        <View style={styles.hideProfileContainer}>
+        <div>
           <ProfileInputFields {...inputFieldsProps} />
-        </View>
+        </div>
         <CustomButton
           buttonStyles={{
             width: "auto",
-            ...CENTER,
             marginTop: 10,
           }}
           useLoading={isSaving}
