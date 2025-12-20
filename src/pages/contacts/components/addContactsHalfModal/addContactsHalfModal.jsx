@@ -41,6 +41,12 @@ export default function AddContactsModal({ onClose, params }) {
     searchInput?.includes("@") && searchInput?.indexOf("@") !== 0;
 
   useEffect(() => {
+    if (params.startingSearchValue) {
+      handleSearch(params.startingSearchValue);
+    }
+  }, []);
+
+  useEffect(() => {
     searchInputRef.current?.focus();
   }, []);
 

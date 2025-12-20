@@ -355,6 +355,14 @@ function ReceiptDots({ backgroundColor }) {
       <div style={{ backgroundColor }} className="dot-element" />
       <div style={{ backgroundColor }} className="dot-element" />
       <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
     </div>
   );
 }
