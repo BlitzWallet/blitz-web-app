@@ -380,7 +380,7 @@ export const PinnedContactElement = memo(
     return (
       <div
         className="pinned-contact"
-        style={{ width: containerSize, aspectRatio: "1 / 1" }}
+        style={{ width: containerSize, height: containerSize }}
         onClick={handlePress}
         onContextMenu={handleLongPress}
       >
