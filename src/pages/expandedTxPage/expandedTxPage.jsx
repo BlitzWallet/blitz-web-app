@@ -204,7 +204,7 @@ export default function ExpandedTxPage() {
             }
           />
 
-          <ReceiptDots />
+          <ReceiptDots backgroundColor={backgroundColor} />
         </div>
       </div>
     </>
@@ -335,8 +335,28 @@ function Border({ backgroundColor }) {
   );
 }
 
-function ReceiptDots() {
-  return <div className="dotElementsContainer" />;
+function ReceiptDots({ backgroundColor }) {
+  return (
+    <div className="dotElementsContainer">
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+      <div style={{ backgroundColor }} className="dot-element" />
+    </div>
+  );
 }
 
 function formatTime(date) {

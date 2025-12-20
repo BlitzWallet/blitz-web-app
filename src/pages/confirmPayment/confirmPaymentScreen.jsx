@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { useSpark } from "../../contexts/sparkContext";
 import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 
-export default function ConfirmPayment() {
+export default function ConfirmPayment({ setValue }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { sparkInformation } = useSpark();
@@ -75,6 +75,7 @@ export default function ConfirmPayment() {
   }, []);
 
   const handleBack = useCallback(() => {
+    setValue(1);
     navigate("/wallet", { replace: true });
   }, [navigate]);
   return (

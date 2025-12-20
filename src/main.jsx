@@ -396,7 +396,9 @@ function Root() {
                                                     }}
                                                   >
                                                     <SafeAreaComponent>
-                                                      <ConfirmPayment />
+                                                      <ConfirmPayment
+                                                        setValue={setValue}
+                                                      />
                                                     </SafeAreaComponent>
                                                   </AnimatedRouteWrapper>
                                                 }

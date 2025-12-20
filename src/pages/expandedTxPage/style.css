@@ -222,15 +222,15 @@
 
 .dotElementsContainer {
   position: absolute;
-  bottom: -10px;
   width: 100%;
   display: flex;
   justify-content: space-between;
+  bottom: -7.5px;
 }
-
-.dotElementsContainer::before {
-  content: "";
-  flex: 1;
+.dotElementsContainer .dot-element {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
 }
 
 /* =========================
