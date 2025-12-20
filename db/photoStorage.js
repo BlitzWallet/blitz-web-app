@@ -16,7 +16,7 @@ export async function setDatabaseIMG(publicKey, imgBlob) {
 
     const reference = ref(
       storage,
-      `${BLITZ_PROFILE_IMG_STORAGE_REF}/${publicKey}.webp`
+      `${BLITZ_PROFILE_IMG_STORAGE_REF}/${publicKey}.jpg`
     );
 
     await uploadBytes(reference, imgBlob);
