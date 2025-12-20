@@ -1,8 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import sendRequestImage from "../../../../assets/sendRequestImage.png";
-import Qr from "../../../../assets/scanQRCodeLight.png";
 import "./style.css";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import { Colors } from "../../../../constants/theme";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
@@ -38,11 +35,6 @@ export default function SendAndRequestBtns() {
           }
           size={25}
         />
-        {/* <ThemeImage
-          styles={{ width: "100%", height: "100%" }}
-          icon={sendRequestImage}
-          className="send"
-        /> */}
       </div>
 
       <div

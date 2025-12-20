@@ -18,19 +18,14 @@ import {
   SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
 } from "../../constants";
 import CustomInput from "../../components/customInput/customInput";
-import CustomNumberKeyboard from "../../components/customNumberKeyboard/customNumberKeyboard";
 import NumberInputSendPage from "./components/numberInput";
 import CustomButton from "../../components/customButton/customButton";
-import { getBoltzApiUrl } from "../../functions/boltz/boltzEndpoitns";
-
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { useTranslation } from "react-i18next";
 import { InputTypes } from "bitcoin-address-parser";
-import ThemeImage from "../../components/ThemeImage/themeImage";
-import { adminHomeWallet } from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
 import SelectLRC20Token from "./components/selectLRC20Token";
 import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";

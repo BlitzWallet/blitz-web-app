@@ -1,8 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import "./style.css";
-import ThemeImage from "../ThemeImage/themeImage";
-import { smallArrowLeft } from "../../constants/icons";
-import { WHITE_FILTER } from "../../constants";
 import { ArrowLeft } from "lucide-react";
 import useThemeColors from "../../hooks/useThemeColors";
 import { Colors } from "../../constants/theme";

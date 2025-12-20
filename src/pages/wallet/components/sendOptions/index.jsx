@@ -7,9 +7,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import ThemeText from "../../../../components/themeText/themeText";
 import { useGlobalContacts } from "../../../../contexts/globalContacts";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import Icon from "../../../../components/customIcon/customIcon";
 import { useThemeContext } from "../../../../contexts/themeContext";
+import * as LucidIcons from "lucide-react";
 
 import "./style.css";
 import {
@@ -37,6 +36,11 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
         : item === "clipboard"
         ? clipboardDark
         : editIcon;
+
+    const iconName =
+      item === "img" ? "Image" : item === "clipboard" ? "Clipboard" : "Edit";
+
+    const IconElement = LucidIcons[iconName];
 
     const itemText =
       item === "img"
@@ -101,25 +105,7 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
         }}
       >
         <div style={styles.optionRow}>
-          {item === "manual" ? (
-            <div
-              style={{
-                ...styles.icon,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon
-                color={theme ? "white" : "black"}
-                height={30}
-                width={30}
-                name={"editIcon"}
-              />
-            </div>
-          ) : (
-            <ThemeImage styles={styles.icon} icon={darkIcon} />
-          )}
+          <IconElement style={styles.icon} size={35} />
           <ThemeText textStyles={styles.optionText} textContent={itemText} />
         </div>
       </button>
@@ -130,11 +116,9 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
     <div className="sendOptionsContainer">
       <div style={{ overflowY: "auto", overflowX: "hidden" }}>
         {sendOptionElements}
-        {/* {decodedAddedContacts.length !== 0 && (
+        {decodedAddedContacts.length !== 0 && (
           <button
-            onClick={() => {
-              navigate("ChooseContactHalfModal");
-            }}
+            onClick={() => {}}
             style={{
               background: "transparent",
               border: "none",
@@ -144,19 +128,14 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
             }}
           >
             <div style={styles.optionRow}>
-              <ThemeImage
-                styles={styles.icon}
-                lightModeIcon={contactsIcon}
-                darkModeIcon={contactsIconLight}
-                lightsOutIcon={contactsIconLight}
-              />
+              <LucidIcons.Users style={styles.icon} />
               <ThemeText
                 textStyles={{ ...styles.optionText }}
                 textContent={t("wallet.halfModal.contacts")}
               />
             </div>
           </button>
-        )} */}
+        )}
       </div>
       <input
         style={{ zIndex: -1, display: "none" }}

@@ -9,7 +9,6 @@ import { useTranslation } from "react-i18next";
 import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 import FormattedSatText from "../../../../components/formattedSatText/formattedSatText";
 import useThemeColors from "../../../../hooks/useThemeColors";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import ThemeText from "../../../../components/themeText/themeText";
 import { getDataFromCollection, updateMessage } from "../../../../../db";
 import { useThemeContext } from "../../../../contexts/themeContext";

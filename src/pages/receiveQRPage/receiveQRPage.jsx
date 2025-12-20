@@ -11,16 +11,15 @@ import FormattedSatText from "../../components/formattedSatText/formattedSatText
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
-import ThemeImage from "../../components/ThemeImage/themeImage";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { encodeLNURL } from "../../functions/lnurl/bench32Formmater";
 import FullLoadingScreen from "../../components/fullLoadingScreen/fullLoadingScreen";
-import { aboutIcon, editIconLight } from "../../constants/icons";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useNodeContext } from "../../contexts/nodeContext";
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import { Colors } from "../../constants/theme";
 import { useOverlay } from "../../contexts/overlayContext";
+import { Edit, Info } from "lucide-react";
 
 export default function ReceiveQRPage() {
   const { openOverlay } = useOverlay();
@@ -115,6 +114,7 @@ export default function ReceiveQRPage() {
             masterInfoObject={masterInfoObject}
             fiatStats={fiatStats}
             openOverlay={openOverlay}
+            darkModeType={darkModeType}
           />
         )}
         <ReceiveButtonsContainer
@@ -149,9 +149,11 @@ export default function ReceiveQRPage() {
         >
           <div className="feeTextContainer">
             <ThemeText textStyles={{ margin: 0 }} textContent={"Fee"} />
-            <ThemeImage
-              styles={{ width: 15, height: 15, marginLeft: "5px" }}
-              icon={aboutIcon}
+            <Info
+              size={15}
+              color={
+                theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+              }
             />
           </div>
           {selectedRecieveOption.toLowerCase() === "bitcoin" ? (
@@ -175,6 +177,7 @@ function LNURLContainer({
   masterInfoObject,
   fiatStats,
   openOverlay,
+  darkModeType,
 }) {
   return (
     <div
@@ -216,14 +219,11 @@ function LNURLContainer({
       />
       {selectedRecieveOption.toLowerCase() === "lightning" &&
         !initialSendAmount && (
-          <ThemeImage
-            filter={
-              theme
-                ? undefined
-                : "brightness(0) saturate(100%) invert(26%) sepia(93%) saturate(3135%) hue-rotate(205deg) brightness(106%) contrast(97%)"
+          <Edit
+            size={20}
+            color={
+              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
             }
-            styles={{ height: 20, width: 20 }}
-            icon={editIconLight}
           />
         )}
     </div>

@@ -5,9 +5,7 @@ import PageNavBar from "../../components/navBar/navBar";
 import ThemeText from "../../components/themeText/themeText";
 import { useEffect } from "react";
 import SocialOptionsBottomBar from "./socialOptions/socialOptions";
-import Icon from "../../components/customIcon/customIcon";
 import { Colors } from "../../constants/theme";
-import ThemeImage from "../../components/ThemeImage/themeImage";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import {
@@ -23,6 +21,7 @@ import {
   trashIcon,
 } from "../../constants/icons";
 import { useOverlay } from "../../contexts/overlayContext";
+import * as LucidIcons from "lucide-react";
 
 const GENERALOPTIONS = [
   {
@@ -30,18 +29,21 @@ const GENERALOPTIONS = [
     name: "About",
     icon: aboutIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "Info",
   },
   {
     for: "general",
     name: "Display Currency",
     icon: currencyIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "Coins",
   },
   {
     for: "general",
     name: "Display Options",
     icon: colorIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "Palette",
   },
 
   {
@@ -49,6 +51,7 @@ const GENERALOPTIONS = [
     name: "Edit Contact Profile",
     icon: contactsIconBlue,
     arrowIcon: leftCheveronIcon,
+    newIconName: "UserPen",
   },
   {
     for: "general",
@@ -56,6 +59,7 @@ const GENERALOPTIONS = [
     svgIcon: true,
     svgName: "quickPayIcon",
     arrowIcon: leftCheveronIcon,
+    newIconName: "ClockFading",
   },
   {
     for: "general",
@@ -63,14 +67,17 @@ const GENERALOPTIONS = [
     svgName: "crashDebugIcon",
     icon: navigationIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "ChartArea",
   },
 ];
+
 const SECURITYOPTIONS = [
   {
     for: "Security & Customization",
     name: "Backup wallet",
     icon: keyIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "KeyRound",
   },
 ];
 
@@ -80,18 +87,21 @@ const ADVANCEDOPTIONS = [
     name: "Blitz Fee Details",
     icon: receiptIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "ReceiptText",
   },
   {
     for: "Closing Account",
     name: "Delete Wallet",
     icon: trashIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "Trash",
   },
   {
     for: "Closing Account",
     name: "Spark Info",
     icon: nodeIcon,
     arrowIcon: leftCheveronIcon,
+    newIconName: "Asterisk",
   },
 ];
 const SETTINGSOPTIONS = [
@@ -140,6 +150,8 @@ export default function SettingsHome() {
 
   const settingsItems = settignsList.map((item, id) => {
     const internalElements = item.map((settingsElement, id) => {
+      const IconElemnt = LucidIcons[settingsElement.newIconName];
+      console.log(IconElemnt, settingsElement.newIconName);
       return (
         <div
           style={{ borderBottomColor: backgroundOffset }}
@@ -163,28 +175,20 @@ export default function SettingsHome() {
           }}
           className="settingsItemContainer"
         >
-          {settingsElement.svgIcon ? (
-            <Icon
-              color={
-                theme && darkModeType ? Colors.dark.text : Colors.light.blue
-              }
-              name={settingsElement.svgName}
-            />
-          ) : (
-            <ThemeImage
-              className="settingsItemImage"
-              icon={settingsElement.icon}
-              styles={{ width: 20, height: 20 }}
-            />
-          )}
+          <IconElemnt
+            color={
+              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+            }
+          />
           <ThemeText
             className={"settingsItemName"}
             textContent={settingsElement.name}
           />
-          <ThemeImage
-            styles={{ width: 20, height: 20 }}
-            className="settingsItemChevron"
-            icon={settingsElement.arrowIcon}
+          <LucidIcons.ChevronRight
+            size={20}
+            color={
+              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+            }
           />
         </div>
       );

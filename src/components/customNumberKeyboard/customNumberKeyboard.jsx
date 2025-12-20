@@ -3,8 +3,6 @@ import { useCallback } from "react";
 import "./style.css";
 import numberConverter from "../../functions/numberConverter";
 import { SATSPERBITCOIN } from "../../constants";
-import { leftCheveronDark } from "../../constants/icons";
-import ThemeImage from "../ThemeImage/themeImage";
 import useThemeColors from "../../hooks/useThemeColors";
 import { ChevronLeft } from "lucide-react";
 

@@ -96,13 +96,10 @@ import ConfirmActionPage from "./components/confirmActionPage/confirmActionPage.
 import { GlobalRescanLiquidSwaps } from "./contexts/rescanLiquidSwaps.jsx";
 import Contacts from "./pages/contacts/contacts.jsx";
 import Store from "./pages/store/store.jsx";
-import TabsIcon from "./components/tabsIcon/tabsIcon.jsx";
 import SettingsContentIndex from "./pages/settings/settingsItem/settingsItem.jsx";
 import HandleLNURLPayments from "./contexts/lnurlContext.jsx";
 import { ImageCacheProvider } from "./contexts/imageCacheContext.jsx";
 import EditMyProfilePage from "./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx";
-import MyProfilePage from "./pages/contacts/screens/myProfilePage/myProfilePage.jsx";
-import useThemeColors from "./hooks/useThemeColors.js";
 import BottomTabs from "./tabs/tabs.jsx";
 import { ActiveCustodyAccountProvider } from "./contexts/activeAccount.jsx";
 
@@ -275,24 +272,7 @@ function Root() {
                                                   </SafeAreaComponent>
                                                 }
                                               />
-                                              <Route
-                                                path="/my-profile"
-                                                element={
-                                                  <AnimatedRouteWrapper
-                                                    initialAnimation={{
-                                                      x: "100%",
-                                                    }}
-                                                    animate={{ x: 0 }}
-                                                    exitAnimation={{
-                                                      x: "100%",
-                                                    }}
-                                                  >
-                                                    <SafeAreaComponent>
-                                                      <MyProfilePage />
-                                                    </SafeAreaComponent>
-                                                  </AnimatedRouteWrapper>
-                                                }
-                                              />
+
                                               <Route
                                                 path="/store"
                                                 element={

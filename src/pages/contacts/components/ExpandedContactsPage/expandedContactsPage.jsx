@@ -8,7 +8,6 @@ import ThemeText from "../../../../components/themeText/themeText";
 import { useAppStatus } from "../../../../contexts/appStatus";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
 import { queueSetCashedMessages } from "../../../../functions/messaging/cachedMessages";
 import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
 import CustomSendAndRequsetBTN from "../../../../components/sendAndRequsetButton/customSendAndRequsetButton";

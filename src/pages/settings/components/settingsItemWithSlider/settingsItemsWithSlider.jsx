@@ -5,9 +5,8 @@ import useThemeColors from "../../../../hooks/useThemeColors";
 import { Colors } from "../../../../constants/theme";
 import ThemeText from "../../../../components/themeText/themeText";
 import CustomToggleSwitch from "../../../../components/switch/switch";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import { aboutIcon } from "../../../../constants/icons";
 import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
+import { Info } from "lucide-react";
 
 export default function SettingsItemWithSlider({
   settingsTitle = "",
@@ -23,7 +22,7 @@ export default function SettingsItemWithSlider({
   containerStyles = {},
   openOverlay,
 }) {
-  const { theme } = useThemeContext();
+  const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, backgroundColor, textColor } = useThemeColors();
 
   const goToInformationPopup = () => {
@@ -72,7 +71,14 @@ export default function SettingsItemWithSlider({
               onClick={goToInformationPopup}
               className="info-button"
             >
-              <ThemeImage styles={{ width: 20, height: 20 }} icon={aboutIcon} />
+              <Info
+                size={20}
+                color={
+                  theme && darkModeType
+                    ? Colors.dark.text
+                    : Colors.constants.blue
+                }
+              />
             </button>
           )}
 

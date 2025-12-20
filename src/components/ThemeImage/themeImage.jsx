@@ -36,6 +36,7 @@ export default function ThemeImage({
 
   return (
     <img
+      loading="eager"
       className={className}
       onClick={() => {
         if (clickFunction) {
