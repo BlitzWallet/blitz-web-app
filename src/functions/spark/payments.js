@@ -120,7 +120,7 @@ export const sparkPaymenWrapper = async ({
 
       const data = lightningPayResponse.paymentResponse;
 
-      const paymentType = !!data?.type ? "spark" : "lightning";
+      const paymentType = data?.type ? "spark" : "lightning";
 
       if (paymentType === "lightning") {
         const realPaymentFee = data?.fee?.originalValue
