@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { useSpark } from "../../../../contexts/sparkContext";
 import { fullRestoreSparkState } from "../../../../functions/spark/restore";
 import { useThemeContext } from "../../../../contexts/themeContext";
-å;
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
 import { Moon, Sun, RefreshCw, Settings } from "lucide-react";

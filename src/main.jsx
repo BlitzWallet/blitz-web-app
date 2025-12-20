@@ -75,6 +75,9 @@ const SendAndRequestPage = lazy(() =>
     "./pages/contacts/components/sendAndRequestPage/sendAndRequsetPage.jsx"
   )
 );
+const ChooseContactListPage = lazy(() =>
+  import("./pages/contacts/components/contactsList/contactsList.jsx")
+);
 
 import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
 import {
@@ -253,6 +256,14 @@ function Root() {
                                                 element={
                                                   <SafeAreaComponent>
                                                     <ExpandedContactsPage />
+                                                  </SafeAreaComponent>
+                                                }
+                                              />
+                                              <Route
+                                                path="/chooseContactListPage"
+                                                element={
+                                                  <SafeAreaComponent>
+                                                    <ChooseContactListPage />
                                                   </SafeAreaComponent>
                                                 }
                                               />

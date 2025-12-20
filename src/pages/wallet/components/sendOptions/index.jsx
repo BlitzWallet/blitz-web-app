@@ -118,7 +118,10 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
         {sendOptionElements}
         {decodedAddedContacts.length !== 0 && (
           <button
-            onClick={() => {}}
+            onClick={() => {
+              navigate("/chooseContactListPage");
+              onClose();
+            }}
             style={{
               background: "transparent",
               border: "none",

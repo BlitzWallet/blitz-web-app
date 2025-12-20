@@ -38,6 +38,9 @@ import {
   publishMessage,
 } from "../../functions/messaging/publishMessage";
 import { useKeysContext } from "../../contexts/keysContext";
+import SendTransactionFeeInfo from "./components/feeInfo";
+import { useThemeContext } from "../../contexts/themeContext";
+import InvoiceInfo from "./components/invoiceInfo";
 
 export default function SendPage() {
   const { openOverlay } = useOverlay();
@@ -58,6 +61,7 @@ export default function SendPage() {
   const [paymentInfo, setPaymentInfo] = useState({});
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
+  const { theme, darkModeType } = useThemeContext();
   const { contactsPrivateKey, publicKey } = useKeysContext();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { liquidNodeInformation, fiatStats } = useNodeContext();
@@ -484,17 +488,23 @@ export default function SendPage() {
 
         {!canEditPaymentAmount && (
           <>
-            <ThemeText
-              textStyles={{ margin: 0, marginTop: 40 }}
-              className="paymentFeeDesc"
-              textContent={"Fee & speed"}
-            />
-            <FormattedSatText
-              styles={{ marginTop: 0 }}
-              balance={totalFee}
-              backText={"and Instant"}
+            <SendTransactionFeeInfo
+              paymentFee={totalFee}
+              isLightningPayment={isLightningPayment}
+              isLiquidPayment={isLiquidPayment}
+              isBitcoinPayment={isBitcoinPayment}
+              isSparkPayment={isSparkPayment}
             />
           </>
+        )}
+        {!canEditPaymentAmount && (
+          <InvoiceInfo
+            paymentInfo={paymentInfo}
+            contactInfo={contactInfo}
+            fromPage={fromPage}
+            theme={theme}
+            darkModeType={darkModeType}
+          />
         )}
 
         {canEditPaymentAmount && (
