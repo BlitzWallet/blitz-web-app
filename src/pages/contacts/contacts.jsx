@@ -225,6 +225,8 @@ export default function Contacts() {
     openOverlay,
   ]);
 
+  console.log(cache, "test");
+
   const handleButtonPress = useCallback(() => {
     if (!isConnectedToTheInternet) {
       openOverlay({

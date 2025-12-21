@@ -13,7 +13,7 @@ import {
 import { BLITZ_PROFILE_IMG_STORAGE_REF } from "../constants";
 
 // Helper to generate cache key
-const CACHE_KEY = (uuid) => `profile_${uuid}`;
+const CACHE_KEY = (uuid) => `${BLITZ_PROFILE_IMG_STORAGE_REF}/${uuid}`;
 
 /**
  * Get cached profile image from Firebase Storage

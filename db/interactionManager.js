@@ -30,11 +30,14 @@ const PRESET_LOCAL_DATA = {
     lastUpdated: new Date().getTime(),
     data: null,
   },
-  enabledDeveloperSupport: {
-    isEnabled: true,
-    baseFee: BLITZ_FEE_SATS,
-    baseFeePercent: BLITZ_FEE_PERCET,
-  },
+  didViewNWCMessage: false,
+  userSelectedLanguage: "en",
+  // [NWC_IDENTITY_PUB_KEY]: "",
+  userBalanceDenomination: "sats",
+  didViewSeedPhrase: false,
+  enabledBTKNTokens: null,
+  defaultSpendToken: "bitcoin",
+  thousandsSeperator: "space",
 };
 
 async function sendDataToDB(newObject, uuid) {

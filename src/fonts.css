@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "Blitzicons1";
+  src: url("./assets/fonts/Blitzicons1.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* 100 Thin */
 @font-face {
   font-family: "Poppins";

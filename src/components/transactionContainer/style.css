@@ -36,6 +36,7 @@
   margin: 0;
 }
 .transactionContainer .transaction .textContainer {
+  width: calc(100% - 45px - 72px - 10px - 10px);
   display: flex;
   flex-direction: column;
   margin-right: 10px;
