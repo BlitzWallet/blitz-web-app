@@ -2,11 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import "./style.css";
 import customUUID from "../../../../functions/customUUID";
 import useDebounce from "../../../../hooks/useDebounce";
-import {
-  EMAIL_REGEX,
-  VALID_URL_REGEX,
-  VALID_USERNAME_REGEX,
-} from "../../../../constants";
+import { EMAIL_REGEX, VALID_USERNAME_REGEX } from "../../../../constants";
 import { searchUsers } from "../../../../../db";
 import { getCachedProfileImage } from "../../../../functions/cachedImage";
 import ContactProfileImage from "../profileImage/profileImage";
@@ -16,6 +12,8 @@ import ThemeText from "../../../../components/themeText/themeText";
 import { useNavigate } from "react-router-dom";
 import CustomButton from "../../../../components/customButton/customButton";
 import { useTranslation } from "react-i18next";
+import CustomInput from "../../../../components/customInput/customInput";
+import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
 
 // Main Component
 export default function AddContactsModal({ onClose, params }) {
@@ -148,43 +146,34 @@ export default function AddContactsModal({ onClose, params }) {
     });
   };
 
-  const handleBlur = () => {
-    setIsKeyboardActive(false);
-    if (!searchInput && !didClickCamera.current) {
-      console.log("Close modal");
-    }
-    didClickCamera.current = false;
-  };
-
   return (
     <div className="modal-container">
       <div className="title-container">
         <ThemeText className="title-text" textContent={"Add Contact"} />
-        {isSearching && <div className="spinner"></div>}
+        {isSearching && (
+          <FullLoadingScreen
+            containerStyles={{ flex: 0 }}
+            size="small"
+            showText={false}
+          />
+        )}
       </div>
 
-      <div className="search-container">
-        <input
-          ref={searchInputRef}
-          type="text"
-          value={searchInput}
-          onChange={(e) => handleSearch(e.target.value)}
-          onFocus={() => setIsKeyboardActive(true)}
-          onBlur={handleBlur}
-          onKeyPress={(e) => {
-            if (e.key === "Enter") {
-              clearHalfModalForLNURL();
-            }
-          }}
-          placeholder="Find a contact"
-          className="search-input"
-        />
-      </div>
+      <CustomInput
+        ref={searchInputRef}
+        placeholder="Find a contact"
+        containerStyles={{ maxWidth: "unset" }}
+        onchange={handleSearch}
+        value={searchInput}
+      />
 
       {isUsingLNURL ? (
         <div className="lnurl-container">
-          <p className="lnurl-text">Add Lightning Address:</p>
-          <p className="lnurl-address">{searchInput}</p>
+          <ThemeText
+            className="lnurl-text"
+            textContent={"Add Lightning Address:"}
+          />
+          <ThemeText className="lnurl-address" textContent={searchInput} />
           <CustomButton
             actionFunction={clearHalfModalForLNURL}
             textContent={t("constants.continue")}

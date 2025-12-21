@@ -21,21 +21,6 @@
   margin-right: 10px;
 }
 
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #3b82f6;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .search-container {
   position: relative;
   width: 100%;
@@ -93,7 +78,6 @@
   text-align: center;
   margin: 0;
   margin-bottom: 24px;
-  font-weight: 500;
 }
 
 .continue-button {
