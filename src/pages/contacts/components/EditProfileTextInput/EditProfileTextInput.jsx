@@ -1,9 +1,10 @@
 import React, { useState, useRef } from "react";
-import { Info, Moon, Sun } from "lucide-react";
+import { Info } from "lucide-react";
 import "./editProfileTextInput.css";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import { Colors } from "../../../../constants/theme";
 import CustomInput from "../../../../components/customInput/customInput";
+import ThemeText from "../../../../components/themeText/themeText";
 
 /**
  * Reusable text input component for edit profile forms
@@ -45,7 +46,11 @@ export function EditProfileTextInput({
     >
       {showInfoIcon ? (
         <div className="label-row">
-          <label className="input-label">{label}</label>
+          <ThemeText
+            textStyles={{ margin: 0 }}
+            className="input-label"
+            textContent={label}
+          />
           <button
             type="button"
             className="info-button"
@@ -63,7 +68,7 @@ export function EditProfileTextInput({
           </button>
         </div>
       ) : (
-        <label className="input-label">{label}</label>
+        <ThemeText className="input-label" textContent={label} />
       )}
       <CustomInput
         ref={inputRef}
@@ -101,10 +106,10 @@ export function EditProfileTextInput({
           maxLength={maxLength}
         />
       )} */}
-
-      <div className={`character-count ${isOverLimit ? "over-limit" : ""}`}>
-        {value.length} / {maxLength}
-      </div>
+      <ThemeText
+        className={`character-count ${isOverLimit ? "over-limit" : ""}`}
+        textContent={`${value.length} / ${maxLength}`}
+      />
     </div>
   );
 }

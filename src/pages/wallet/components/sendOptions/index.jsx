@@ -11,32 +11,21 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import * as LucidIcons from "lucide-react";
 
 import "./style.css";
-import {
-  clipboardDark,
-  contactsIcon,
-  editIcon,
-  ImagesIconDark,
-} from "../../../../constants/icons";
+
 import {
   getQRImage,
   navigateToSendUsingClipboard,
 } from "../../../../functions/sendBitcoin/halfModalFunctions";
+import { Colors } from "../../../../constants/theme";
 
 export default function HalfModalSendOptions({ openOverlay, onClose }) {
   const navigate = useNavigate();
-  const { theme } = useThemeContext();
+  const { theme, darkModeType } = useThemeContext();
   const fileInput = document.getElementById("file-selector");
   const { decodedAddedContacts } = useGlobalContacts();
   const { t } = useTranslation();
 
   const sendOptionElements = ["img", "clipboard", "manual"].map((item, key) => {
-    const darkIcon =
-      item === "img"
-        ? ImagesIconDark
-        : item === "clipboard"
-        ? clipboardDark
-        : editIcon;
-
     const iconName =
       item === "img" ? "Image" : item === "clipboard" ? "Clipboard" : "Edit";
 
@@ -105,7 +94,11 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
         }}
       >
         <div style={styles.optionRow}>
-          <IconElement style={styles.icon} size={35} />
+          <IconElement
+            color={theme ? Colors.dark.text : Colors.light.text}
+            style={styles.icon}
+            size={35}
+          />
           <ThemeText textStyles={styles.optionText} textContent={itemText} />
         </div>
       </button>
@@ -131,7 +124,10 @@ export default function HalfModalSendOptions({ openOverlay, onClose }) {
             }}
           >
             <div style={styles.optionRow}>
-              <LucidIcons.Users style={styles.icon} />
+              <LucidIcons.Users
+                color={theme ? Colors.dark.text : Colors.light.text}
+                style={styles.icon}
+              />
               <ThemeText
                 textStyles={{ ...styles.optionText }}
                 textContent={t("wallet.halfModal.contacts")}

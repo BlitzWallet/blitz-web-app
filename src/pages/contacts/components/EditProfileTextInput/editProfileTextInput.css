@@ -11,16 +11,13 @@
 .label-row {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .input-label {
   display: block;
-  font-size: 15px;
-  font-weight: 500;
-  color: #4a5568;
   cursor: text;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 .label-row .input-label {
   margin-bottom: 0;
@@ -52,9 +49,6 @@
 
 .character-count {
   text-align: right;
-  font-size: 13px;
-  color: #718096;
-  font-weight: 500;
 }
 
 .dark .character-count {

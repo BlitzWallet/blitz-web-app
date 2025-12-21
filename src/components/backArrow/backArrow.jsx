@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import "./style.css";
 import { ArrowLeft } from "lucide-react";
-import useThemeColors from "../../hooks/useThemeColors";
 import { Colors } from "../../constants/theme";
+import { useThemeContext } from "../../contexts/themeContext";
 
 export default function BackArrow({ backFunction, showWhite = false }) {
-  const { theme, darkModeType } = useThemeColors();
+  const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   return (
     <div

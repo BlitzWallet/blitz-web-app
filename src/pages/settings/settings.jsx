@@ -22,6 +22,7 @@ import {
 } from "../../constants/icons";
 import { useOverlay } from "../../contexts/overlayContext";
 import * as LucidIcons from "lucide-react";
+import CustomSettingsNavBar from "../../components/customSettingsNavbar";
 
 const GENERALOPTIONS = [
   {
@@ -216,7 +217,7 @@ export default function SettingsHome() {
 
   return (
     <div className="settingsPage">
-      <PageNavBar text="Settings" />
+      <CustomSettingsNavBar text="Settings" />
       <div className="contentContainer">
         {settingsItems}
         <SocialOptionsBottomBar />
