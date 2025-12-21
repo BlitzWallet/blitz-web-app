@@ -27,3 +27,6 @@
   right: 0;
   z-index: 1;
 }
+.pageNavBar .right-action {
+  cursor: pointer;
+}

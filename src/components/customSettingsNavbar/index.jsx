@@ -3,6 +3,7 @@ import BackArrow from "../backArrow/backArrow";
 import { useThemeContext } from "../../contexts/themeContext";
 import { Colors } from "../../constants/theme";
 import { useNavigate } from "react-router-dom";
+import "./style.css";
 // Custom Settings Top Bar Component
 export default function CustomSettingsNavBar({
   containerStyles = {},
@@ -36,18 +37,13 @@ export default function CustomSettingsNavBar({
         textContent={text}
       />
       {showLeftImage && (
-        <button
+        <LeftImageIcon
           className="right-action"
           onClick={leftImageFunction}
-          style={leftImageStyles}
-          aria-label="Action button"
-        >
-          <LeftImageIcon
-            color={
-              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
-            }
-          />
-        </button>
+          color={
+            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+          }
+        />
       )}
     </div>
   );
