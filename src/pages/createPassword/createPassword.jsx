@@ -1,17 +1,18 @@
 import "./style.css";
-import BackArrow from "../../components/backArrow/backArrow";
-
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { encrypt } from "../../functions/encription";
 import { useAuth } from "../../contexts/authContext";
 import CustomButton from "../../components/customButton/customButton";
 import { Colors } from "../../constants/theme";
 import PageNavBar from "../../components/navBar/navBar";
+import { getPublicKey, privateKeyFromSeedWords } from "../../functions/seed";
+import { initializeFirebase } from "../../../db/initializeFirebase";
+import { useLocation } from "react-router-dom";
+import Storage from "../../functions/localStorage";
 function CreatePassword() {
-  const { login, setMnemoinc } = useAuth();
+  const { login, setMnemoinc, mnemoinc } = useAuth();
   const location = useLocation();
-  const { mnemoinc } = location.state || {};
+  const { didRestoreWallet } = location.state || {};
   const [password, setPassword] = useState({
     initialPass: "",
     checkPass: "",
@@ -19,6 +20,14 @@ function CreatePassword() {
   const [didUseEnter, setDidUseEnter] = useState(false);
   const checkPasswordRef = useRef(null);
   const inputsContainer = document.getElementById("textInputContainer");
+
+  useEffect(() => {
+    const privateKey = mnemoinc ? privateKeyFromSeedWords(mnemoinc) : null;
+    const publicKey = privateKey ? getPublicKey(privateKey) : null;
+    if (privateKey && publicKey) {
+      initializeFirebase(publicKey, privateKey);
+    }
+  }, []);
 
   const handlePassEncription = () => {
     console.log(
@@ -33,7 +42,7 @@ function CreatePassword() {
       password.initialPass !== password.checkPass
     )
       return;
-
+    Storage.setItem("didViewSeedPhrase", !!didRestoreWallet);
     const encripted = encrypt(mnemoinc, password.checkPass);
     setMnemoinc(mnemoinc);
     login(encripted);

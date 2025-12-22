@@ -6,6 +6,7 @@ import InformationPopup from "../pages/informationPopup/index.jsx";
 import CustomHalfModal from "../pages/customHalfModal/index.jsx";
 import ErrorScreen from "../pages/error/error.jsx";
 import ConfirmActionPage from "./confirmActionPage/confirmActionPage.jsx";
+import BackupSeedWarning from "../pages/wallet/components/backupSeedWarning/backupSeedWarning.jsx";
 
 export default function OverlayHost() {
   const { overlays, closeOverlay, openOverlay } = useOverlay();
@@ -37,6 +38,10 @@ export default function OverlayHost() {
               onClose={closeOverlay}
               openOverlay={openOverlay}
             />
+          )}
+
+          {overlay.for === "backupSeedWarning" && (
+            <BackupSeedWarning overlay={overlay} onClose={closeOverlay} />
           )}
         </div>
       )),

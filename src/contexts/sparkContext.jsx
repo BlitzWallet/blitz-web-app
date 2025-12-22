@@ -863,10 +863,9 @@ const SparkWalletProvider = ({ children, navigate }) => {
         console.log("l1Deposit check running....");
         if (isSendingPaymentRef.current) return;
         if (!currentMnemonicRef.current) return;
-        const allTxs = await getAllSparkTransactions(
-          null,
-          sparkInformation.identityPubKey
-        );
+        const allTxs = await getAllSparkTransactions({
+          accountId: sparkInformation.identityPubKey,
+        });
         const savedTxMap = new Map(allTxs.map((tx) => [tx.sparkID, tx]));
         const depoistAddress = await queryAllStaticDepositAddresses(
           currentMnemonicRef.current

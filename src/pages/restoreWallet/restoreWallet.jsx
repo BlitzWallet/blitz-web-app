@@ -17,6 +17,7 @@ import { validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { handleRestoreFromText } from "../../functions/seed";
 import { useOverlay } from "../../contexts/overlayContext";
+import { useAuth } from "../../contexts/authContext";
 
 const NUMARRAY = Array.from({ length: 12 }, (_, i) => i + 1);
 const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
@@ -25,6 +26,7 @@ const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
 }, {});
 
 export default function RestoreWallet() {
+  const { setMnemoinc } = useAuth();
   const { openOverlay } = useOverlay();
   const location = useLocation();
   const params = location.state;
@@ -106,8 +108,11 @@ export default function RestoreWallet() {
       if (!validateMnemonic(mnemonic.join(" "), wordlist))
         throw new Error("Not a valid seedphrase");
 
+      setMnemoinc(mnemonic.join(" "));
       navigate("/createPassword", {
-        state: { mnemoinc: mnemonic.join(" ") },
+        state: {
+          didRestoreWallet: true,
+        },
       });
     } catch (err) {
       console.error(err);

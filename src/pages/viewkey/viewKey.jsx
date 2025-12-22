@@ -13,8 +13,11 @@ import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
 import { useOverlay } from "../../contexts/overlayContext";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 
 export default function ViewMnemoinc() {
+  const { toggleMasterInfoObject, masterInfoObject } =
+    useGlobalContextProvider();
   const { openOverlay } = useOverlay();
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,7 +72,11 @@ export default function ViewMnemoinc() {
           />
           <div className="buttonContianer">
             <CustomButton
-              actionFunction={() => setShouldShowMnemoinc(true)}
+              actionFunction={() => {
+                if (!masterInfoObject.didViewSeedPhrase)
+                  toggleMasterInfoObject({ didViewSeedPhrase: true });
+                setShouldShowMnemoinc(true);
+              }}
               buttonStyles={{
                 backgroundColor:
                   theme && darkModeType ? backgroundOffset : Colors.light.blue,

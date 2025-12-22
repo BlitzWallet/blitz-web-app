@@ -6,20 +6,29 @@ import { fullRestoreSparkState } from "../../../../functions/spark/restore";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
-import { Moon, Sun, RefreshCw, Settings } from "lucide-react";
+import { Moon, Sun, RefreshCw, Settings, AlertTriangle } from "lucide-react";
 import NavBarProfileImage from "../../../../components/navBar/profileImage";
 import { useOverlay } from "../../../../contexts/overlayContext";
 import {
   SPARK_TX_UPDATE_ENVENT_NAME,
   sparkTransactionsEventEmitter,
 } from "../../../../functions/spark/transactions";
+import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 
 export default function WalletNavBar({ didEnabledLrc20 }) {
+  const { openOverlay } = useOverlay();
   const { theme, toggleTheme, darkModeType } = useThemeContext();
   const { backgroundColor, backgroundOffset } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { sparkInformation, isSendingPaymentRef } = useSpark();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
+
+  const { masterInfoObject } = useGlobalContextProvider();
+  const shouldShowWarning =
+    !masterInfoObject.didViewSeedPhrase &&
+    (!!sparkInformation.balance ||
+      !!Object.keys(sparkInformation.tokens || {}).length);
+
   const handleRefresh = useCallback(async () => {
     try {
       setIsRefreshing(true);
@@ -58,12 +67,24 @@ export default function WalletNavBar({ didEnabledLrc20 }) {
       </div>
 
       <div className="refreshContainer">
-        <RefreshCw
-          onClick={handleRefresh}
-          color={theme && darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}
-          size={28}
-          className={`${isRefreshing ? "spinningAnimation" : ""}`}
-        />
+        {shouldShowWarning ? (
+          <AlertTriangle
+            color={theme && darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}
+            size={28}
+            onClick={() => {
+              openOverlay({
+                for: "backupSeedWarning",
+              });
+            }}
+          />
+        ) : (
+          <RefreshCw
+            onClick={handleRefresh}
+            color={theme && darkModeType ? "var(--dmt)" : "var(--primaryBlue)"}
+            size={28}
+            className={`${isRefreshing ? "spinningAnimation" : ""}`}
+          />
+        )}
       </div>
       <NavBarProfileImage />
     </div>
