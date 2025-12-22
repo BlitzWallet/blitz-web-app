@@ -1,18 +1,9 @@
 import "../i18n.js";
-
 import "./fonts.css";
 import "./index.css";
-import App from "./App.jsx";
+import "./App.css";
 import "../pollyfills.js";
-import {
-  StrictMode,
-  Suspense,
-  lazy,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { StrictMode, Suspense, lazy, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
@@ -22,25 +13,18 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { BottomNavigation, BottomNavigationAction } from "@mui/material";
 import SafeAreaComponent from "./components/safeAreaContainer.jsx";
-import { AuthProvider } from "./contexts/authContext.jsx";
-import AuthGate from "./components/authGate.jsx";
-import { SparkWalletProvider } from "./contexts/sparkContext.jsx";
 import { AnimatePresence } from "framer-motion";
-import { NavigationStackProvider } from "./contexts/navigationLogger.jsx";
 
 // Lazy-loaded pages
 const CreateSeed = lazy(() => import("./pages/createSeed/createSeed.jsx"));
-import DisclaimerPage from "./pages/disclaimer/disclaimer.jsx";
-// const DisclaimerPage = lazy(() => import("./pages/disclaimer/disclaimer.jsx"));
+const DisclaimerPage = lazy(() => import("./pages/disclaimer/disclaimer.jsx"));
 const CreatePassword = lazy(() =>
   import("./pages/createPassword/createPassword.jsx")
 );
 const Home = lazy(() => import("./pages/home/home.jsx"));
 const Login = lazy(() => import("./pages/login/login.jsx"));
-import WalletHome from "./pages/wallet/wallet.jsx";
-// const WalletHome = lazy(() => import("./pages/wallet/wallet.jsx"));
+const WalletHome = lazy(() => import("./pages/wallet/wallet.jsx"));
 const EditReceivePaymentInformation = lazy(() =>
   import("./pages/receiveAmount/receiveAmount.jsx")
 );
@@ -79,10 +63,39 @@ const SendAndRequestPage = lazy(() =>
 const ChooseContactListPage = lazy(() =>
   import("./pages/contacts/components/contactsList/contactsList.jsx")
 );
+const EditMyProfilePage = lazy(() =>
+  import("./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx")
+);
+const SettingsContentIndex = lazy(() =>
+  import("./pages/settings/settingsItem/settingsItem.jsx")
+);
+const SettingsHome = lazy(() => import("./pages/settings/settings.jsx"));
+const ViewMnemoinc = lazy(() => import("./pages/viewkey/viewKey.jsx"));
+const RestoreWallet = lazy(() =>
+  import("./pages/restoreWallet/restoreWallet.jsx")
+);
+const ViewAllTxsPage = lazy(() =>
+  import("./pages/viewAllTx/viewAllTxPage.jsx")
+);
+const Contacts = lazy(() => import("./pages/contacts/contacts.jsx"));
+const Store = lazy(() => import("./pages/store/store.jsx"));
+const ConfirmPayment = lazy(() =>
+  import("./pages/confirmPayment/confirmPaymentScreen.jsx")
+);
+const LoadingScreen = lazy(() => import("./pages/loadingScreen/index.jsx"));
 
-import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
+// Lazy load bottom tabs
+const BottomTabs = lazy(() => import("./tabs/tabs.jsx"));
+
+// Lazy load components that are used conditionally
+const AnimatedRouteWrapper = lazy(() =>
+  import("./components/animatedRouteWrapper.jsx")
+);
+const OverlayHost = lazy(() => import("./components/overlayHost.jsx"));
+const AuthGate = lazy(() => import("./components/authGate.jsx"));
+
+// Import contexts (these need to be imported normally as they wrap the app)
 import { ThemeContextProvider } from "./contexts/themeContext.jsx";
-import LoadingScreen from "./pages/loadingScreen/index.jsx";
 import { BitcoinPriceProvider } from "./contexts/bitcoinPriceContext.jsx";
 import { KeysContextProvider } from "./contexts/keysContext.jsx";
 import { GlobalContextProvider } from "./contexts/masterInfoObject.jsx";
@@ -91,40 +104,20 @@ import { GlobalContactsList } from "./contexts/globalContacts.jsx";
 import { AppStatusProvider } from "./contexts/appStatus.jsx";
 import { GLobalNodeContextProider } from "./contexts/nodeContext.jsx";
 import { LiquidEventProvider } from "./contexts/liquidEventContext.jsx";
-import AnimatedRouteWrapper from "./components/animatedRouteWrapper.jsx";
-import ConfirmActionPage from "./components/confirmActionPage/confirmActionPage.jsx";
 import { GlobalRescanLiquidSwaps } from "./contexts/rescanLiquidSwaps.jsx";
-import Contacts from "./pages/contacts/contacts.jsx";
-import Store from "./pages/store/store.jsx";
-import SettingsContentIndex from "./pages/settings/settingsItem/settingsItem.jsx";
 import HandleLNURLPayments from "./contexts/lnurlContext.jsx";
 import { ImageCacheProvider } from "./contexts/imageCacheContext.jsx";
-import EditMyProfilePage from "./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx";
-import BottomTabs from "./tabs/tabs.jsx";
 import { ActiveCustodyAccountProvider } from "./contexts/activeAccount.jsx";
-
-// const ConfirmPayment = lazy(() =>
-//   import("./pages/confirmPayment/confirmPaymentScreen.jsx")
-// );
-const SettingsHome = lazy(() => import("./pages/settings/settings.jsx"));
-const ViewMnemoinc = lazy(() => import("./pages/viewkey/viewKey.jsx"));
-const RestoreWallet = lazy(() =>
-  import("./pages/restoreWallet/restoreWallet.jsx")
-);
-
-import ErrorScreen from "./pages/error/error.jsx";
-import CustomHalfModal from "./pages/customHalfModal/index.jsx";
-import InformationPopup from "./pages/informationPopup/index.jsx";
-import FullLoadingScreen from "./components/fullLoadingScreen/fullLoadingScreen.jsx";
 import { GlobalServerTimeProvider } from "./contexts/serverTime.jsx";
 import { OverlayProvider } from "./contexts/overlayContext.jsx";
-import OverlayHost from "./components/overlayHost.jsx";
 import { ToastContainer, ToastProvider } from "./contexts/toastManager.jsx";
 import { SparkNavigationListener } from "./contexts/SDKNavigation.jsx";
+import { SparkWalletProvider } from "./contexts/sparkContext.jsx";
+import { AuthProvider } from "./contexts/authContext.jsx";
+import { NavigationStackProvider } from "./contexts/navigationLogger.jsx";
 
-const ViewAllTxsPage = lazy(() =>
-  import("./pages/viewAllTx/viewAllTxPage.jsx")
-);
+// Import loading screen component (not lazy loaded as it's needed immediately)
+import FullLoadingScreen from "./components/fullLoadingScreen/fullLoadingScreen.jsx";
 
 function Root() {
   const navigate = useNavigate();
@@ -135,8 +128,6 @@ function Root() {
   const showBottomTabsRoutes = ["/wallet", "/contacts", "/store"];
   const shouldShowBottomTabs = showBottomTabsRoutes.includes(location.pathname);
   const background = location.state && location.state.background;
-
-  console.log(showBottomTabsRoutes, shouldShowBottomTabs, location.pathname);
 
   return (
     <NavigationStackProvider>
@@ -158,7 +149,13 @@ function Root() {
                                     <OverlayProvider>
                                       <ToastProvider>
                                         <HandleLNURLPayments />
-                                        <AuthGate />
+                                        <Suspense
+                                          fallback={
+                                            <div style={{ display: "none" }} />
+                                          }
+                                        >
+                                          <AuthGate />
+                                        </Suspense>
                                         <ToastContainer />
                                         <SparkNavigationListener />
                                         <AnimatePresence mode="wait">
@@ -226,11 +223,7 @@ function Root() {
                                               />
                                               <Route
                                                 path="/wallet"
-                                                element={
-                                                  <>
-                                                    <WalletHome />
-                                                  </>
-                                                }
+                                                element={<WalletHome />}
                                               />
                                               <Route
                                                 path="/contacts"
@@ -280,7 +273,6 @@ function Root() {
                                                   </SafeAreaComponent>
                                                 }
                                               />
-
                                               <Route
                                                 path="/store"
                                                 element={
@@ -476,15 +468,19 @@ function Root() {
                                                 }
                                               />
                                             </Routes>
-                                            <OverlayHost />
+                                            <Suspense fallback={null}>
+                                              <OverlayHost />
+                                            </Suspense>
                                           </Suspense>
                                         </AnimatePresence>
                                         {shouldShowBottomTabs && (
-                                          <BottomTabs
-                                            value={value}
-                                            setValue={setValue}
-                                            Link={Link}
-                                          />
+                                          <Suspense fallback={null}>
+                                            <BottomTabs
+                                              value={value}
+                                              setValue={setValue}
+                                              Link={Link}
+                                            />
+                                          </Suspense>
                                         )}
                                       </ToastProvider>
                                     </OverlayProvider>
