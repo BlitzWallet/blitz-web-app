@@ -4,12 +4,13 @@ import EventEmitter from "events";
 export const SPARK_TRANSACTIONS_DATABASE_NAME = "spark-info-db";
 export const SPARK_TRANSACTIONS_TABLE_NAME = "SPARK_TRANSACTIONS";
 export const LIGHTNING_REQUEST_IDS_TABLE_NAME = "LIGHTNING_REQUEST_IDS";
+export const SPARK_REQUEST_IDS_TABLE_NAME = "SPARK_REQUEST_IDS";
 export const sparkTransactionsEventEmitter = new EventEmitter();
 export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
 let bulkUpdateTransactionQueue = [];
 let isProcessingBulkUpdate = false;
 
-let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 1, {
+let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 2, {
   upgrade(db) {
     if (!db.objectStoreNames.contains(SPARK_TRANSACTIONS_TABLE_NAME)) {
       const txStore = db.createObjectStore(SPARK_TRANSACTIONS_TABLE_NAME, {
@@ -19,6 +20,11 @@ let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 1, {
     }
     if (!db.objectStoreNames.contains(LIGHTNING_REQUEST_IDS_TABLE_NAME)) {
       db.createObjectStore(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
+        keyPath: "sparkID",
+      });
+    }
+    if (!db.objectStoreNames.contains(SPARK_REQUEST_IDS_TABLE_NAME)) {
+      db.createObjectStore(SPARK_REQUEST_IDS_TABLE_NAME, {
         keyPath: "sparkID",
       });
     }
@@ -44,10 +50,18 @@ const parseDetails = (details) => {
   else return details;
 };
 
-export const getAllSparkTransactions = async (limit = null, accountId) => {
+export const getAllSparkTransactions = async (options = {}) => {
   try {
     const db = await dbPromise;
     const all = await db.getAll(SPARK_TRANSACTIONS_TABLE_NAME);
+    const {
+      limit = null,
+      offset = null,
+      accountId = null,
+      startRange = null,
+      endRange = null,
+      idsOnly = false,
+    } = options;
 
     // Filter by accountId if provided
     let filtered = all;
@@ -64,7 +78,7 @@ export const getAllSparkTransactions = async (limit = null, accountId) => {
     }));
 
     // Sort by time (newest first). Use numeric fallback 0 when missing.
-    const sorted = normalized.sort((a, b) => {
+    filtered = normalized.sort((a, b) => {
       const aTime = JSON.parse(a.details).time;
       const bTime = JSON.parse(b.details).time;
 
@@ -73,10 +87,10 @@ export const getAllSparkTransactions = async (limit = null, accountId) => {
 
     // Apply limit if provided
     if (limit) {
-      return sorted.slice(0, limit);
+      filtered = filtered.slice(0, limit);
     }
 
-    return sorted;
+    return idsOnly ? filtered.map((row) => row.sparkID) : filtered;
   } catch (err) {
     console.error("getAllSparkTransactions error:", err);
     return [];
@@ -110,6 +124,94 @@ export const getAllPendingSparkPayments = async (accountId) => {
   } catch (error) {
     console.error("Error fetching pending spark payments:", error);
     return [];
+  }
+};
+
+export const getAllSparkContactInvoices = async () => {
+  try {
+    const db = await dbPromise;
+    return await db.getAll(SPARK_REQUEST_IDS_TABLE_NAME);
+  } catch (error) {
+    console.error("Error fetching contacts saved transactions:", error);
+  }
+};
+
+export const addSingleUnpaidSparkTransaction = async (tx) => {
+  if (!tx || !tx.id) {
+    console.error("Invalid transaction object");
+    return false;
+  }
+
+  try {
+    const db = await dbPromise;
+    await db.put(SPARK_REQUEST_IDS_TABLE_NAME, {
+      sparkID: tx.id,
+      description: tx.description,
+      sendersPubkey: tx.sendersPubkey,
+      details: JSON.stringify(tx.details),
+    });
+    return true;
+  } catch (error) {
+    console.error("Error adding spark transaction:", error);
+    return false;
+  }
+};
+
+export const addBulkUnpaidSparkContactTransactions = async (transactions) => {
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    console.error("Invalid transactions array");
+    return { success: false, added: 0, failed: 0 };
+  }
+
+  const validTransactions = transactions.filter((tx) => tx && tx.id);
+
+  if (validTransactions.length === 0) {
+    console.error("No valid transactions to add");
+    return { success: false, added: 0, failed: transactions.length };
+  }
+
+  try {
+    const db = await dbPromise;
+    const tx = db.transaction(SPARK_REQUEST_IDS_TABLE_NAME, "readwrite");
+    const store = tx.objectStore(SPARK_REQUEST_IDS_TABLE_NAME);
+
+    // Add all valid transactions
+    for (const transaction of validTransactions) {
+      await store.put({
+        sparkID: transaction.id,
+        description: transaction.description,
+        sendersPubkey: transaction.sendersPubkey,
+        details: JSON.stringify(transaction.details),
+      });
+    }
+
+    // Wait for the transaction to complete
+    await tx.done;
+
+    console.log(
+      `Successfully added ${validTransactions.length} unpaid contact invoices`
+    );
+
+    return {
+      success: true,
+      added: validTransactions.length,
+      failed: transactions.length - validTransactions.length,
+    };
+  } catch (error) {
+    console.error("Error adding bulk spark contact transactions:", error);
+    return { success: false, added: 0, failed: transactions.length };
+  }
+};
+
+export const deleteSparkContactTransaction = async (sparkID) => {
+  try {
+    const db = await dbPromise;
+    await db.delete(SPARK_REQUEST_IDS_TABLE_NAME, sparkID);
+
+    return true;
+  } catch (error) {
+    console.error(`Error deleting transaction ${sparkID}:`, error);
+    return false;
   }
 };
 
@@ -461,6 +563,17 @@ export const deleteSparkTransactionTable = async () => {
 export const deleteUnpaidSparkLightningTransactionTable = async () => {
   const db = await dbPromise;
   db.deleteObjectStore(LIGHTNING_REQUEST_IDS_TABLE_NAME);
+};
+
+export const deleteSparkContactsTransactionsTable = async () => {
+  try {
+    const db = await dbPromise;
+    db.deleteObjectStore(SPARK_REQUEST_IDS_TABLE_NAME);
+    return true;
+  } catch (error) {
+    console.error("Error deleting spark_transactions table:", error);
+    return false;
+  }
 };
 
 export const wipeEntireSparkDatabase = async () => {

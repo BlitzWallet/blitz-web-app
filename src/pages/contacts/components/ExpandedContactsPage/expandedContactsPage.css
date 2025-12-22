@@ -1,0 +1,148 @@
+/* Flex Container */
+.flex-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Bar Navigation */
+.top-bar {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.back-button-container {
+  margin-right: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Profile Image */
+.profile-image-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  position: relative;
+
+  margin: 0 auto;
+}
+
+.profile-image-button.active {
+  cursor: pointer;
+}
+
+.profile-image-button.active:hover {
+  opacity: 0.9;
+}
+
+.profile-image-button.inactive {
+  cursor: default;
+}
+
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 125px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.select-from-photos {
+  width: 30px;
+  height: 30px;
+  border-radius: 20px;
+  background-color: var(--dark-mode-text, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 12.5px;
+  bottom: 12.5px;
+  z-index: 2;
+}
+
+/* Button Container */
+.button-global-container {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* Bio Container */
+.bio-container {
+  width: 90%;
+  min-height: 60px;
+  max-height: 80px;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.bio-scroll {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.bio-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bio-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Contacts List Container */
+.contacts-list-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.contacts-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.contacts-list-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.contacts-list-container::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.3);
+  border-radius: 4px;
+}
+
+.contacts-list-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(136, 136, 136, 0.5);
+}
+
+/* Transactions List */
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

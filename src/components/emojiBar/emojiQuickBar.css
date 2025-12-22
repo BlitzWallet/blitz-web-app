@@ -1,0 +1,49 @@
+/* Emoji Quick Bar */
+.emoji-bar {
+  height: 50px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.emoji-scroll-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 100%;
+  padding: 0 8px;
+}
+
+.emoji-scroll-content::-webkit-scrollbar {
+  display: none;
+}
+
+.emoji-scroll-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.emoji-button {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.emoji-button:hover {
+  transform: scale(1.2);
+}
+
+.emoji-button:active {
+  transform: scale(0.95);
+  opacity: 0.7;
+}

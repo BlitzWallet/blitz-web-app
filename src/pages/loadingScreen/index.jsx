@@ -22,6 +22,7 @@ import { useThemeContext } from "../../contexts/themeContext.jsx";
 import useThemeColors from "../../hooks/useThemeColors.js";
 import loadNewFiatData from "../../functions/saveAndUpdateFiatData.js";
 import Storage from "../../functions/localStorage.js";
+import { useTranslation } from "react-i18next";
 
 export default function LoadingScreen() {
   const didInitializeMessageIntervalRef = useRef(false);
@@ -30,29 +31,27 @@ export default function LoadingScreen() {
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
   const { textColor } = useThemeColors();
+  const { connectToSparkWallet } = useSpark();
   const {
-    setStartConnectingToSpark,
-    setNumberOfCachedTxs,
-    connectToSparkWallet,
-  } = useSpark();
-  const { toggleMasterInfoObject, masterInfoObject, setMasterInfoObject } =
-    useGlobalContextProvider();
+    toggleMasterInfoObject,
+    masterInfoObject,
+    setMasterInfoObject,
+    preloadedUserData,
+    setPreLoadedUserData,
+  } = useGlobalContextProvider();
   const { mnemoinc } = useAuth();
-  const { toggleContactsPrivateKey, contactsPrivateKey, publicKey } =
-    useKeysContext();
+  const { toggleContactsPrivateKey } = useKeysContext();
   const { toggleGlobalContactsInformation, globalContactsInformation } =
     useGlobalContacts();
-  const { onLiquidBreezEvent } = useLiquidEvent();
+  const didRunConnectionRef = useRef(false);
+  const { t } = useTranslation();
+
   const { toggleGlobalAppDataInformation } = useGlobalAppData();
-  const { setBitcoinPriceArray, toggleSelectedBitcoinPrice } =
-    useBitcoinPriceContext();
-  const { toggleFiatStats, toggleLiquidNodeInformation } = useNodeContext();
+
   const [loadingMessage, setLoadingMessage] = useState(
     "Please don't leave the tab"
   );
   const [hasError, setHasError] = useState("");
-  const [didOpenDatabases, setDidOpenDatabases] = useState(false);
-  const numberOfCachedTransactionsRef = useRef(null);
 
   useEffect(() => {
     if (didInitializeMessageIntervalRef.current) return;
@@ -71,54 +70,79 @@ export default function LoadingScreen() {
   }, []);
 
   useEffect(() => {
-    async function retriveExternalData() {
-      try {
-        connectToSparkWallet();
-        const [didOpen, posTransactions, sparkTxs] = await Promise.all([
-          initializeDatabase(),
-          initializePOSTransactionsDatabase(),
-          initializeSparkDatabase(),
-        ]);
-        if (!didOpen || !posTransactions || !sparkTxs)
-          throw new Error("Database initialization failed");
+    async function startConnectProcess() {
+      const startTime = Date.now();
 
-        const [txs, initWallet] = await Promise.all([
-          getCachedSparkTransactions(),
-          initializeUserSettings(
+      try {
+        console.log("Process 1", new Date().getTime());
+        connectToSparkWallet();
+
+        const hasSavedInfo = Object.keys(masterInfoObject || {}).length > 5; //arbitrary number but filters out onboarding items
+
+        if (!hasSavedInfo) {
+          // connectToLiquidNode(accountMnemoinc);
+          const [
+            didOpen,
+            giftCardTable,
+            posTransactions,
+            // sparkTxs,
+            // rootstockSwaps,
+          ] = await Promise.all([
+            initializeDatabase(),
+            initializePOSTransactionsDatabase(),
+            initializeSparkDatabase(),
+          ]);
+
+          if (!didOpen || !posTransactions || !giftCardTable)
+            throw new Error("Database initialization failed");
+
+          const didLoadUserSettings = await initializeUserSettings({
             mnemoinc,
             toggleContactsPrivateKey,
             setMasterInfoObject,
             toggleGlobalContactsInformation,
-            toggleGlobalAppDataInformation
-          ),
-        ]);
+            // toggleGLobalEcashInformation,
+            toggleGlobalAppDataInformation,
+            toggleMasterInfoObject,
+            preloadedData: preloadedUserData.data,
+            setPreLoadedUserData,
+          });
 
-        if (!initWallet) throw new Error("Error loading user profile");
+          console.log("Process 2", new Date().getTime());
 
-        numberOfCachedTransactionsRef.current = txs;
-        setDidOpenDatabases(true);
+          if (!didLoadUserSettings)
+            throw new Error(
+              t("screens.inAccount.loadingScreen.userSettingsError")
+            );
+        }
+
+        console.log("Process 3", new Date().getTime());
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(
+          0,
+          (hasSavedInfo ? 500 : 800) - elapsedTime
+        );
+
+        if (remainingTime > 0) {
+          console.log(
+            `Waiting ${remainingTime}ms to reach minimum 1s duration`
+          );
+          await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        }
+
+        navigate("/wallet", { replace: true });
       } catch (err) {
+        console.log("intializatiion error", err);
         setHasError(err.message);
       }
     }
-    if (!mnemoinc) return;
-    if (didInitializeWalletRef.current) return;
-    didInitializeWalletRef.current = true;
-    retriveExternalData();
-  }, [mnemoinc]);
+    if (preloadedUserData.isLoading && !preloadedUserData.data) return;
+    if (didRunConnectionRef.current) return;
+    didRunConnectionRef.current = true;
 
-  useEffect(() => {
-    if (
-      Object.keys(masterInfoObject).length === 0 ||
-      didLoadInformation.current ||
-      Object.keys(globalContactsInformation).length === 0 ||
-      !didOpenDatabases
-    )
-      return;
-    didLoadInformation.current = true;
-
-    initWallet(numberOfCachedTransactionsRef.current);
-  }, [masterInfoObject, globalContactsInformation]);
+    startConnectProcess();
+  }, [preloadedUserData, masterInfoObject]);
 
   return (
     <div id="loadingScreenContainer">
@@ -131,88 +155,4 @@ export default function LoadingScreen() {
       />
     </div>
   );
-  async function initWallet(txs) {
-    console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
-
-    try {
-      setStartConnectingToSpark(true);
-      console.log(txs, "CACHED TRANSACTIONS");
-      setNumberOfCachedTxs(txs?.length || 0);
-
-      const didSetLiquid = await setLiquidNodeInformationForSession();
-
-      // Same thing for here, if liquid does not set continue on in the process
-      if (didSetLiquid) {
-        navigate("/wallet", { replace: true });
-      } else
-        throw new Error(
-          "Wallet information was not set properly, please try again."
-        );
-    } catch (err) {
-      setHasError(String(err.message));
-      console.log(err, "homepage connection to node err");
-    }
-  }
-
-  async function setupFiatCurrencies() {
-    const currency = masterInfoObject.fiatCurrency;
-
-    let fiatRate;
-    try {
-      fiatRate = await loadNewFiatData(
-        currency,
-        contactsPrivateKey,
-        publicKey,
-        masterInfoObject
-      );
-
-      if (!fiatRate.didWork) {
-        // fallback API
-        const response = await fetch(import.meta.env.FALLBACK_FIAT_PRICE_DATA);
-        const data = await response.json();
-        if (data[currency]?.["15m"]) {
-          // ✅ 4. Store in new format
-          Storage.setItem("didFetchFiatRateToday", {
-            lastFetched: new Date().getTime(),
-            fiatRate: {
-              coin: currency,
-              value: data[currency]?.["15m"],
-            },
-          });
-          Storage.setItem("cachedBitcoinPrice", {
-            coin: currency,
-            value: data[currency]?.["15m"],
-          });
-
-          fiatRate = {
-            coin: currency,
-            value: data[currency]?.["15m"],
-          };
-        } else {
-          fiatRate = {
-            coin: currency,
-            value: 100_000, // random number to make sure nothing else down the line errors out
-          };
-        }
-      } else fiatRate = fiatRate.fiatRateResponse;
-    } catch (error) {
-      console.error("Failed to fetch fiat data:", error);
-      return { coin: "USD", value: 100_000 };
-    }
-
-    return fiatRate;
-  }
-
-  async function setLiquidNodeInformationForSession() {
-    try {
-      const [fiat_rate] = await Promise.all([setupFiatCurrencies()]);
-
-      toggleFiatStats(fiat_rate);
-
-      return true;
-    } catch (err) {
-      console.log(err, "LIQUID INFORMATION ERROR");
-      return false;
-    }
-  }
 }

@@ -12,13 +12,18 @@ import { useAppStatus } from "./appStatus";
 import loadNewFiatData from "../functions/saveAndUpdateFiatData";
 import { connectToLiquidNode } from "../functions/connectToLiquid";
 import { useGlobalContextProvider } from "./masterInfoObject";
+import { useSpark } from "./sparkContext";
+import { useGlobalContacts } from "./globalContacts";
+import liquidToSparkSwap from "../functions/spark/liquidToSparkSwap";
 
 // Initiate context
 const NodeContextManager = createContext(null);
 
 const GLobalNodeContextProider = ({ children }) => {
+  const { sparkInformation } = useSpark();
   const { contactsPrivateKey, publicKey, accountMnemoinc } = useKeysContext();
-  const { didGetToHomepage } = useAppStatus();
+  const { didGetToHomepage, minMaxLiquidSwapAmounts } = useAppStatus();
+  const { globalContactsInformation } = useGlobalContacts();
   const { masterInfoObject } = useGlobalContextProvider();
   const [nodeInformation, setNodeInformation] = useState({
     didConnectToNode: null,
@@ -35,6 +40,7 @@ const GLobalNodeContextProider = ({ children }) => {
     transactions: [],
     userBalance: 0,
   });
+  const [pendingLiquidPayment, setPendingLiquidPayment] = useState(null);
   const [fiatStats, setFiatStats] = useState({});
   const toggleFiatStats = useCallback((newInfo) => {
     setFiatStats((prev) => ({ ...prev, ...newInfo }));
@@ -97,6 +103,33 @@ const GLobalNodeContextProider = ({ children }) => {
     connectToLiquid();
   }, [contactsPrivateKey, publicKey, didGetToHomepage, accountMnemoinc]);
 
+  // This function checks to see if there are any liquid funds that need to be sent to spark
+  useEffect(() => {
+    async function swapLiquidToSpark() {
+      try {
+        if (liquidNodeInformation.userBalance > minMaxLiquidSwapAmounts.min) {
+          setPendingLiquidPayment(true);
+          await liquidToSparkSwap(
+            globalContactsInformation.myProfile.uniqueName
+          );
+        }
+      } catch (err) {
+        console.log("transfering liquid to spark error", err);
+      }
+    }
+    if (!didGetToHomepage) return;
+    if (!sparkInformation.didConnect) return;
+    if (!sparkInformation.identityPubKey) return;
+    swapLiquidToSpark();
+  }, [
+    didGetToHomepage,
+    liquidNodeInformation.userBalance,
+    minMaxLiquidSwapAmounts,
+    sparkInformation.didConnect,
+    sparkInformation.identityPubKey,
+    globalContactsInformation?.myProfile?.uniqueName,
+  ]);
+
   const contextValue = useMemo(
     () => ({
       nodeInformation,
@@ -104,6 +137,8 @@ const GLobalNodeContextProider = ({ children }) => {
       toggleLiquidNodeInformation,
       toggleFiatStats,
       fiatStats,
+      pendingLiquidPayment,
+      setPendingLiquidPayment,
     }),
     [
       nodeInformation,
@@ -111,6 +146,8 @@ const GLobalNodeContextProider = ({ children }) => {
       fiatStats,
       toggleFiatStats,
       toggleLiquidNodeInformation,
+      pendingLiquidPayment,
+      setPendingLiquidPayment,
     ]
   );
 

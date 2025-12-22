@@ -54,8 +54,8 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
       }
     }
 
-    console.log("Initializing accounts....");
     if (!accountMnemoinc) return;
+    console.log("Initializing accounts....");
     initializeAccouts();
   }, [accountMnemoinc]);
 

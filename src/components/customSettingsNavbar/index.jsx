@@ -1,29 +1,48 @@
-import { useNavigate } from "react-router-dom";
-import BackArrow from "../backArrow/backArrow";
 import ThemeText from "../themeText/themeText";
+import BackArrow from "../backArrow/backArrow";
+import { useThemeContext } from "../../contexts/themeContext";
+import { Colors } from "../../constants/theme";
+import { useNavigate } from "react-router-dom";
 import "./style.css";
-import ThemeImage from "../ThemeImage/themeImage";
-import { settingsIcon } from "../../constants/icons";
-export default function CustomSettingsNavbar({
+// Custom Settings Top Bar Component
+export default function CustomSettingsNavBar({
+  containerStyles = {},
+  textStyles = {},
   text = "",
+  showLeftImage = false,
+  leftImageFunction = () => {},
+  LeftImageIcon = null,
+  leftImageStyles = {},
   textClassName,
-  showWhite,
-  showSettings,
-  settingLocation,
+  customBackFunction = null,
+  showWhite = false,
 }) {
   const navigate = useNavigate();
+  const handleBackClick = () => {
+    if (customBackFunction) {
+      customBackFunction();
+      return;
+    }
+    navigate(-1);
+  };
+  const { theme, darkModeType } = useThemeContext();
+
   return (
-    <div className="pageNavBar">
-      <BackArrow showWhite={showWhite} />
+    <div className="pageNavBar" style={containerStyles}>
+      <BackArrow backFunction={handleBackClick} showWhite={showWhite} />
+
       <ThemeText
         className={`pageHeaderText ${textClassName}`}
+        textStyles={{ ...textStyles }}
         textContent={text}
       />
-      {showSettings && (
-        <ThemeImage
-          clickFunction={() => navigate(`./${settingLocation}`)}
-          className="settingsIcon"
-          icon={settingsIcon}
+      {showLeftImage && (
+        <LeftImageIcon
+          className="right-action"
+          onClick={leftImageFunction}
+          color={
+            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+          }
         />
       )}
     </div>

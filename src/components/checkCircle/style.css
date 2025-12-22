@@ -5,8 +5,3 @@
   justify-content: center;
   border: 1px solid red;
 }
-#customCheckCircle img {
-  width: 50%;
-  height: 50%;
-  filter: invert(1);
-}

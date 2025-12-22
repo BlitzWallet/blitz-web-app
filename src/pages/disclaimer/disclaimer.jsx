@@ -8,7 +8,11 @@ import ThemeText from "../../components/themeText/themeText";
 import Icon from "../../components/customIcon/customIcon";
 import PageNavBar from "../../components/navBar/navBar";
 import { disclaimerKeys } from "../../constants/icons";
-function DisclaimerPage({ openOverlay }) {
+import { useOverlay } from "../../contexts/overlayContext";
+import { KeyRound } from "lucide-react";
+
+function DisclaimerPage() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const params = location.state;
   const nextPageName = params?.nextPageName;
@@ -52,7 +56,7 @@ function DisclaimerPage({ openOverlay }) {
           {t("createAccount.disclaimerPage.subHeader")}
         </p>
         <div className="imgContainer">
-          <img loading="lazy" src={disclaimerKeys} />
+          <img src={disclaimerKeys} />
         </div>
         <p className="quoteText">
           {t("createAccount.disclaimerPage.imgCaption")}
@@ -83,7 +87,7 @@ function DisclaimerPage({ openOverlay }) {
             <ThemeText
               textStyles={{ fontSize: "0.75rem", margin: 0, marginRight: 3 }}
               textContent={t("createAccount.disclaimerPage.acceptPrefix")}
-            />{" "}
+            />
             <div onClick={openTermsAndConditions}>
               <ThemeText
                 textStyles={{

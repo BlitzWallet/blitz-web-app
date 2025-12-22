@@ -4,8 +4,6 @@ import ContactProfileImage from "../../../contacts/components/profileImage/profi
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ActivityIndicator from "../../../../components/activityIndicator/activityIndicator";
 import { Colors } from "../../../../constants/theme";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import { aboutIcon, ImagesIconDark } from "../../../../constants/icons";
 import ThemeText from "../../../../components/themeText/themeText";
 import { useTranslation } from "react-i18next";
 import CustomInput from "../../../../components/customInput/customInput";
@@ -13,13 +11,15 @@ import { useGlobalContacts } from "../../../../contexts/globalContacts";
 import CustomButton from "../../../../components/customButton/customButton";
 import { VALID_USERNAME_REGEX } from "../../../../constants";
 import { isValidUniqueName } from "../../../../../db";
+import { useOverlay } from "../../../../contexts/overlayContext";
+import { Image, Info } from "lucide-react";
 
 export default function EditLNURLContactOnReceivePage({
   theme,
   darkModeType,
-  openOverlay,
   onClose,
 }) {
+  const { openOverlay } = useOverlay();
   const { globalContactsInformation, toggleGlobalContactsInformation } =
     useGlobalContacts();
   const { t } = useTranslation();
@@ -107,11 +107,7 @@ export default function EditLNURLContactOnReceivePage({
         )}
 
         <div style={{ backgroundColor: Colors.dark.text }} className="addImage">
-          <ThemeImage
-            styles={{ width: 15, height: 15 }}
-            icon={ImagesIconDark}
-            filter={true}
-          />
+          <Image color={Colors.light.text} style={{ width: 15, height: 15 }} />
         </div>
       </button>
 
@@ -123,8 +119,8 @@ export default function EditLNURLContactOnReceivePage({
             "wallet.receivePages.editLNURLContact.usernameInputDesc"
           )}
         />
-        <ThemeImage
-          clickFunction={() =>
+        <Info
+          onClick={() =>
             openOverlay({
               for: "informationPopup",
               textContent: t(
@@ -133,8 +129,10 @@ export default function EditLNURLContactOnReceivePage({
               buttonText: t("constants.understandText"),
             })
           }
-          styles={{ width: 20, height: 20, cursor: "pointer" }}
-          icon={aboutIcon}
+          style={{ width: 20, height: 20, cursor: "pointer" }}
+          color={
+            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+          }
         />
       </div>
       <div style={{ width: "100%", marginTop: 10, marginBottom: 10 }}>

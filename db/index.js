@@ -1,11 +1,15 @@
 import {
   addDoc,
+  and,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   getFirestore,
   limit,
+  or,
+  orderBy,
   query,
   setDoc,
   where,
@@ -16,6 +20,7 @@ import {
   getCachedMessages,
   queueSetCashedMessages,
 } from "../src/functions/messaging/cachedMessages";
+import { encryptMessage } from "../src/functions/encodingAndDecoding";
 
 export async function addDataToCollection(dataObject, collectionName, uuid) {
   try {
@@ -291,16 +296,22 @@ export async function updateMessage({
   fromPubKey,
   toPubKey,
   onlySaveToLocal,
+  retrivedContact,
+  privateKey,
+  currentTime,
 }) {
   try {
     const messagesRef = collection(db, "contactMessages");
     const timestamp = new Date().getTime();
+    const useEncription = retrivedContact.isUsingEncriptedMessaging;
 
-    const message = {
+    let message = {
       fromPubKey,
       toPubKey,
       message: newMessage,
       timestamp,
+      serverTimestamp: currentTime,
+      isGiftCard: !!newMessage?.giftCardInfo,
     };
 
     if (onlySaveToLocal) {
@@ -309,6 +320,14 @@ export async function updateMessage({
         myPubKey: fromPubKey,
       });
       return true;
+    }
+    if (useEncription) {
+      let messgae =
+        typeof message.message === "string"
+          ? message.message
+          : JSON.stringify(message.message);
+      const encripted = await encryptMessage(privateKey, toPubKey, messgae);
+      message.message = encripted;
     }
 
     await addDoc(messagesRef, message);
@@ -320,51 +339,224 @@ export async function updateMessage({
   }
 }
 
-export async function syncDatabasePayment(
-  myPubKey,
-  updatedCachedMessagesStateFunction
-) {
+export async function syncDatabasePayment(myPubKey, privateKey) {
   try {
     const cachedConversations = await getCachedMessages();
     const savedMillis = cachedConversations.lastMessageTimestamp;
     console.log("Retrieving docs from timestamp:", savedMillis);
     const messagesRef = collection(db, "contactMessages");
 
-    const receivedMessagesQuery = query(
+    const combinedQuery = query(
       messagesRef,
-      where("toPubKey", "==", myPubKey),
-      where("timestamp", ">", savedMillis)
+      and(
+        where("timestamp", ">", savedMillis),
+        or(
+          where("toPubKey", "==", myPubKey),
+          where("fromPubKey", "==", myPubKey)
+        )
+      ),
+      orderBy("timestamp")
     );
 
-    const sentMessagesQuery = query(
-      messagesRef,
-      where("fromPubKey", "==", myPubKey),
-      where("timestamp", ">", savedMillis)
-    );
+    const snapshot = await getDocs(combinedQuery);
+    const allMessages = snapshot.docs.map((doc) => doc.data());
 
-    const [receivedSnapshot, sentSnapshot] = await Promise.all([
-      getDocs(receivedMessagesQuery),
-      getDocs(sentMessagesQuery),
-    ]);
-
-    const receivedMessages = receivedSnapshot.docs.map((doc) => doc.data());
-    const sentMessages = sentSnapshot.docs.map((doc) => doc.data());
-    const allMessages = [...receivedMessages, ...sentMessages];
-
-    if (allMessages.length === 0) {
-      updatedCachedMessagesStateFunction();
-      return;
-    }
-
+    if (allMessages.length === 0) return [];
+    console.log(allMessages);
     console.log(`${allMessages.length} messages received from history`);
 
-    queueSetCashedMessages({
-      newMessagesList: allMessages,
+    const processedMessages = await processWithRAF(
+      allMessages,
       myPubKey,
-    });
+      privateKey
+    );
+
+    return processedMessages;
   } catch (err) {
     console.error("Error syncing database payments:", err);
     // Consider adding error handling callback if needed
-    updatedCachedMessagesStateFunction();
+    return [];
+  }
+}
+
+function processWithRAF(allMessages, myPubKey, privateKey, onProgress) {
+  return new Promise((resolve, reject) => {
+    // Create worker
+    const worker = new Worker(
+      new URL("../src/workers/messageWorker.js", import.meta.url),
+      { type: "module" }
+    );
+
+    worker.onmessage = function (e) {
+      const { type, data, current, total } = e.data;
+
+      if (type === "PROGRESS") {
+        console.log(`Processing: ${current}/${total}`);
+        if (onProgress) {
+          onProgress(current, total);
+        }
+      } else if (type === "COMPLETE") {
+        worker.terminate();
+        resolve(data);
+      }
+    };
+
+    worker.onerror = function (error) {
+      console.error("Worker error:", error);
+      worker.terminate();
+      reject(error);
+    };
+
+    // Send data to worker
+    worker.postMessage({
+      type: "PROCESS_MESSAGES",
+      data: { allMessages, myPubKey, privateKey },
+    });
+  });
+}
+
+export async function isValidNip5Name(wantedName) {
+  try {
+    const usersRef = collection(db, "nip5Verification");
+    const q = query(
+      usersRef,
+      where("nameLower", "==", wantedName.toLowerCase())
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking unique name:", error);
+    return false;
+  }
+}
+export async function addNip5toCollection(dataObject, uuid) {
+  try {
+    if (!uuid) throw Error("Not authenticated");
+
+    const db = getFirestore();
+    const docRef = doc(db, "nip5Verification", uuid);
+
+    await setDoc(docRef, dataObject, { merge: true });
+
+    return true;
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    return false;
+  }
+}
+export async function deleteNip5FromCollection(uuid) {
+  try {
+    if (!uuid) throw Error("Not authenticated");
+
+    const db = getFirestore();
+    const docRef = doc(db, "nip5Verification", uuid);
+
+    await deleteDoc(docRef);
+
+    console.log("Document deleted");
+    return true;
+  } catch (e) {
+    console.error("Error deleting document", e);
+    return false;
+  }
+}
+
+export async function addGiftToDatabase(dataObject) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", dataObject.uuid);
+
+    await setDoc(docRef, dataObject, { merge: false });
+
+    console.log("Gift added to database with ID: ", dataObject.uuid);
+    return true;
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function updateGiftInDatabase(dataObject) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", dataObject.uuid);
+
+    await setDoc(docRef, dataObject, { merge: true });
+
+    console.log("Gift updated with ID: ", dataObject.uuid);
+    return true;
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function getGiftCard(cardUUID) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", cardUUID);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      return userData;
+    }
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function deleteGift(uuid) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", uuid);
+
+    await deleteDoc(docRef);
+
+    console.log("Gift deleted:", uuid);
+    return true;
+  } catch (e) {
+    console.error("Error deleting gift:", e);
+    return false;
+  }
+}
+
+export async function handleGiftCheck(cardUUID) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzGifts", cardUUID);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) return { didWork: true, wasClaimed: false };
+    else return { didWork: true, wasClaimed: true };
+  } catch (e) {
+    console.error("Error adding gift to database: ", e);
+    return { didWork: false };
+  }
+}
+
+export async function reloadGiftsOnDomesday(uuid) {
+  try {
+    const db = getFirestore();
+
+    const q = query(
+      collection(db, "blitzGifts"),
+      where("createdBy", "==", uuid)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const results = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return results;
+  } catch (e) {
+    console.error("Error fetching gifts by creator:", e);
+    return [];
   }
 }

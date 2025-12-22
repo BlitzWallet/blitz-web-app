@@ -1,7 +1,9 @@
 import formatBalanceAmount from "../formatNumber";
-import { getSingleContact, updateMessage } from "../../../db";
+import { getDataFromCollection, updateMessage } from "../../../db";
 import { BITCOIN_SAT_TEXT, SATSPERBITCOIN } from "../../constants";
 import fetchBackend from "../../../db/handleBackend";
+import loadNewFiatData from "../saveAndUpdateFiatData";
+import i18next from "i18next";
 
 export async function publishMessage({
   toPubKey,
@@ -9,9 +11,11 @@ export async function publishMessage({
   data,
   globalContactsInformation,
   selectedContact,
-  fiatCurrencies,
   isLNURLPayment,
   privateKey,
+  retrivedContact,
+  currentTime,
+  masterInfoObject,
 }) {
   try {
     const sendingObj = data;
@@ -20,15 +24,19 @@ export async function publishMessage({
       fromPubKey,
       toPubKey,
       onlySaveToLocal: isLNURLPayment,
+      retrivedContact,
+      privateKey,
+      currentTime,
     });
 
     if (isLNURLPayment) return;
-    await sendPushNotification({
+    sendPushNotification({
       selectedContactUsername: selectedContact.uniqueName,
       myProfile: globalContactsInformation.myProfile,
       data: data,
-      fiatCurrencies: fiatCurrencies,
       privateKey,
+      retrivedContact,
+      masterInfoObject,
     });
   } catch (err) {
     console.log(err), "pubishing message to server error";
@@ -39,77 +47,132 @@ export async function sendPushNotification({
   selectedContactUsername,
   myProfile,
   data,
-  fiatCurrencies,
   privateKey,
+  retrivedContact,
+  masterInfoObject,
 }) {
   try {
     console.log(selectedContactUsername);
-    const retrivedContact = await getSingleContact(
-      selectedContactUsername.toLowerCase()
-    );
 
-    if (retrivedContact.length === 0) return;
-    const [selectedContact] = retrivedContact;
+    // Check if there is a selected contact
+    if (!retrivedContact) return;
+    const pushNotificationData = retrivedContact.pushNotifications;
 
+    // check if the person has a push token saved
+    if (!pushNotificationData?.key?.encriptedText) return;
+
+    // If a user has updated thier settings and they have chosen to not receive notification for contact payments
+    if (
+      pushNotificationData?.enabledServices?.contactPayments !== undefined &&
+      !pushNotificationData?.enabledServices?.contactPayments
+    )
+      return;
+
+    const useNewNotifications = !!retrivedContact.isUsingNewNotifications;
     const devicePushKey =
-      selectedContact?.pushNotifications?.key?.encriptedText;
-    const deviceType = selectedContact?.pushNotifications?.platform;
-    const sendingContactFiatCurrency = selectedContact?.fiatCurrency || "USD";
+      retrivedContact?.pushNotifications?.key?.encriptedText;
+    const deviceType = retrivedContact?.pushNotifications?.platform;
+    const sendingContactFiatCurrency = retrivedContact?.fiatCurrency || "USD";
     const sendingContactDenominationType =
-      selectedContact?.userBalanceDenomination || "sats";
-
-    const fiatValue = fiatCurrencies.filter(
-      (currency) =>
-        currency.coin.toLowerCase() === sendingContactFiatCurrency.toLowerCase()
-    );
-    const didFindCurrency = fiatValue.length >= 1;
-    const fiatAmount =
-      didFindCurrency &&
-      (
-        (fiatValue[0]?.value / SATSPERBITCOIN) *
-        (data.amountMsat / 1000)
-      ).toFixed(2);
-
-    console.log(devicePushKey, deviceType);
+      retrivedContact?.userBalanceDenomination || "sats";
 
     if (!devicePushKey || !deviceType) return;
-    let message;
-    if (data.isUpdate) {
-      message = data.message;
-    } else if (data.isRequest) {
-      message = `${
-        myProfile.name || myProfile.uniqueName
-      } requested you ${formatBalanceAmount(
-        sendingContactDenominationType != "fiat" || !fiatAmount
-          ? data.amountMsat / 1000
-          : fiatAmount
-      )} ${
-        sendingContactDenominationType != "fiat" || !fiatAmount
-          ? BITCOIN_SAT_TEXT
-          : sendingContactFiatCurrency
-      }`;
+
+    let requestData = {};
+
+    if (useNewNotifications) {
+      let notificationData = {
+        name: myProfile.name || myProfile.uniqueName,
+      };
+
+      if (data.isUpdate) {
+        notificationData["option"] =
+          data.option === "paid" ? "paidLower" : "declinedLower";
+        notificationData["type"] = "updateMessage";
+      } else if (data.isRequest) {
+        notificationData["amountSat"] = data.amountMsat / 1000;
+        notificationData["type"] = "request";
+      } else if (data.giftCardInfo) {
+        notificationData["giftCardName"] = data.giftCardInfo.name;
+        notificationData["type"] = "giftCard";
+      } else {
+        notificationData["amountSat"] = data.amountMsat / 1000;
+        notificationData["type"] = "payment";
+      }
+
+      requestData = {
+        devicePushKey: devicePushKey,
+        deviceType: deviceType,
+        notificationData,
+        decryptPubKey: retrivedContact.uuid,
+      };
+    } else if (data.giftCardInfo) {
+      const message = `${myProfile.name || myProfile.uniqueName} sent you a ${
+        data.giftCardInfo.name
+      } Gift Card.`;
+      requestData = {
+        devicePushKey: devicePushKey,
+        deviceType: deviceType,
+        message,
+        decryptPubKey: retrivedContact.uuid,
+      };
     } else {
-      message = `${
-        myProfile.name || myProfile.uniqueName
-      } paid you ${formatBalanceAmount(
-        sendingContactDenominationType != "fiat" || !fiatAmount
-          ? data.amountMsat / 1000
-          : fiatAmount
-      )} ${
-        sendingContactDenominationType != "fiat" || !fiatAmount
-          ? BITCOIN_SAT_TEXT
-          : sendingContactFiatCurrency
-      }`;
+      const fiatValue = await loadNewFiatData(
+        sendingContactFiatCurrency,
+        privateKey,
+        myProfile.uuid,
+        masterInfoObject
+      );
+      const didFindCurrency = fiatValue?.didWork;
+      const fiatAmount =
+        didFindCurrency &&
+        (
+          (fiatValue?.value / SATSPERBITCOIN) *
+          (data.amountMsat / 1000)
+        ).toFixed(2);
+
+      let message = "";
+      if (data.isUpdate) {
+        message = data.message;
+      } else if (data.isRequest) {
+        message = `${
+          myProfile.name || myProfile.uniqueName
+        } requested you ${formatBalanceAmount(
+          sendingContactDenominationType != "fiat" || !fiatAmount
+            ? data.amountMsat / 1000
+            : fiatAmount,
+          undefined,
+          { thousandsSeperator: "space" }
+        )} ${
+          sendingContactDenominationType != "fiat" || !fiatAmount
+            ? BITCOIN_SAT_TEXT
+            : sendingContactFiatCurrency
+        }`;
+      } else {
+        message = `${
+          myProfile.name || myProfile.uniqueName
+        } paid you ${formatBalanceAmount(
+          sendingContactDenominationType != "fiat" || !fiatAmount
+            ? data.amountMsat / 1000
+            : fiatAmount,
+          undefined,
+          { thousandsSeperator: "space" }
+        )} ${
+          sendingContactDenominationType != "fiat" || !fiatAmount
+            ? BITCOIN_SAT_TEXT
+            : sendingContactFiatCurrency
+        }`;
+      }
+      requestData = {
+        devicePushKey: devicePushKey,
+        deviceType: deviceType,
+        message,
+        decryptPubKey: retrivedContact.uuid,
+      };
     }
-    const requestData = {
-      devicePushKey: devicePushKey,
-      deviceType: deviceType,
-      message: message,
-      decryptPubKey: selectedContact.uuid,
-    };
 
     const response = await fetchBackend(
-      "contactsPushNotificationV3",
+      `contactsPushNotificationV${useNewNotifications ? "4" : "3"}`,
       requestData,
       privateKey,
       myProfile.uuid
@@ -118,6 +181,95 @@ export async function sendPushNotification({
     return true;
   } catch (err) {
     console.log("publish message error", err);
+    return false;
+  }
+}
+
+export async function handlePaymentUpdate({
+  transaction,
+  didPay,
+  txid,
+  globalContactsInformation,
+  selectedContact,
+  currentTime,
+  contactsPrivateKey,
+  publicKey,
+  masterInfoObject,
+}) {
+  try {
+    let newMessage = {
+      ...transaction.message,
+      isRedeemed: didPay,
+      txid,
+      name:
+        globalContactsInformation.myProfile.name ||
+        globalContactsInformation.myProfile.uniqueName,
+    };
+
+    // Need to switch unique name since the original receiver is now the sender
+    if (newMessage.senderProfileSnapshot) {
+      newMessage.senderProfileSnapshot.uniqueName =
+        globalContactsInformation.myProfile.uniqueName;
+    }
+
+    delete newMessage.didSend;
+    delete newMessage.wasSeen;
+
+    const [retrivedContact] = await Promise.all([
+      getDataFromCollection("blitzWalletUsers", selectedContact.uuid),
+    ]);
+    if (!retrivedContact)
+      throw new Error(i18next.t("errormessages.userDataFetchError"));
+
+    const useNewNotifications = !!retrivedContact.isUsingNewNotifications;
+
+    const [didPublishNotification, didUpdateMessage] = await Promise.all([
+      sendPushNotification({
+        selectedContactUsername: selectedContact.uniqueName,
+        myProfile: globalContactsInformation.myProfile,
+        data: {
+          isUpdate: true,
+          [useNewNotifications ? "option" : "message"]: useNewNotifications
+            ? didPay
+              ? "paid"
+              : "declined"
+            : i18next.t(
+                "contacts.internalComponents.contactsTransactions.pushNotificationUpdateMessage",
+                {
+                  name:
+                    globalContactsInformation.myProfile.name ||
+                    globalContactsInformation.myProfile.uniqueName,
+                  option: didPay
+                    ? i18next.t("transactionLabelText.paidLower")
+                    : i18next.t("transactionLabelText.declinedLower"),
+                }
+              ),
+        },
+        privateKey: contactsPrivateKey,
+        retrivedContact,
+        masterInfoObject,
+      }),
+
+      retrivedContact.isUsingEncriptedMessaging
+        ? updateMessage({
+            newMessage,
+            fromPubKey: publicKey,
+            toPubKey: selectedContact.uuid,
+            retrivedContact,
+            privateKey: contactsPrivateKey,
+            currentTime,
+          })
+        : updateMessage({
+            newMessage,
+            fromPubKey: transaction.fromPubKey,
+            toPubKey: transaction.toPubKey,
+            retrivedContact,
+            privateKey: contactsPrivateKey,
+            currentTime,
+          }),
+    ]);
+  } catch (err) {
+    console.log("erro hanldling payment update", err.message);
     return false;
   }
 }

@@ -18,26 +18,32 @@ import {
   SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
 } from "../../constants";
 import CustomInput from "../../components/customInput/customInput";
-import CustomNumberKeyboard from "../../components/customNumberKeyboard/customNumberKeyboard";
 import NumberInputSendPage from "./components/numberInput";
 import CustomButton from "../../components/customButton/customButton";
-import { getBoltzApiUrl } from "../../functions/boltz/boltzEndpoitns";
-
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import formatSparkPaymentAddress from "../../functions/sendBitcoin/formatSparkPaymentAddress";
 import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 import { useTranslation } from "react-i18next";
 import { InputTypes } from "bitcoin-address-parser";
-import ThemeImage from "../../components/ThemeImage/themeImage";
-import { adminHomeWallet } from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
 import SelectLRC20Token from "./components/selectLRC20Token";
 import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 import CustomSettingsNavbar from "../../components/customSettingsNavbar";
 import AcceptButtonSendPage from "./components/acceptButton";
+import { useOverlay } from "../../contexts/overlayContext";
+import NavBarWithBalance from "../../components/navBarWithBalance/navbarWithBalance";
+import {
+  handlePaymentUpdate,
+  publishMessage,
+} from "../../functions/messaging/publishMessage";
+import { useKeysContext } from "../../contexts/keysContext";
+import SendTransactionFeeInfo from "./components/feeInfo";
+import { useThemeContext } from "../../contexts/themeContext";
+import InvoiceInfo from "./components/invoiceInfo";
 
-export default function SendPage({ openOverlay }) {
+export default function SendPage() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const { sparkInformation } = useSpark();
   const params = location.state || {};
@@ -49,10 +55,14 @@ export default function SendPage({ openOverlay }) {
     comingFromAccept,
     enteredPaymentInfo,
     errorMessage: globalError,
+    contactInfo,
   } = params;
+  console.log(params, "oi");
   const [paymentInfo, setPaymentInfo] = useState({});
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
+  const { theme, darkModeType } = useThemeContext();
+  const { contactsPrivateKey, publicKey } = useKeysContext();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { liquidNodeInformation, fiatStats } = useNodeContext();
   const { minMaxLiquidSwapAmounts } = useAppStatus();
@@ -223,11 +233,34 @@ export default function SendPage({ openOverlay }) {
         usingZeroAmountInvoice: paymentInfo.usingZeroAmountInvoice,
         seletctedToken: selectedLRC20Asset,
         mnemonic: currentWalletMnemoinc,
+        contactInfo,
+        fromMainSendScreen: true,
       };
       // Shouuld be same for all paymetns
       const paymentResponse = await sparkPaymenWrapper(paymentObject);
 
       if (paymentResponse.didWork) {
+        if (fromPage?.includes("contacts") && paymentResponse.response?.id) {
+          if (fromPage === "contacts-request") {
+            handlePaymentUpdate({
+              transaction: params.publishMessageFuncParams.transaction,
+              didPay: params.publishMessageFuncParams.didPay,
+              txid: paymentResponse.response?.id,
+              globalContactsInformation:
+                params.publishMessageFuncParams.globalContactsInformation,
+              selectedContact: params.publishMessageFuncParams.selectedContact,
+              currentTime: params.publishMessageFuncParams.currentTime,
+              contactsPrivateKey,
+              publicKey,
+              masterInfoObject,
+            });
+          } else {
+            const sendObject = params.publishMessageFuncParams;
+            sendObject.data.txid = paymentResponse.response?.id;
+            console.log(sendObject);
+            publishMessage(sendObject);
+          }
+        }
         navigate("/confirm-page", {
           state: {
             for: "paymentsucceed",
@@ -416,40 +449,7 @@ export default function SendPage({ openOverlay }) {
 
   return (
     <div className="sendContainer">
-      <div className="navBar">
-        <BackArrow
-          backFunction={
-            enabledLRC20 &&
-            Object.keys(seletctedToken).length &&
-            paymentInfo.type === "spark"
-              ? clearSettings
-              : goBackFunction
-          }
-        />
-        <div className="label">
-          <ThemeImage
-            styles={{ width: 20, height: 20 }}
-            alt="wallet icon to show user balance"
-            icon={adminHomeWallet}
-          />
-          <FormattedSatText
-            neverHideBalance={true}
-            balance={
-              selectedLRC20Asset !== "Bitcoin"
-                ? Number(formattedTokensBalance).toFixed(
-                    formattedTokensBalance < 1 ? 4 : 2
-                  )
-                : sparkInformation.balance
-            }
-            useCustomLabel={
-              seletctedToken?.tokenMetadata?.tokenTicker !== "Bitcoin" &&
-              seletctedToken?.tokenMetadata?.tokenTicker !== undefined
-            }
-            customLabel={seletctedToken?.tokenMetadata?.tokenTicker}
-            useMillionDenomination={true}
-          />
-        </div>
-      </div>
+      <NavBarWithBalance />
       <div className="paymentInfoContainer">
         <div className="balanceContainer">
           <div className="scroll-content">
@@ -488,17 +488,23 @@ export default function SendPage({ openOverlay }) {
 
         {!canEditPaymentAmount && (
           <>
-            <ThemeText
-              textStyles={{ margin: 0, marginTop: 40 }}
-              className="paymentFeeDesc"
-              textContent={"Fee & speed"}
-            />
-            <FormattedSatText
-              styles={{ marginTop: 0 }}
-              balance={totalFee}
-              backText={"and Instant"}
+            <SendTransactionFeeInfo
+              paymentFee={totalFee}
+              isLightningPayment={isLightningPayment}
+              isLiquidPayment={isLiquidPayment}
+              isBitcoinPayment={isBitcoinPayment}
+              isSparkPayment={isSparkPayment}
             />
           </>
+        )}
+        {!canEditPaymentAmount && (
+          <InvoiceInfo
+            paymentInfo={paymentInfo}
+            contactInfo={contactInfo}
+            fromPage={fromPage}
+            theme={theme}
+            darkModeType={darkModeType}
+          />
         )}
 
         {canEditPaymentAmount && (

@@ -2,7 +2,7 @@ import "./style.css";
 import { Colors } from "../../constants/theme";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useThemeContext } from "../../contexts/themeContext";
-import { checkMark } from "../../constants/icons";
+import { Check } from "lucide-react";
 
 export default function CheckCircle({ isActive, containerSize = 30 }) {
   const { theme } = useThemeContext();
@@ -28,7 +28,13 @@ export default function CheckCircle({ isActive, containerSize = 30 }) {
       }}
       id="customCheckCircle"
     >
-      {isActive && <img src={checkMark} alt="" className="checkMark" />}
+      {isActive && (
+        <Check
+          className="checkMark"
+          color={Colors.dark.text}
+          style={{ width: containerSize * 0.6, height: containerSize * 0.6 }}
+        />
+      )}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   migrateCachedTokens,
   saveCachedTokens,
 } from "../lrc20/cachedTokens";
+import Storage from "../localStorage";
 
 export let sparkWallet = {};
 
@@ -411,9 +412,38 @@ export const getSparkTokenTransactions = async ({
   }
 };
 
+export const getSingleTxDetails = async (mnemonic, id) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getTransfer(id);
+  } catch (err) {
+    console.log("get single spark transaction error", err);
+    return undefined;
+  }
+};
+
+export const setPrivacyEnabled = async (mnemonic) => {
+  try {
+    const didSetPrivacySetting = Storage.getItem("didSetPrivacySetting");
+
+    if (didSetPrivacySetting) return;
+
+    const wallet = await getWallet(mnemonic);
+    const walletSetings = await wallet.getWalletSettings();
+    if (!walletSetings?.privateEnabled) {
+      wallet.setPrivacyEnabled(true);
+    } else {
+      Storage.setItem("didSetPrivacySetting", true);
+    }
+    return true;
+  } catch (err) {
+    console.log("Get spark balance error", err);
+  }
+};
+
 export const getCachedSparkTransactions = async (limit, identifyPubKey) => {
   try {
-    const txResponse = await getAllSparkTransactions(limit, identifyPubKey);
+    const txResponse = await getAllSparkTransactions({ limit, identifyPubKey });
 
     if (!txResponse) throw new Error("Unable to get cached spark transactins");
     return txResponse;

@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { useSpark } from "../../contexts/sparkContext";
 import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 
-export default function ConfirmPayment() {
+export default function ConfirmPayment({ setValue }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { sparkInformation } = useSpark();
@@ -34,7 +34,12 @@ export default function ConfirmPayment() {
   const formmatingType = location.state?.formattingType;
   const didSucceed = transaction?.paymentStatus !== "failed" || isLNURLAuth;
   const paymentFee = transaction?.details.fee;
-  const paymentNetwork = transaction?.paymentType;
+  const sendingContactUUID = transaction.details?.sendingUUID;
+  const paymentNetwork = sendingContactUUID
+    ? t("screens.inAccount.expandedTxPage.contactPaymentType")
+    : transaction.details.isGift
+    ? t("constants.gift")
+    : transaction.paymentType;
   const errorMessage = transaction?.details.error || "Unknown Error";
   const amount = transaction?.details.amount;
   const showPendingMessage = transaction?.paymentStatus === "pending";
@@ -70,6 +75,7 @@ export default function ConfirmPayment() {
   }, []);
 
   const handleBack = useCallback(() => {
+    setValue(1);
     navigate("/wallet", { replace: true });
   }, [navigate]);
   return (

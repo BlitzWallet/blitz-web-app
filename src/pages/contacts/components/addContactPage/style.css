@@ -1,0 +1,78 @@
+.container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.name-text {
+  text-align: center;
+  opacity: 0.6;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.username-text {
+  text-align: center;
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+
+.info-container {
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.info-label {
+  font-size: 16px;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  margin-bottom: 10px;
+  word-break: break-all;
+  text-align: center;
+}
+
+.bio-container {
+  width: 90%;
+  max-width: 500px;
+  min-height: 60px;
+  max-height: 80px;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  margin-bottom: 20px;
+}
+
+.bio-text {
+  text-align: center;
+}
+
+.custom-button {
+  padding: 12px 24px;
+  background-color: #007aff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.custom-button:hover {
+  background-color: #0056b3;
+}
+
+.custom-button:active {
+  background-color: #004494;
+}

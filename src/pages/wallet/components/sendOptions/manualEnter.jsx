@@ -1,21 +1,35 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import ThemeText from "../../../../components/themeText/themeText";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import { aboutIcon } from "../../../../constants/icons";
 import CustomButton from "../../../../components/customButton/customButton";
 import handlePreSendPageParsing from "../../../../functions/sendBitcoin/handlePreSendPageParsing";
 import { useState } from "react";
 import "./manualEnter.css";
 import { CONTENT_KEYBOARD_OFFSET } from "../../../../constants";
 import openLinkToNewTab from "../../../../functions/openLinkToNewTab";
+import { useOverlay } from "../../../../contexts/overlayContext";
+import { Info } from "lucide-react";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import { Colors } from "../../../../constants/theme";
 
-export default function ManualEnterSendAddress(props) {
+export default function ManualEnterSendAddress() {
+  const { openOverlay, closeOverlay } = useOverlay();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { onClose, openOverlay } = props;
+  const onClose = closeOverlay;
+  const { theme, darkModeType } = useThemeContext();
 
   const [inputValue, setInputValue] = useState("");
+
+  const handlePopup = () => {
+    openOverlay({
+      for: "informationPopup",
+      textContent: t(
+        "wallet.homeLightning.manualEnterSendAddress.paymentTypesDesc"
+      ),
+      buttonText: t("constants.understandText"),
+    });
+  };
 
   return (
     <div
@@ -27,20 +41,12 @@ export default function ManualEnterSendAddress(props) {
           className={"infoText"}
           textContent={t("wallet.homeLightning.manualEnterSendAddress.title")}
         />
-
-        <ThemeImage
-          clickFunction={() => {
-            openOverlay({
-              for: "informationPopup",
-              textContent: t(
-                "wallet.homeLightning.manualEnterSendAddress.paymentTypesDesc"
-              ),
-              buttonText: t("constants.understandText"),
-            });
-          }}
-          className="image"
-          styles={{ width: 20, height: 20 }}
-          icon={aboutIcon}
+        <Info
+          onClick={handlePopup}
+          size={22}
+          color={
+            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+          }
         />
       </div>
 

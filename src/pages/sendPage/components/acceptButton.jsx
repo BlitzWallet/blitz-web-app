@@ -28,7 +28,7 @@ export default function AcceptButtonSendPage({
   sparkInformation,
   seletctedToken,
   isLRC20Payment,
-  sendWebViewRequest,
+
   openOverlay,
 }) {
   const { t } = useTranslation();
@@ -215,7 +215,6 @@ export default function AcceptButtonSendPage({
         seletctedToken,
         currentWalletMnemoinc,
         t,
-        sendWebViewRequest,
       });
     } catch (error) {
       console.log("Accept button error:", error);

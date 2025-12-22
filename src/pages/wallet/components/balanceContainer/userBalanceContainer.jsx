@@ -43,6 +43,7 @@ export default function UserBalance() {
         <FormattedSatText
           styles={{ fontSize: "2rem" }}
           balance={sparkInformation.balance}
+          useSizing={true}
         />
       </div>
     </div>

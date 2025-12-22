@@ -11,6 +11,8 @@ export default function CustomInput({
   onFocus,
   onBlur,
   multiline = false,
+  ref,
+  maxLength,
 }) {
   const commonProps = {
     value,
@@ -23,10 +25,12 @@ export default function CustomInput({
       ...customInputStyles,
       resize: "none",
     },
+    maxLength,
   };
 
   return (
     <div
+      ref={ref}
       style={{ ...containerStyles }}
       className={`custom-description-input-container ${containerClassName}`}
     >

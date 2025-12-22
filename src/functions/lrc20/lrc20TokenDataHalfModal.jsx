@@ -8,13 +8,10 @@ import useThemeColors from "../../hooks/useThemeColors";
 import copyToClipboard from "../copyToClipboard";
 import { formatTokensNumber } from "./formatTokensBalance";
 import "./tokenHalfModalStyle.css";
+import { useOverlay } from "../../contexts/overlayContext";
 
-export default function LRC20TokenInformation({
-  theme,
-  darkModeType,
-  openOverlay,
-  params,
-}) {
+export default function LRC20TokenInformation({ theme, darkModeType, params }) {
+  const { openOverlay } = useOverlay();
   const { sparkInformation } = useSpark();
   const selectedToken = sparkInformation.tokens?.[params?.tokenIdentifier];
   const { balance, tokenMetadata } = selectedToken;

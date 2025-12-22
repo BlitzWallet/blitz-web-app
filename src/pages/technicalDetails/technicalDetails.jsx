@@ -3,7 +3,9 @@ import BackArrow from "../../components/backArrow/backArrow";
 import ThemeText from "../../components/themeText/themeText";
 import copyToClipboard from "../../functions/copyToClipboard";
 import "./style.css";
-export default function TechnicalDetailsPage({ openOverlay }) {
+import { useOverlay } from "../../contexts/overlayContext";
+export default function TechnicalDetailsPage() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const navigate = useNavigate();
   const props = location.state;

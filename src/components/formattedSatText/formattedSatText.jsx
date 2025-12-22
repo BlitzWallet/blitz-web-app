@@ -26,6 +26,7 @@ export default function FormattedSatText({
   useCustomLabel = false,
   customLabel = "",
   useMillionDenomination = false,
+  useSizing = false,
 }) {
   const { masterInfoObject } = useGlobalContextProvider();
   const { fiatStats } = useNodeContext();
@@ -80,7 +81,19 @@ export default function FormattedSatText({
     <ThemeText
       key={content}
       reversed={reversed}
-      textStyles={{ includeFontPadding: false, ...styles, ...extra }}
+      textStyles={{ ...styles, ...extra }}
+      textContent={content}
+    />
+  );
+  const hiddenText = (content, key, extra = {}) => (
+    <ThemeText
+      key={key}
+      reversed={reversed}
+      textStyles={{
+        ...styles,
+        ...extra,
+        fontFamily: "Blitzicons1",
+      }}
       textContent={content}
     />
   );
@@ -91,7 +104,36 @@ export default function FormattedSatText({
   if (!shouldShowAmount) {
     children = [
       frontText && renderText(frontText),
-      renderText(HIDDEN_BALANCE_TEXT),
+      hiddenText(HIDDEN_BALANCE_TEXT, 1, {
+        fontSize: styles?.fontSize
+          ? `calc(${styles.fontSize} * ${useSizing ? 0.8 : 1})`
+          : `calc(1em * ${useSizing ? 0.8 : 0.65})`,
+        margin: "0 2px",
+      }),
+      hiddenText(HIDDEN_BALANCE_TEXT, 2, {
+        fontSize: styles?.fontSize
+          ? `calc(${styles.fontSize} * ${useSizing ? 0.9 : 1})`
+          : `calc(1em * ${useSizing ? 0.9 : 0.65})`,
+        margin: "0 2px",
+      }),
+      hiddenText(HIDDEN_BALANCE_TEXT, 3, {
+        fontSize: styles?.fontSize
+          ? `calc(${styles.fontSize} * ${useSizing ? 1 : 1})`
+          : `calc(1em * ${useSizing ? 1 : 0.65})`,
+        margin: "0 2px",
+      }),
+      hiddenText(HIDDEN_BALANCE_TEXT, 4, {
+        fontSize: styles?.fontSize
+          ? `calc(${styles.fontSize} * ${useSizing ? 0.9 : 1})`
+          : `calc(1em * ${useSizing ? 0.9 : 0.65})`,
+        margin: "0 2px",
+      }),
+      hiddenText(HIDDEN_BALANCE_TEXT, 5, {
+        fontSize: styles?.fontSize
+          ? `calc(${styles.fontSize} * ${useSizing ? 0.8 : 1})`
+          : `calc(1em * ${useSizing ? 0.8 : 0.65})`,
+        margin: "0 2px",
+      }),
       backText && renderText(backText, { marginLeft: 5 }),
     ];
   }

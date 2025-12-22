@@ -16,6 +16,7 @@ import { Colors } from "../../constants/theme";
 import { validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { handleRestoreFromText } from "../../functions/seed";
+import { useOverlay } from "../../contexts/overlayContext";
 
 const NUMARRAY = Array.from({ length: 12 }, (_, i) => i + 1);
 const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
@@ -23,7 +24,8 @@ const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
   return acc;
 }, {});
 
-export default function RestoreWallet({ openOverlay }) {
+export default function RestoreWallet() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const params = location.state;
   const navigate = useNavigate();

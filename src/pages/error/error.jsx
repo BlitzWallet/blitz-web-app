@@ -72,7 +72,12 @@ export default function ErrorScreen({ overlay, onClose }) {
             className="error-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <ThemeText className={"error-message"} textContent={errorMessage} />
+            <div className="error-content-scroll">
+              <ThemeText
+                className={"error-message"}
+                textContent={errorMessage}
+              />
+            </div>
 
             <div style={{ alignSelf: "center" }} onClick={handleOkClick}>
               <CustomButton

@@ -9,8 +9,10 @@ import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import useThemeColors from "../../hooks/useThemeColors";
 import SafeAreaComponent from "../../components/safeAreaContainer";
 import LRC20Assets from "./components/lrc20Assets";
+import { useOverlay } from "../../contexts/overlayContext";
 
-export default function WalletHome({ openOverlay }) {
+export default function WalletHome() {
+  const { openOverlay } = useOverlay();
   const { masterInfoObject } = useGlobalContextProvider();
   const { backgroundColor, backgroundOffset } = useThemeColors();
   const { toggleDidGetToHomepage } = useAppStatus();
@@ -20,9 +22,10 @@ export default function WalletHome({ openOverlay }) {
   useEffect(() => {
     toggleDidGetToHomepage(true);
   }, []);
-  console.log(masterInfoObject);
+
   return (
     <SafeAreaComponent
+      addedClassName={"customWalletHomeStyle"}
       backgroundColor={didEnabledLrc20 ? backgroundOffset : "transparent"}
       customStyles={{ paddingTop: 0, width: "100%" }}
     >
@@ -33,13 +36,15 @@ export default function WalletHome({ openOverlay }) {
           }}
           className="lrc20Overlay"
         >
-          <WalletNavBar
-            didEnabledLrc20={didEnabledLrc20}
-            openOverlay={openOverlay}
-          />
-          <UserBalance />
-          <SendAndRequestBtns openOverlay={openOverlay} />
-          {didEnabledLrc20 && <LRC20Assets openOverlay={openOverlay} />}
+          <div className="lrc20ContentContiner">
+            <WalletNavBar
+              didEnabledLrc20={didEnabledLrc20}
+              openOverlay={openOverlay}
+            />
+            <UserBalance />
+            <SendAndRequestBtns openOverlay={openOverlay} />
+            {didEnabledLrc20 && <LRC20Assets openOverlay={openOverlay} />}
+          </div>
         </div>
 
         <div style={{ background: backgroundOffset }} className="txsContainer">

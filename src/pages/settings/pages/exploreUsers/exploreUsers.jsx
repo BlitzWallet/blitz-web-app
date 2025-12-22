@@ -145,7 +145,10 @@ export default function ExploreUsers() {
         if (masterInfoObject.exploreData) return;
         const pastExploreData = Storage.getItem("savedExploreData");
 
-        const shouldLoadExporeDataResp = shouldLoadExploreData(pastExploreData);
+        const shouldLoadExporeDataResp = shouldLoadExploreData(
+          pastExploreData,
+          currentTime
+        );
 
         if (!shouldLoadExporeDataResp) {
           toggleMasterInfoObject({ exploreData: pastExploreData.data });

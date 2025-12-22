@@ -43,16 +43,13 @@ export const sparkPaymenWrapper = async ({
   usingZeroAmountInvoice = false,
   seletctedToken = "Bitcoin",
   mnemonic,
+  contactInfo,
 }) => {
   try {
     console.log("Begining spark payment");
-    if (!sparkWallet[sha256Hash(mnemonic)])
-      throw new Error("sparkWallet not initialized");
-    const supportFee = await calculateProgressiveBracketFee(
-      amountSats,
-      paymentType,
-      mnemonic
-    );
+    // if (!sparkWallet[sha256Hash(mnemonic)])
+    //   throw new Error("sparkWallet not initialized");
+    const supportFee = 0;
     if (getFee) {
       console.log("Calculating spark payment fee");
       let calculatedFee = 0;
@@ -65,7 +62,7 @@ export const sparkPaymenWrapper = async ({
         );
         if (!routingFee.didWork)
           throw new Error(routingFee.error || "Unable to get routing fee");
-        calculatedFee = Math.ceil(routingFee.response * 1.5);
+        calculatedFee = routingFee.response;
       } else if (paymentType === "bitcoin") {
         const feeResponse = await getSparkBitcoinPaymentFeeEstimate({
           amountSats,
@@ -110,12 +107,12 @@ export const sparkPaymenWrapper = async ({
     if (paymentType === "lightning") {
       const initialFee = Math.round(fee - supportFee);
       const lightningPayResponse = await sendSparkLightningPayment({
-        maxFeeSats: Math.ceil(initialFee * 1.5), //addding 50% buffer so we dont undershoot it
+        maxFeeSats: Math.max(initialFee, 1000),
         invoice: address,
         amountSats: usingZeroAmountInvoice ? amountSats : undefined,
         mnemonic,
       });
-      handleSupportPayment(masterInfoObject, supportFee, mnemonic);
+
       if (!lightningPayResponse.didWork)
         throw new Error(
           lightningPayResponse.error || "Error when sending lightning payment"
@@ -123,32 +120,57 @@ export const sparkPaymenWrapper = async ({
 
       const data = lightningPayResponse.paymentResponse;
 
-      const realPaymentFee = data?.fee?.originalValue
-        ? data?.fee?.originalValue /
-          (data?.fee?.originalUnit === "MILLISATOSHI" ? 1000 : 1)
-        : initialFee;
+      const paymentType = data?.type ? "spark" : "lightning";
 
-      const tx = {
-        id: data.id,
-        paymentStatus: "pending",
-        paymentType: "lightning",
-        accountId: sparkInformation.identityPubKey,
-        details: {
-          fee: realPaymentFee,
-          totalFee: supportFee + realPaymentFee,
-          supportFee: supportFee,
-          amount: amountSats,
-          description: memo || "",
-          address: address,
-          time: new Date(data.updatedAt).getTime(),
-          createdAt: new Date(data.createdAt).getTime(),
-          direction: "OUTGOING",
-          preimage: "",
-        },
-      };
-      response = tx;
+      if (paymentType === "lightning") {
+        const realPaymentFee = data?.fee?.originalValue
+          ? data?.fee?.originalValue /
+            (data?.fee?.originalUnit === "MILLISATOSHI" ? 1000 : 1)
+          : initialFee;
 
-      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", 0);
+        const tx = {
+          id: data.id,
+          paymentStatus: "pending",
+          paymentType: "lightning",
+          accountId: sparkInformation.identityPubKey,
+          details: {
+            sendingUUID: contactInfo?.uuid,
+            fee: realPaymentFee,
+            totalFee: supportFee + realPaymentFee,
+            supportFee: supportFee,
+            amount: amountSats,
+            description: memo || "",
+            address: address,
+            time: new Date(data.updatedAt).getTime(),
+            createdAt: new Date(data.createdAt).getTime(),
+            direction: "OUTGOING",
+            preimage: "",
+          },
+        };
+        response = tx;
+      } else {
+        const tx = {
+          id: data.id,
+          paymentStatus: "completed",
+          paymentType: "spark",
+          accountId: sparkInformation.identityPubKey,
+          details: {
+            sendingUUID: contactInfo?.uuid,
+            fee: 0,
+            totalFee: 0 + supportFee,
+            supportFee: supportFee,
+            amount: amountSats,
+            address: address,
+            time: new Date(data.updatedTime).getTime(),
+            direction: "OUTGOING",
+            description: memo || "",
+            senderIdentityPublicKey: data.receiverIdentityPublicKey,
+            isLRC20Payment: false,
+            LRC20Token: seletctedToken,
+          },
+        };
+        response = tx;
+      }
     } else if (paymentType === "bitcoin") {
       // make sure to import exist speed
       const onChainPayResponse = await sendSparkBitcoinPayment({
@@ -159,7 +181,7 @@ export const sparkPaymenWrapper = async ({
         deductFeeFromWithdrawalAmount: true,
         mnemonic,
       });
-      handleSupportPayment(masterInfoObject, supportFee, mnemonic);
+
       if (!onChainPayResponse.didWork)
         throw new Error(
           onChainPayResponse.error || "Error when sending bitcoin payment"
@@ -186,7 +208,6 @@ export const sparkPaymenWrapper = async ({
         },
       };
       response = tx;
-      await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", 0);
     } else {
       let sparkPayResponse;
 
@@ -205,8 +226,6 @@ export const sparkPaymenWrapper = async ({
         });
       }
 
-      handleSupportPayment(masterInfoObject, supportFee, mnemonic);
-
       if (!sparkPayResponse.didWork)
         throw new Error(
           sparkPayResponse.error || "Error when sending spark payment"
@@ -219,6 +238,7 @@ export const sparkPaymenWrapper = async ({
         paymentType: "spark",
         accountId: sparkInformation.identityPubKey,
         details: {
+          sendingUUID: contactInfo?.uuid,
           fee: 0,
           totalFee: 0 + supportFee,
           supportFee: supportFee,
@@ -240,7 +260,14 @@ export const sparkPaymenWrapper = async ({
       await bulkUpdateSparkTransactions([tx], "paymentWrapperTx", 0);
     }
     console.log(response, "resonse in send function");
-    return { didWork: true, response };
+    if (sparkInformation.identityPubKey) {
+      await bulkUpdateSparkTransactions([response], "paymentWrapperTx", 0);
+    }
+    return {
+      didWork: true,
+      response,
+      shouldSave: !sparkInformation.identityPubKey,
+    };
   } catch (err) {
     console.log("Send lightning payment error", err);
     return { didWork: false, error: err.message };

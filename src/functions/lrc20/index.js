@@ -24,7 +24,6 @@ export async function getLRC20Transactions({
     getCachedTokens(),
     getSparkTokenTransactions({ ownerPublicKeys, mnemonic }),
   ]);
-  console.log(savedTxs, cachedTokens, tokenTxs);
 
   if (!tokenTxs?.tokenTransactionsWithStatus) return;
   const tokenTransactions = tokenTxs.tokenTransactionsWithStatus;

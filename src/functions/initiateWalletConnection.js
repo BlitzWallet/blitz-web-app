@@ -5,7 +5,9 @@ import {
   getSparkIdentityPubKey,
   getSparkTransactions,
   initializeSparkWallet,
+  setPrivacyEnabled,
 } from "./spark";
+import handleBalanceCache from "./spark/handleBalanceCache";
 import { cleanStalePendingSparkLightningTransactions } from "./spark/transactions";
 
 export async function initWallet({
@@ -13,11 +15,29 @@ export async function initWallet({
   // toggleGlobalContactsInformation,
   // globalContactsInformation,
   mnemonic,
+  hasRestoreCompleted,
 }) {
   console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
 
   try {
-    const didConnectToSpark = await initializeSparkWallet(mnemonic);
+    const [didConnectToSpark, balance] = await Promise.all([
+      initializeSparkWallet(mnemonic),
+      handleBalanceCache({
+        isCheck: false,
+        mnemonic: mnemonic,
+        returnBalanceOnly: true,
+      }),
+    ]);
+
+    console.log(didConnectToSpark, balance);
+
+    if (balance) {
+      setSparkInformation((prev) => ({
+        ...prev,
+        didConnect: true,
+        balance: balance,
+      }));
+    }
 
     if (didConnectToSpark.isConnected) {
       const didSetSpark = await initializeSparkSession({
@@ -25,6 +45,7 @@ export async function initWallet({
         // globalContactsInformation,
         // toggleGlobalContactsInformation,
         mnemonic,
+        hasRestoreCompleted,
       });
 
       if (!didSetSpark)
@@ -48,6 +69,7 @@ async function initializeSparkSession({
   // globalContactsInformation,
   // toggleGlobalContactsInformation,
   mnemonic,
+  hasRestoreCompleted,
 }) {
   try {
     // Clean DB state but do not hold up process
@@ -58,40 +80,111 @@ async function initializeSparkSession({
       getSparkIdentityPubKey(mnemonic),
     ]);
 
-    if (!balance.didWork)
-      throw new Error("Unable to initialize spark from history");
+    setPrivacyEnabled(mnemonic);
 
     const transactions = await getCachedSparkTransactions(null, identityPubKey);
 
     if (transactions === undefined)
       throw new Error("Unable to initialize spark from history");
 
-    // if (
-    //   !globalContactsInformation.myProfile.sparkAddress ||
-    //   !globalContactsInformation.myProfile.sparkIdentityPubKey
-    // ) {
-    //   toggleGlobalContactsInformation(
-    //     {
-    //       myProfile: {
-    //         ...globalContactsInformation.myProfile,
-    //         sparkAddress: sparkAddress.response,
-    //         sparkIdentityPubKey: identityPubKey,
-    //       },
-    //     },
-    //     true
-    //   );
-    // }
+    if (!balance.didWork) {
+      const storageObject = {
+        transactions: transactions,
+        identityPubKey,
+        sparkAddress: sparkAddress.response,
+        didConnect: true,
+      };
+      await new Promise((res) => setTimeout(res, 500));
+      setSparkInformation((prev) => ({ ...prev, ...storageObject }));
+      return storageObject;
+    }
+
+    let didLoadCorrectBalance = false;
+    let runCount = 0;
+    let maxRunCount = 2;
+    let initialBalanceResponse = balance;
+    let correctBalance = 0;
+
+    while (runCount < maxRunCount && !didLoadCorrectBalance) {
+      runCount += 1;
+      let currentBalance = 0;
+
+      if (runCount === 1) {
+        currentBalance = Number(initialBalanceResponse.balance);
+      } else {
+        const retryResponse = await getSparkBalance(mnemonic);
+        currentBalance = Number(retryResponse.balance);
+      }
+
+      const response = await handleBalanceCache({
+        isCheck: true,
+        passedBalance: currentBalance,
+        mnemonic,
+      });
+
+      if (response.didWork) {
+        correctBalance = response.balance;
+        didLoadCorrectBalance = true;
+      } else {
+        console.log("Waiting for correct balance resposne");
+        await new Promise((res) => setTimeout(res, 2000));
+      }
+    }
+
+    const finalBalanceToUse = didLoadCorrectBalance
+      ? correctBalance
+      : Number(initialBalanceResponse.balance);
+    console.log(
+      didLoadCorrectBalance,
+      runCount,
+      initialBalanceResponse,
+      correctBalance,
+      finalBalanceToUse,
+      "balancasldfkjasdlfkjasdf"
+    );
+    if (!didLoadCorrectBalance) {
+      await handleBalanceCache({
+        isCheck: false,
+        passedBalance: finalBalanceToUse,
+        mnemonic,
+      });
+    }
 
     const storageObject = {
-      balance: Number(balance.balance),
+      balance: finalBalanceToUse,
       tokens: balance.tokensObj,
-      transactions: transactions,
       identityPubKey,
       sparkAddress: sparkAddress.response,
       didConnect: true,
     };
     console.log("Spark storage object", storageObject);
-    setSparkInformation(storageObject);
+    await new Promise((res) => setTimeout(res, 500));
+
+    setSparkInformation((prev) => {
+      let txToUse;
+
+      // Restore has not run yet:
+      if (
+        !hasRestoreCompleted ||
+        (prev.identityPubKey && prev.identityPubKey !== identityPubKey)
+      ) {
+        // We show cached transactions immediately to avoid blanks.
+        // But DO NOT overwrite later once restore writes.
+        // Fully overwrite if identityPubKey changed (new wallet).
+        txToUse = transactions;
+      } else {
+        // Restore has finished:
+        // Never insert fetchedTransactions (they may be stale)
+        // Use whatever DB restore already put in state.
+        txToUse = prev.transactions;
+      }
+
+      return {
+        ...prev,
+        ...storageObject,
+        transactions: txToUse,
+      };
+    });
     return storageObject;
   } catch (err) {
     console.log("Set spark error", err);

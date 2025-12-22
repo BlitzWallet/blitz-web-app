@@ -1,0 +1,72 @@
+/* Formatted Balance Input Container */
+.formatted-balance-input-container {
+  width: 90%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 0 auto;
+  cursor: pointer;
+}
+.formatted-balance-input-container p {
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.input-wrapper {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  margin-right: 3px;
+}
+
+.scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-container {
+  flex-shrink: 1;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  white-space: nowrap;
+}
+
+/* Balance Text Input */
+.balance-text-input {
+  font-size: 40px;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  user-select: none;
+  min-width: fit-content;
+  text-align: center;
+}
+
+.balance-text-input:focus {
+  outline: none;
+}
+
+/* Hidden Text for Measurement */
+.hidden-text {
+  position: absolute;
+  z-index: -1;
+  font-size: 40px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  visibility: hidden;
+}

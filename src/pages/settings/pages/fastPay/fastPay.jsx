@@ -6,8 +6,10 @@ import TextInputWithSliderSettingsItem from "../../components/textInputWithSlide
 import "./fastPay.css";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
+import { useOverlay } from "../../../../contexts/overlayContext";
 
-export default function FastPay({ openOverlay }) {
+export default function FastPay() {
+  const { openOverlay } = useOverlay();
   const { masterInfoObject, toggleMasterInfoObject } =
     useGlobalContextProvider();
   const location = useLocation();

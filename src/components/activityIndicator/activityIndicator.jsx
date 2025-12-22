@@ -1,7 +1,6 @@
 import { Colors } from "../../constants/theme";
 import "./style.css";
 export default function ActivityIndicator({ color, size = "small" }) {
-  console.log(color);
   return (
     <div
       style={{

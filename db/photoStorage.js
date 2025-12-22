@@ -1,30 +1,44 @@
-import { getStorage } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import { BLITZ_PROFILE_IMG_STORAGE_REF } from "../src/constants";
+import { storage } from "./initializeFirebase";
 
-export async function setDatabaseIMG(publicKey, imgURL) {
+export async function setDatabaseIMG(publicKey, imgBlob) {
   try {
-    const reference = getStorage().ref(
+    if (!(imgBlob instanceof Blob)) {
+      throw new Error("Expected a Blob object");
+    }
+
+    const reference = ref(
+      storage,
       `${BLITZ_PROFILE_IMG_STORAGE_REF}/${publicKey}.jpg`
     );
 
-    await reference.putFile(imgURL.uri);
+    await uploadBytes(reference, imgBlob);
 
-    const downloadURL = await reference.getDownloadURL();
+    const downloadURL = await getDownloadURL(reference);
     return downloadURL;
   } catch (err) {
     console.log("set database image error", err);
     return false;
   }
 }
+
 export async function deleteDatabaseImage(publicKey) {
   try {
-    const reference = getStorage().ref(
+    const reference = ref(
+      storage,
       `${BLITZ_PROFILE_IMG_STORAGE_REF}/${publicKey}.jpg`
     );
-    await reference.delete();
+    await deleteObject(reference);
     return true;
   } catch (err) {
-    console.log("delete profime imgage error", err);
+    console.log("delete profile image error", err);
     if (err.message.includes("No object exists at the desired reference")) {
       return true;
     }

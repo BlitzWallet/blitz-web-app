@@ -1,0 +1,147 @@
+/* Send and Request Page */
+.send-request-page {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.replacement-container {
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-view-container {
+  width: 100%;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.scroll-view-container::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-view-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Input and Gift Container */
+.input-and-gift-container {
+  width: 90%;
+  max-width: 350px;
+  align-self: center;
+}
+
+/* Gift Amount Container */
+.gift-amount-container {
+  width: 90%;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+/* Gift Container Button */
+.gift-container {
+  padding: 10px 16px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 20px 0 0 auto;
+}
+
+/* Pill Button for Gift Card */
+.pill {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  border-radius: 24px;
+  gap: 16px;
+  border-width: 2px;
+  border-style: solid;
+  align-self: center;
+  position: relative;
+  background: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.pill:hover {
+  opacity: 0.9;
+}
+
+.logo-container {
+  width: 48px;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--dark-mode-text, #ffffff);
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.card-logo {
+  width: 100%;
+  height: 100%;
+  max-width: 80px;
+  max-height: 80px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.edit-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  border-width: 3px;
+  border-style: solid;
+}
+
+/* Memo Section */
+.memo-section {
+  margin-top: 28px;
+}
+
+.memo-container {
+  padding: 18px;
+  border-radius: 16px;
+  border-width: 1px;
+  border-style: solid;
+  min-height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Max and Accept Container */
+.max-and-accept-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 10px;
+}
+.send-request-page .sendRequetContainer {
+  max-width: 350px;
+}

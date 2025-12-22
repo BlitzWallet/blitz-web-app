@@ -13,8 +13,10 @@ import { useTranslation } from "react-i18next";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
 import PageNavBar from "../../components/navBar/navBar";
+import { useOverlay } from "../../contexts/overlayContext";
 
-function CreateSeed({ openOverlay }) {
+function CreateSeed() {
+  const { openOverlay } = useOverlay();
   const { t } = useTranslation();
   const { mnemoinc, setMnemoinc } = useAuth();
   const seed = mnemoinc?.split(" ");

@@ -4,7 +4,6 @@ import {
   blockstreamLiquid,
   lightningReceiveIcon,
   rootstockLogo,
-  smallArrowLeft,
   sparkAsteriskWhite,
 } from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
@@ -19,7 +18,9 @@ import { useKeysContext } from "../../contexts/keysContext";
 import { useNavigate } from "react-router-dom";
 import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
 import { useNodeContext } from "../../contexts/nodeContext";
-import ThemeImage from "../../components/ThemeImage/themeImage";
+import { useOverlay } from "../../contexts/overlayContext";
+import { ArrowDown } from "lucide-react";
+import { Colors } from "../../constants/theme";
 
 const MAIN_PAYMENTS = [
   ["Lightning", "Instant"],
@@ -29,7 +30,9 @@ const MAIN_PAYMENTS = [
   // ["Rootstock", "~ 1 minute"],
 ];
 
-export default function SwitchReceiveOption({ onClose, params, openOverlay }) {
+export default function SwitchReceiveOption({ params }) {
+  const { openOverlay, closeOverlay } = useOverlay();
+  const onClose = closeOverlay;
   const navigate = useNavigate();
   const { fiatStats } = useNodeContext();
   const { currentWalletMnemonic } = useActiveCustodyAccount();
@@ -248,16 +251,16 @@ export default function SwitchReceiveOption({ onClose, params, openOverlay }) {
             }
           )}
         />
-        <ThemeImage
-          styles={{
-            width: 15,
-            height: 15,
+        <ArrowDown
+          color={
+            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+          }
+          size={15}
+          style={{
             marginLeft: "5px",
-            transform: `rotate(${isExpanded ? 90 : -90}deg)`,
+            transform: `rotate(${isExpanded ? 180 : 0}deg)`,
             transition: "transform 0.3s ease",
           }}
-          icon={smallArrowLeft}
-          alt="arrow"
         />
       </button>
 

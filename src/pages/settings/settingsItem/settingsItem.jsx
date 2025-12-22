@@ -12,8 +12,10 @@ import FastPay from "../pages/fastPay/fastPay";
 import BlitzFeeInformation from "../pages/feeDetails/feeInformation";
 import ExploreUsers from "../pages/exploreUsers/exploreUsers";
 import CustomSettingsNavbar from "../../../components/customSettingsNavbar";
+import { useOverlay } from "../../../contexts/overlayContext";
 
-export default function SettingsContentIndex({ openOverlay }) {
+export default function SettingsContentIndex() {
+  const { openOverlay } = useOverlay();
   const location = useLocation();
   const props = location.state;
   const selectedPage = props.for?.toLowerCase();
@@ -22,6 +24,15 @@ export default function SettingsContentIndex({ openOverlay }) {
   if (selectedPage === "point-of-sale") {
     return <>{selectedPage === "point-of-sale" && <PosSettingsPage />}</>;
   }
+
+  if (selectedPage === "edit contact profile") {
+    return (
+      <EditMyProfilePage
+        navProps={{ fromSettings: true, pageType: "myProfile" }}
+      />
+    );
+  }
+
   return (
     <SafeAreaComponent addedClassName={"settingsContentIndexContianer"}>
       <CustomSettingsNavbar
@@ -39,12 +50,6 @@ export default function SettingsContentIndex({ openOverlay }) {
         {selectedPage === "display currency" && <DisplayCurrency />}
         {selectedPage === "node info" && <NodeInfo />}
         {selectedPage === "display options" && <DisplayOptions />}
-
-        {selectedPage === "edit contact profile" && (
-          <EditMyProfilePage
-            navProps={{ fromSettings: true, pageType: "myProfile" }}
-          />
-        )}
 
         {selectedPage === "fast pay" && <FastPay />}
 

@@ -1,6 +1,5 @@
 .walletNavBar {
   width: 100%;
-  padding-bottom: 10px;
   min-height: 40px;
   display: flex;
   justify-content: space-between;
@@ -8,11 +7,6 @@
   /* top: 0; */
   z-index: 99;
   align-items: center;
-}
-.walletNavBar img {
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
 }
 
 .walletNavBar .themeContainer {

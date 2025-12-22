@@ -10,16 +10,11 @@ import { useCameraPermission } from "../../hooks/useCameraPermission";
 import ThemeText from "../../components/themeText/themeText";
 import { useThemeContext } from "../../contexts/themeContext";
 import PageNavBar from "../../components/navBar/navBar";
-import {
-  FlashLightIcon,
-  flashlightNoFillWhite,
-  ImagesIcon,
-} from "../../constants/icons";
-import ThemeImage from "../../components/ThemeImage/themeImage";
+import { useOverlay } from "../../contexts/overlayContext";
+import { Flashlight, Image } from "lucide-react";
 
-// QrScanner. = "/qr-scanner-worker.min.js"; // Adjust if you move the file
-
-export default function Camera({ openOverlay }) {
+export default function Camera() {
+  const { openOverlay } = useOverlay();
   const { theme, darkModeType } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -171,17 +166,14 @@ export default function Camera({ openOverlay }) {
       </div>
       <div onClick={getDataFromFile} className="fileContainer">
         <input hidden type="file" id="file-selector" accept="image/*" />
-        <ThemeImage
-          className="optionImage"
-          icon={ImagesIcon}
-          alt="images icon"
-        />
+        <Image color={Colors.dark.text} size={35} />
       </div>
       <div onClick={toggleFlashLight} className="flashLightContainer">
-        <ThemeImage
-          className="optionImage"
-          icon={isFlashlightOn ? FlashLightIcon : flashlightNoFillWhite}
-          alt="flash light icon"
+        <Flashlight
+          fill={isFlashlightOn ? Colors.dark.text : "none"}
+          color={Colors.dark.text}
+          style={{ rotate: "45deg" }}
+          size={35}
         />
       </div>
       <CustomButton

@@ -7,8 +7,7 @@ import CustomButton from "../../components/customButton/customButton";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
-import ThemeImage from "../../components/ThemeImage/themeImage";
-import { xSmallIcon } from "../../constants/icons";
+import { X } from "lucide-react";
 
 export default function InformationPopup({ overlay, onClose }) {
   const navigate = useNavigate();
@@ -63,10 +62,11 @@ export default function InformationPopup({ overlay, onClose }) {
             className="contentContainer"
             onClick={(e) => e.stopPropagation()}
           >
-            <ThemeImage
-              clickFunction={handleOkClick}
-              className="closeImage"
-              icon={xSmallIcon}
+            <X
+              onClick={handleOkClick}
+              color={
+                theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+              }
             />
             <ThemeText className={"message"} textContent={errorMessage} />
 

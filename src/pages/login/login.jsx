@@ -9,8 +9,10 @@ import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import ThemeText from "../../components/themeText/themeText";
+import { useOverlay } from "../../contexts/overlayContext";
 
-function Login({ openOverlay }) {
+function Login() {
+  const { openOverlay } = useOverlay();
   const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, textInputBackground, textInputColor, textColor } =
     useThemeColors();

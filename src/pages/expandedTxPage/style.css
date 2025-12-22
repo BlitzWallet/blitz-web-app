@@ -1,156 +1,254 @@
+/* Root container */
 .expandedTxContainer {
-  height: 100%;
-  max-width: 600px;
   width: 95%;
-  align-self: center;
-  overflow-y: scroll;
-}
-.expandedTxContainer .receiptContainer {
-  width: 100%;
-  height: auto;
-  border-top-right-radius: 20px;
-  border-top-left-radius: 20px;
-  padding: 15px;
-  padding-top: 40px;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 80px;
-  margin-bottom: 20px;
-  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
 }
 
-.expandedTxContainer .receiptContainer .paymentStatusOuterContainer {
-  width: 100px;
-  height: 100px;
+/* Receipt */
+.receiptContainer {
+  position: relative;
+  width: 100%;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 20px;
+  padding-top: 40px;
+  margin-top: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =========================
+   STATUS CIRCLE
+========================= */
+
+.paymentStatusContainer {
   position: absolute;
   top: -70px;
-  border-radius: 50px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.expandedTxContainer
-  .receiptContainer
-  .paymentStatusOuterContainer
-  .paymentStatusFirstCircle {
+.paymentStatusOuterContainer {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.paymentStatusFirstCircle {
   width: 80px;
   height: 80px;
-  border-radius: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.expandedTxContainer
-  .receiptContainer
-  .paymentStatusOuterContainer
-  .paymentStatusSecondCircle {
+
+.paymentStatusSecondCircle {
   width: 60px;
   height: 60px;
-  border-radius: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.expandedTxContainer .receiptContainer .paymentStatusIcon {
-  width: 60%;
-  height: 60%;
+
+.paymentStatusSecondCircle svg {
+  width: 26px;
+  height: 26px;
 }
-.expandedTxContainer .receiptContainer .receiveAmountLabel {
-  font-size: 20px;
+
+/* =========================
+   AMOUNT + LABEL
+========================= */
+
+.receiveAmountLabel {
+  margin-top: 20px;
   text-align: center;
-  margin-top: 20px;
+  margin-bottom: 0;
 }
 
-.expandedTxContainer .paymentStatusTextContanier {
+.amountContainer {
+  margin-top: 8px;
+}
+
+/* =========================
+   PAYMENT STATUS ROW
+========================= */
+
+.paymentStatusTextContanier {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.paymentStatusPillContiner {
+  padding: 6px 16px;
+  border-radius: 16px;
+}
+
+.paymentStatusPillContiner p {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* =========================
+   BORDER DOTS
+========================= */
+
+.borderElementsContainer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0 10px;
+  display: flex;
+  gap: 5px;
+}
+.borderElementsContainer .border-element {
+  width: calc(100% / 25);
+  height: 2px;
+  background-color: red;
+}
+
+/* =========================
+   CONTACT ROW
+========================= */
+
+.contactRow {
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 300px;
-  margin-top: 30px;
+  justify-content: center;
   margin-bottom: 10px;
-}
-.expandedTxContainer .paymentStatusPillContiner {
-  padding: 2px 15px;
-  border-radius: 20px;
-}
-.expandedTxContainer .paymentStatusPillContiner p {
-  margin: 0;
-}
-
-.expandedTxContainer .borderElementsContainer {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  overflow: hidden;
-}
-.expandedTxContainer .borderElementScroll {
-  width: max-content;
-  display: flex;
-  justify-content: space-between;
-}
-.expandedTxContainer .dotElementsContainer {
-  position: absolute;
-  bottom: -10px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  overflow: hidden;
-}
-.expandedTxContainer .infoGridContainer {
-  width: 100%;
-  max-width: 250px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-}
-
-.expandedTxContainer .infoGridContainer p:nth-child(2n) {
-  margin: 0;
-}
-
-.expandedTxContainer .descriptionContainer {
-  width: 100%;
-  max-width: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-}
-.expandedTxContainer .descriptionScrollviewContainer {
-  width: 100%;
-  max-width: 300px;
-  height: 100px;
   padding: 10px;
   border-radius: 8px;
-  overflow-y: scroll;
 }
-.expandedTxContainer .descriptionScrollviewContainer p {
+
+.profileImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================
+   DETAILS GRID
+========================= */
+
+.infoGridContainer {
+  width: 100%;
+  max-width: 320px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 8px;
+  margin-top: 10px;
+}
+
+.infoGridContainer p:nth-child(2n) {
+  text-align: right;
   margin: 0;
 }
 
-@media screen and (max-width: 320px) {
-  .expandedTxContainer .paymentStatusTextContanier {
+/* =========================
+   MEMO SECTION
+========================= */
+
+.descriptionContainer {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 20px;
+}
+
+.memoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.descriptionScrollviewContainer {
+  width: 100%;
+  height: 100px;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+.descriptionScrollviewContainer textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* =========================
+   RECEIPT DOTS
+========================= */
+
+.dotElementsContainer {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  bottom: -7.5px;
+}
+.dotElementsContainer .dot-element {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 320px) {
+  .paymentStatusTextContanier {
     flex-direction: column;
-    margin-bottom: 20px;
-  }
-  .expandedTxContainer .paymentStatusTextContanier p {
-    margin: 0;
-    text-align: center;
+    gap: 8px;
   }
 
-  .expandedTxContainer .infoGridContainer {
+  .infoGridContainer {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  .expandedTxContainer .infoGridContainer p:nth-child(1n) {
-    margin-bottom: 0px;
-  }
-}
 
-@media screen and (max-width: 200px) {
-  .expandedTxContainer .receiptContainer .receiveAmountLabel {
-    font-size: 16px;
+  .infoGridContainer p:nth-child(2n) {
+    text-align: center;
   }
 }

@@ -11,7 +11,7 @@
   z-index: 1;
 }
 .pageNavBar .pageHeaderText {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   text-align: center;
   white-space: nowrap; /* Prevent line break */
   overflow: hidden; /* Hide overflow */
@@ -27,8 +27,6 @@
   right: 0;
   z-index: 1;
 }
-@media screen and (max-width: 400px) {
-  .pageNavBar .pageHeaderText {
-    font-size: 20px;
-  }
+.pageNavBar .right-action {
+  cursor: pointer;
 }
