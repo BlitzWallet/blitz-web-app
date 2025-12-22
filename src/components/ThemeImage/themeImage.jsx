@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useThemeContext } from "../../contexts/themeContext";
-import { darkMode } from "../../constants/icons";
 
 export default function ThemeImage({
   styles,
@@ -25,7 +24,7 @@ export default function ThemeImage({
         : "initial",
       ...styles,
     };
-  }, [styles, theme, darkMode, filter]);
+  }, [styles, theme, darkModeType, filter]);
   // const imageSource = useMemo(() => {
   //   return theme
   //     ? darkModeType

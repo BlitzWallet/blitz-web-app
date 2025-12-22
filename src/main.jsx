@@ -32,7 +32,8 @@ import { NavigationStackProvider } from "./contexts/navigationLogger.jsx";
 
 // Lazy-loaded pages
 const CreateSeed = lazy(() => import("./pages/createSeed/createSeed.jsx"));
-const DisclaimerPage = lazy(() => import("./pages/disclaimer/disclaimer.jsx"));
+import DisclaimerPage from "./pages/disclaimer/disclaimer.jsx";
+// const DisclaimerPage = lazy(() => import("./pages/disclaimer/disclaimer.jsx"));
 const CreatePassword = lazy(() =>
   import("./pages/createPassword/createPassword.jsx")
 );
@@ -80,11 +81,7 @@ const ChooseContactListPage = lazy(() =>
 );
 
 import ConfirmPayment from "./pages/confirmPayment/confirmPaymentScreen.jsx";
-import {
-  ThemeContext,
-  ThemeContextProvider,
-  useThemeContext,
-} from "./contexts/themeContext.jsx";
+import { ThemeContextProvider } from "./contexts/themeContext.jsx";
 import LoadingScreen from "./pages/loadingScreen/index.jsx";
 import { BitcoinPriceProvider } from "./contexts/bitcoinPriceContext.jsx";
 import { KeysContextProvider } from "./contexts/keysContext.jsx";

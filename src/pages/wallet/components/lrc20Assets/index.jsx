@@ -1,12 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-
 import { useTranslation } from "react-i18next";
-import "./style.css"; // ✅ External CSS
+import "./style.css";
 import ThemeText from "../../../../components/themeText/themeText";
-import ThemeImage from "../../../../components/ThemeImage/themeImage";
-import { smallArrowLeft } from "../../../../constants/icons";
 import { formatTokensNumber } from "../../../../functions/lrc20/formatTokensBalance";
 import {
   getContrastingTextColor,
@@ -19,6 +15,7 @@ import formatBalanceAmount from "../../../../functions/formatNumber";
 import { useSpark } from "../../../../contexts/sparkContext";
 import { Colors } from "../../../../constants/theme";
 import { useOverlay } from "../../../../contexts/overlayContext";
+import { ArrowLeft } from "lucide-react";
 
 export default function LRC20Assets() {
   const { openOverlay } = useOverlay();
@@ -134,9 +131,11 @@ export default function LRC20Assets() {
           animate={{ rotate: isExpanded ? 90 : -90 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <ThemeImage
-            styles={{ width: 15, height: 15 }}
-            icon={smallArrowLeft}
+          <ArrowLeft
+            color={
+              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+            }
+            style={{ width: 15, height: 15 }}
           />
         </motion.div>
       </button>

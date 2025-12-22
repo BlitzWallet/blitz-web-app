@@ -4,7 +4,6 @@ import {
   blockstreamLiquid,
   lightningReceiveIcon,
   rootstockLogo,
-  smallArrowLeft,
   sparkAsteriskWhite,
 } from "../../constants/icons";
 import ThemeText from "../../components/themeText/themeText";
