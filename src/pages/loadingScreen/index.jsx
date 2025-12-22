@@ -23,6 +23,7 @@ import useThemeColors from "../../hooks/useThemeColors.js";
 import loadNewFiatData from "../../functions/saveAndUpdateFiatData.js";
 import Storage from "../../functions/localStorage.js";
 import { useTranslation } from "react-i18next";
+import { Settings } from "lucide-react";
 
 export default function LoadingScreen() {
   const didInitializeMessageIntervalRef = useRef(false);
@@ -146,6 +147,16 @@ export default function LoadingScreen() {
 
   return (
     <div id="loadingScreenContainer">
+      {!!hasError && (
+        <Settings
+          className="doomsday"
+          onClick={() => navigate("/settings", { state: { isDoomsday: true } })}
+          style={{ cursor: "pointer" }}
+          color={
+            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+          }
+        />
+      )}
       <div className="mascotContainer">
         <MascotWalking />
       </div>

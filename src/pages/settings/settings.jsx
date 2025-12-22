@@ -1,190 +1,396 @@
-import "./settings.css";
-import { useAuth } from "../../contexts/authContext";
-import { useLocation, useNavigate } from "react-router-dom";
-import PageNavBar from "../../components/navBar/navBar";
-import ThemeText from "../../components/themeText/themeText";
-import { useEffect } from "react";
-import SocialOptionsBottomBar from "./socialOptions/socialOptions";
-import { Colors } from "../../constants/theme";
-import { useThemeContext } from "../../contexts/themeContext";
-import useThemeColors from "../../hooks/useThemeColors";
-import { useOverlay } from "../../contexts/overlayContext";
-import * as LucidIcons from "lucide-react";
-import CustomSettingsNavBar from "../../components/customSettingsNavbar";
+import React, { useMemo } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-const GENERALOPTIONS = [
-  {
-    for: "general",
-    name: "About",
-    newIconName: "Info",
-  },
+import ThemeText from "../../components/themeText/themeText";
+import SocialOptionsBottomBar from "./socialOptions/socialOptions";
+import ContactProfileImage from "../contacts/components/profileImage/profileImage";
+import "./settings.css";
+import {
+  ArrowLeft,
+  Calculator,
+  ChevronRight,
+  Edit,
+  ScanLine,
+  Upload,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useThemeContext } from "../../contexts/themeContext";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
+import { Colors } from "../../constants/theme";
+import BackArrow from "../../components/backArrow/backArrow";
+import CustomSettingsNavBar from "../../components/customSettingsNavbar";
+import useThemeColors from "../../hooks/useThemeColors";
+import * as LucidIcons from "lucide-react";
+import CustomButton from "../../components/customButton/customButton";
+import { useOverlay } from "../../contexts/overlayContext";
+import { useImageCache } from "../../contexts/imageCacheContext";
+import { useGlobalContacts } from "../../contexts/globalContacts";
+
+const PREFERENCES = [
   {
     for: "general",
     name: "Display Currency",
-    newIconName: "Coins",
+    displayName: "screens.inAccount.settingsContent.display currency",
+    icon: "Coins",
   },
+  // {
+  //   for: "general",
+  //   name: "Language",
+  //   displayName: "screens.inAccount.settingsContent.language",
+  //   icon: "Languages",
+  // },
   {
     for: "general",
     name: "Display Options",
-    newIconName: "Palette",
-  },
-
-  {
-    for: "general",
-    name: "Edit Contact Profile",
-    newIconName: "UserPen",
+    displayName: "screens.inAccount.settingsContent.display options",
+    icon: "Palette",
   },
   {
     for: "general",
     name: "Fast Pay",
-    newIconName: "ClockFading",
-  },
-  {
-    for: "general",
-    name: "Blitz Stats",
-    newIconName: "ChartArea",
+    displayName: "screens.inAccount.settingsContent.fast pay",
+    icon: "ClockFading",
   },
 ];
 
+const OTHEROPTIONS = [
+  {
+    for: "general",
+    name: "About",
+    displayName: "screens.inAccount.settingsContent.about",
+    icon: "Info",
+  },
+
+  {
+    for: "general",
+    name: "Blitz Stats",
+    displayName: "screens.inAccount.settingsContent.blitz stats",
+    icon: "ChartArea",
+  },
+  {
+    for: "Closing Account",
+    name: "Delete Wallet",
+    displayName: "screens.inAccount.settingsContent.delete wallet",
+    icon: "Trash",
+  },
+];
 const SECURITYOPTIONS = [
+  // {
+  //   for: "Security & Customization",
+  //   name: "Login Mode",
+  //   displayName: "screens.inAccount.settingsContent.login mode",
+  // },
   {
     for: "Security & Customization",
     name: "Backup wallet",
-    newIconName: "KeyRound",
+    displayName: "screens.inAccount.settingsContent.backup wallet",
+    icon: "KeyRound",
   },
 ];
 
 const ADVANCEDOPTIONS = [
   {
     for: "Closing Account",
-    name: "Blitz Fee Details",
-    newIconName: "ReceiptText",
-  },
-  {
-    for: "Closing Account",
-    name: "Delete Wallet",
-    newIconName: "Trash",
-  },
-  {
-    for: "Closing Account",
     name: "Spark Info",
-    newIconName: "Asterisk",
+    displayName: "screens.inAccount.settingsContent.spark info",
+    icon: "Network",
   },
+  // {
+  //   for: "general",
+  //   name: "Accounts",
+  //   displayName: "screens.inAccount.settingsContent.accounts",
+  // },
+  // {
+  //   for: "general",
+  //   name: "Nostr",
+  //   displayName: "screens.inAccount.settingsContent.nostr",
+  // },
+  // {
+  //   for: "Closing Account",
+  //   name: "Blitz Fee Details",
+  //   displayName: "screens.inAccount.settingsContent.blitz fee details",
+  // },
+
+  // {
+  //   for: "general",
+  //   name: "ViewAllSwaps",
+  //   displayName: "screens.inAccount.settingsContent.view all swaps",
+  // },
 ];
 const SETTINGSOPTIONS = [
-  [...GENERALOPTIONS],
+  [...PREFERENCES],
   [...SECURITYOPTIONS],
   [...ADVANCEDOPTIONS],
+  [...OTHEROPTIONS],
+  // [...EXPIRIMENTALFEATURES],
 ];
 const DOOMSDAYSETTINGS = [
   [
     {
       for: "Security & Customization",
       name: "Backup wallet",
-      newIconName: "KeyRound",
+      displayName: "screens.inAccount.settingsContent.backup wallet",
+      icon: "KeyRound",
     },
   ],
   [
     {
       for: "Closing Account",
       name: "Delete Wallet",
-      newIconName: "Trash",
+      displayName: "screens.inAccount.settingsContent.delete wallet",
+      icon: "Trash",
     },
   ],
 ];
 
-export default function SettingsHome() {
+export default function SettingsIndex() {
+  const { t } = useTranslation();
   const { openOverlay } = useOverlay();
-  const navigate = useNavigate();
+  const { cache } = useImageCache();
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const wantsToDeleteAccount = queryParams.get("confirmed");
-  const props = location.state;
-  const { deleteWallet } = useAuth();
+  const props = location.state || {};
+  const isDoomsday = props.isDoomsday;
   const { theme, darkModeType } = useThemeContext();
-  const { backgroundOffset } = useThemeColors();
-  const settignsList = props?.isDoomsday ? DOOMSDAYSETTINGS : SETTINGSOPTIONS;
+  const { globalContactsInformation } = useGlobalContacts();
+  const { masterInfoObject } = useGlobalContextProvider();
+  const { backgroundOffset, backgroundColor } = useThemeColors();
 
-  useEffect(() => {
-    if (wantsToDeleteAccount !== "true") return;
-    deleteWallet();
-    setTimeout(() => {
-      window.location.reload();
-    }, 800);
-  }, [wantsToDeleteAccount]);
+  const navigate = useNavigate();
+  const settignsList = isDoomsday
+    ? DOOMSDAYSETTINGS
+    : [PREFERENCES, SECURITYOPTIONS, ADVANCEDOPTIONS, OTHEROPTIONS];
+  const myProfileImage = masterInfoObject?.profileImage;
+  const myContact = globalContactsInformation?.myProfile;
+  console.log(globalContactsInformation);
 
-  const settingsItems = settignsList.map((item, id) => {
-    const internalElements = item.map((settingsElement, id) => {
-      const IconElemnt = LucidIcons[settingsElement.newIconName];
-      console.log(IconElemnt, settingsElement.newIconName);
+  const settingsElements = useMemo(() => {
+    return settignsList.map((section, sectionIndex) => {
       return (
-        <div
-          style={{ borderBottomColor: backgroundOffset }}
-          key={id}
-          onClick={() => {
-            if (settingsElement.name === "Delete Wallet") {
-              openOverlay({
-                for: "confirm-action",
-                confirmHeader: "Are you sure you want to delete your wallet?",
-                confirmDescription:
-                  "Your wallet seed will be permanently deleted from this device. Without your wallet seed, your Bitcoin will be lost forever.",
-                fromRoute: "settings",
-              });
-            } else {
-              navigate("/settings-item", {
-                state: {
-                  for: settingsElement.name,
-                },
-              });
-            }
-          }}
-          className="settingsItemContainer"
-        >
-          <IconElemnt
-            color={
-              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
-            }
-          />
+        <div className="options-container" key={sectionIndex}>
           <ThemeText
-            className={"settingsItemName"}
-            textContent={settingsElement.name}
-          />
-          <LucidIcons.ChevronRight
-            size={20}
-            color={
-              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
+            textContent={
+              sectionIndex === 0
+                ? "Preferences"
+                : sectionIndex === 1
+                ? "Security"
+                : sectionIndex === 2
+                ? "Technical Settings"
+                : ""
             }
+            className="options-title"
           />
+
+          <div
+            style={{ backgroundColor: backgroundOffset }}
+            className="options-list-container"
+          >
+            {section.map((element, idx) => {
+              const IconElement = LucidIcons[element.icon];
+              return (
+                <div
+                  className="list-container"
+                  style={{ borderBottomColor: backgroundColor }}
+                  key={idx}
+                  onClick={() => {
+                    if (element.name === "Delete Wallet") {
+                      openOverlay({
+                        for: "confirm-action",
+                        confirmHeader:
+                          "Are you sure you want to delete your wallet?",
+                        confirmDescription:
+                          "Your wallet seed will be permanently deleted from this device. Without your wallet seed, your Bitcoin will be lost forever.",
+                        fromRoute: "settings",
+                      });
+                    } else {
+                      navigate(`/settings-item`, {
+                        state: { for: element.name },
+                      });
+                    }
+                  }}
+                >
+                  <IconElement
+                    color={
+                      theme && darkModeType
+                        ? Colors.dark.text
+                        : Colors.constants.blue
+                    }
+                  />
+
+                  <ThemeText
+                    textContent={t(element.displayName)}
+                    className="list-text"
+                    textStyles={{
+                      textTransform:
+                        element.name === "Experimental" ? "none" : "capitalize",
+                    }}
+                  />
+
+                  {element.name === "Display Currency" && (
+                    <ThemeText
+                      textContent={masterInfoObject?.fiatCurrency}
+                      className="inline-settings-description"
+                      textStyles={{ textTransform: "uppercase" }}
+                    />
+                  )}
+                  {element.name === "Language" && (
+                    <ThemeText
+                      textContent={masterInfoObject?.language}
+                      className="inline-settings-description"
+                      textStyles={{ textTransform: "capitalize" }}
+                    />
+                  )}
+
+                  <ChevronRight
+                    color={
+                      theme && darkModeType
+                        ? Colors.dark.text
+                        : Colors.constants.blue
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
     });
-
-    return (
-      <div key={`itemContainer-${id}`} className="settingsItemGroupContainer">
-        <ThemeText
-          textStyles={{ marginTop: id === 0 ? 0 : 20 }}
-          className={"settingsItemGroupHeader"}
-          textContent={
-            id === 0
-              ? "General"
-              : id === 1
-              ? "Security"
-              : id === 2
-              ? "Technical Settings"
-              : "Experimental Features"
-          }
-        />
-        {internalElements}
-      </div>
-    );
-  });
+  }, [settignsList, t, theme, darkModeType, backgroundOffset, backgroundColor]);
 
   return (
-    <div className="settingsPage">
-      <CustomSettingsNavBar text="Settings" />
-      <div className="contentContainer">
-        {settingsItems}
-        <SocialOptionsBottomBar />
+    <div className="global-container">
+      <CustomSettingsNavBar
+        showLeftImage={!isDoomsday}
+        LeftImageIcon={Upload}
+        text={!isDoomsday ? "Profile" : "Settings"}
+        leftImageFunction={() => {
+          navigator.share?.({
+            title: "Share Contact",
+            url: `https://blitzwalletapp.com/u/${myContact?.uniqueName}`,
+          });
+        }}
+      />
+
+      <div className="settings-container">
+        {!isDoomsday && (
+          <div
+            style={{ borderBottomColor: backgroundOffset }}
+            className="profile-container"
+          >
+            <div
+              style={{ backgroundColor: backgroundOffset }}
+              className="profile-image"
+            >
+              <ContactProfileImage
+                updated={cache[masterInfoObject?.uuid]?.updated}
+                uri={cache[masterInfoObject?.uuid]?.localUri}
+                theme={theme}
+                darkModeType={darkModeType}
+              />
+            </div>
+
+            <ThemeText
+              textContent={myContact?.name || "Anonymous"}
+              textStyles={{
+                opacity: myContact?.name ? 0.5 : 0.8,
+                marginBottom: 0,
+              }}
+            />
+            <ThemeText
+              textStyles={{ margin: 0, marginBottom: 40 }}
+              textContent={`@${myContact?.uniqueName}`}
+              className="profile-unique-name"
+            />
+
+            <div className="button-container">
+              <div
+                style={{
+                  borderColor: backgroundOffset,
+                }}
+                className="button"
+                onClick={() =>
+                  navigate(`/settings-item`, {
+                    state: { for: "edit contact profile" },
+                  })
+                }
+              >
+                <Edit
+                  color={theme ? Colors.dark.text : Colors.light.text}
+                  size={20}
+                />
+                <ThemeText
+                  className={"profileActionBTNText"}
+                  textContent="Edit Profile"
+                />
+              </div>
+
+              <div
+                style={{
+                  borderColor: backgroundOffset,
+                }}
+                className="button"
+                onClick={() => navigate("/profile-qr")}
+              >
+                <ScanLine
+                  color={theme ? Colors.dark.text : Colors.light.text}
+                  size={20}
+                />
+
+                <ThemeText
+                  className={"profileActionBTNText"}
+                  textContent="Show QR"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {settingsElements}
+
+        {isDoomsday && (
+          <button
+            className="pos-container"
+            onClick={() =>
+              window.open("https://recover.blitzwalletapp.com", "_blank")
+            }
+          >
+            <ThemeText content="Blitz Restore" className="pos-text" />
+          </button>
+        )}
+
+        {!isDoomsday && (
+          <>
+            {/* <div
+              style={{
+                borderColor:
+                  theme && darkModeType
+                    ? Colors.dark.text
+                    : Colors.constants.primary,
+              }}
+              className="pos-container"
+              onClick={() => navigate("/settings/point-of-sale")}
+            >
+              <Calculator
+                color={
+                  theme && darkModeType
+                    ? Colors.dark.text
+                    : Colors.constants.primary
+                }
+              />
+              <ThemeText
+                textStyles={{
+                  color:
+                    theme && darkModeType
+                      ? Colors.dark.text
+                      : Colors.constants.primary,
+                }}
+                textContent="Point-of-sale"
+                className="pos-text"
+              />
+            </div> */}
+
+            <SocialOptionsBottomBar />
+          </>
+        )}
       </div>
     </div>
   );

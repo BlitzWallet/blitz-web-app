@@ -6,3 +6,9 @@
   justify-content: center;
   flex-direction: column;
 }
+
+#loadingScreenContainer .doomsday {
+  position: absolute;
+  right: 0;
+  top: 20px;
+}

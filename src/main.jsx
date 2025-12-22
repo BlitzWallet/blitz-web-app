@@ -83,6 +83,9 @@ const ConfirmPayment = lazy(() =>
   import("./pages/confirmPayment/confirmPaymentScreen.jsx")
 );
 const LoadingScreen = lazy(() => import("./pages/loadingScreen/index.jsx"));
+const ShowProfileQr = lazy(() =>
+  import("./pages/settings/pages/showProfileQr/showProfileQr.jsx")
+);
 
 // Lazy load bottom tabs
 const BottomTabs = lazy(() => import("./tabs/tabs.jsx"));
@@ -431,6 +434,24 @@ function Root() {
                                                   >
                                                     <SafeAreaComponent>
                                                       <SparkSettingsPage />
+                                                    </SafeAreaComponent>
+                                                  </AnimatedRouteWrapper>
+                                                }
+                                              />
+                                              <Route
+                                                path="/profile-qr"
+                                                element={
+                                                  <AnimatedRouteWrapper
+                                                    initialAnimation={{
+                                                      y: "100%",
+                                                    }}
+                                                    animate={{ y: 0 }}
+                                                    exitAnimation={{
+                                                      y: "100%",
+                                                    }}
+                                                  >
+                                                    <SafeAreaComponent>
+                                                      <ShowProfileQr />
                                                     </SafeAreaComponent>
                                                   </AnimatedRouteWrapper>
                                                 }

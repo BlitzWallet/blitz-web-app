@@ -1,51 +1,150 @@
-.settingsPage {
+.global-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  align-items: center;
+  padding-bottom: 0;
 }
-.settingsPage .contentContainer {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+
+.settings-container {
   width: 95%;
-  max-width: 800px;
-  margin: 20px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
 }
-.settingsPage .settingsItemGroupContainer {
-  margin: 5px 0;
+
+.custom-topbar {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  min-height: 30px;
+  position: relative;
 }
-.settingsPage .settingsItemGroupContainer .settingsItemGroupHeader {
-  opacity: 0.8;
-  margin: 0;
+
+.go-back-topbar {
+  margin-right: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
-.settingsPage .settingsItemGroupContainer .settingsItemContainer {
+
+.header-text-container {
+  width: 100%;
+  padding: 0 35px;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+}
+
+.top-bar-label {
+  font-size: 20px;
+  flex-shrink: 1;
+}
+
+.profile-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 30px;
+  border-bottom: 2px solid #ccc;
+}
+.profileActionBTNText {
+  margin: 0 0 0 10px;
+}
+
+.profile-image {
+  width: 125px;
+  height: 125px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  width: 100;
+  justify-content: center;
+  margin-bottom: 15px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.options-container {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.options-title {
+  text-transform: capitalize;
+  margin-top: 20px;
+  opacity: 0.8;
+  margin-bottom: 10px;
+}
+
+.options-list-container {
+  width: 100%;
+  padding: 0 15px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+}
+
+.list-container {
+  display: flex;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #ccc;
   cursor: pointer;
-  padding: 15px 0;
-  border-bottom: 1px solid;
 }
-.settingsPage
-  .settingsItemGroupContainer
-  .settingsItemContainer
-  .settingsItemImage {
-  width: 20px;
-  height: 20px;
-}
-.settingsPage
-  .settingsItemGroupContainer
-  .settingsItemContainer
-  .settingsItemName {
+
+.list-text {
+  font-size: 0.85rem;
   margin: 0;
-  margin-left: 8px;
+  margin-left: 10px;
   margin-right: auto;
 }
-.settingsPage
-  .settingsItemGroupContainer
-  .settingsItemContainer
-  .settingsItemChevron {
-  width: 20px;
-  height: 20px;
-  transform: rotate(180deg);
+
+.inline-settings-description {
+  opacity: 0.7;
+  font-size: 0.7rem;
+  margin: 0;
+}
+
+.profile-unique-name {
+  margin-bottom: 35px;
+}
+
+.button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button {
+  min-height: 45px;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: 2px;
+  border-style: solid;
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.pos-container {
+  display: flex;
+  align-items: center;
+  border: 2px solid #ccc;
+  padding: 8px 25px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+.pos-text {
+  margin: 0 0 0 20px;
+  margin-left: 10px;
+  font-size: 1.25rem;
 }

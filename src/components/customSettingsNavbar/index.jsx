@@ -36,7 +36,7 @@ export default function CustomSettingsNavBar({
         textStyles={{ ...textStyles }}
         textContent={text}
       />
-      {showLeftImage && (
+      {!!showLeftImage && (
         <LeftImageIcon
           className="right-action"
           onClick={leftImageFunction}

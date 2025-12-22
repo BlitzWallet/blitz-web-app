@@ -1,0 +1,189 @@
+/* ShowProfileQr.css */
+
+.profile-qr-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-qr-container.dark {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+/* Top Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.share-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.share-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .share-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark .avatar {
+  background-color: #2a2a2a;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-name {
+  margin: 20px 0 0;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.profile-username {
+  margin: 0 0 10px;
+}
+
+.dark .profile-username {
+  color: #999;
+}
+
+/* Toggle Section */
+.toggle-container {
+  display: flex;
+  gap: 5px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  padding: 5px;
+  margin-top: 25px;
+  width: 100%;
+}
+
+.dark .toggle-container {
+  background-color: #2a2a2a;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggle-btn.active {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dark .toggle-btn.active {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.toggle-btn:hover:not(.active) {
+  opacity: 0.7;
+}
+
+/* QR Section */
+.qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  flex: 1;
+  width: 100%;
+}
+
+/* Action Buttons */
+.action-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.primary-btn {
+  color: #ffffff;
+  margin-top: auto;
+}
+
+.secondary-btn {
+  background-color: transparent;
+  color: inherit;
+  margin-top: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .qr-card canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .toggle-btn {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+}
