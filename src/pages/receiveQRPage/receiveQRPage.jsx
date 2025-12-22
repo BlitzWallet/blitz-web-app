@@ -148,7 +148,10 @@ export default function ReceiveQRPage() {
           }}
         >
           <div className="feeTextContainer">
-            <ThemeText textStyles={{ margin: 0 }} textContent={"Fee"} />
+            <ThemeText
+              textStyles={{ margin: 0, marginRight: 5 }}
+              textContent={"Fee"}
+            />
             <Info
               size={15}
               color={
