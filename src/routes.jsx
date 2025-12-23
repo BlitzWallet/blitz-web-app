@@ -1,7 +1,5 @@
-// routes/routeConfig.js
 import { lazy } from "react";
 
-// Animation presets
 export const ANIMATIONS = {
   NONE: "none",
   SLIDE_LEFT: "slideLeft",
