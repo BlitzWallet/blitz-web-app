@@ -144,7 +144,6 @@
   cursor: pointer;
 }
 .pos-text {
-  margin: 0 0 0 20px;
-  margin-left: 10px;
+  margin: 0 0 0 0;
   font-size: 1.25rem;
 }

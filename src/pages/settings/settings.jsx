@@ -25,6 +25,7 @@ import CustomButton from "../../components/customButton/customButton";
 import { useOverlay } from "../../contexts/overlayContext";
 import { useImageCache } from "../../contexts/imageCacheContext";
 import { useGlobalContacts } from "../../contexts/globalContacts";
+import copyToClipboard from "../../functions/copyToClipboard";
 
 const PREFERENCES = [
   {
@@ -295,11 +296,18 @@ export default function SettingsIndex() {
                 marginBottom: 0,
               }}
             />
-            <ThemeText
-              textStyles={{ margin: 0, marginBottom: 40 }}
-              textContent={`@${myContact?.uniqueName}`}
-              className="profile-unique-name"
-            />
+            <div
+              onClick={() =>
+                copyToClipboard(myContact?.uniqueName, openOverlay, location)
+              }
+              style={{ cursor: "pointer" }}
+            >
+              <ThemeText
+                textStyles={{ margin: 0, marginBottom: 40 }}
+                textContent={`@${myContact?.uniqueName}`}
+                className="profile-unique-name"
+              />
+            </div>
 
             <div className="button-container">
               <div
@@ -353,7 +361,7 @@ export default function SettingsIndex() {
               window.open("https://recover.blitzwalletapp.com", "_blank")
             }
           >
-            <ThemeText content="Blitz Restore" className="pos-text" />
+            <ThemeText textContent="Blitz Restore" className="pos-text" />
           </button>
         )}
 

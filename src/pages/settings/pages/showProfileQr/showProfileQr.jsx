@@ -130,35 +130,32 @@ export default function ShowProfileQr() {
           <div className="qr-card" onClick={handleCopy}>
             <QRCodeQrapper data={currentValue} />
           </div>
+        </div>
+        <div
+          style={{
+            backgroundColor:
+              theme && darkModeType ? backgroundOffset : Colors.constants.blue,
+          }}
+          className="action-btn primary-btn"
+          onClick={handleCopy}
+        >
+          <Copy />
+          <span className="btn-text">
+            {copied
+              ? "Copied!"
+              : activeType === "lnurl"
+              ? "Copy LN Address"
+              : "Copy Blitz Contact"}
+          </span>
+        </div>
 
-          <div
-            style={{
-              backgroundColor:
-                theme && darkModeType
-                  ? backgroundOffset
-                  : Colors.constants.blue,
-            }}
-            className="action-btn primary-btn"
-            onClick={handleCopy}
-          >
-            <Copy />
-            <span className="btn-text">
-              {copied
-                ? "Copied!"
-                : activeType === "lnurl"
-                ? "Copy LN Address"
-                : "Copy Blitz Contact"}
-            </span>
-          </div>
-
-          {/* <div className="action-btn secondary-btn" onClick={handleScanProfile}>
+        {/* <div className="action-btn secondary-btn" onClick={handleScanProfile}>
             <ScanLine />
             <ThemeText
               textStyles={{ margin: 0 }}
               textContent={"Scan Profile"}
             />
           </div> */}
-        </div>
       </div>
     </div>
   );

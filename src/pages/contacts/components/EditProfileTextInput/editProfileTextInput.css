@@ -1,6 +1,6 @@
 .text-input-container {
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   cursor: text;
 }
 
@@ -49,6 +49,7 @@
 
 .character-count {
   text-align: right;
+  margin: 0;
 }
 
 .dark .character-count {

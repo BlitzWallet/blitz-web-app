@@ -3,6 +3,7 @@
 .profile-qr-container {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .profile-qr-container.dark {
@@ -145,7 +146,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 30px;
+  justify-content: center;
+  margin: 20px 0;
   flex: 1;
   width: 100%;
 }
