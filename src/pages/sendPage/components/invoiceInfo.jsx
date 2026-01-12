@@ -54,6 +54,7 @@ export default function InvoiceInfo({
       ) : (
         <ThemeText
           CustomNumberOfLines={2}
+          className={"addressText"}
           textContent={
             paymentInfo?.type === InputTypes.LNURL_PAY
               ? paymentInfo.data.address
