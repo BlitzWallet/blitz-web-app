@@ -92,11 +92,11 @@ export const getSparkBalance = async (mnemonic) => {
     console.log("Tokens balance size:", balance.tokenBalances.size);
     console.log(
       "Tokens balance keys",
-      Array.from(balance.tokenBalances.keys())
+      Array.from(balance.tokenBalances.keys()),
     );
     console.log(
       "Tokens balance values",
-      Array.from(balance.tokenBalances.values())
+      Array.from(balance.tokenBalances.values()),
     );
 
     const cachedTokens = await migrateCachedTokens(mnemonic);
@@ -114,7 +114,7 @@ export const getSparkBalance = async (mnemonic) => {
     const allTokens = mergeTokensWithCache(
       balance.tokenBalances,
       cachedTokens,
-      mnemonic
+      mnemonic,
     );
 
     console.log("all tokens after merge", allTokens);
@@ -245,7 +245,7 @@ export const sendSparkTokens = async ({
 export const getSparkLightningPaymentFeeEstimate = async (
   invoice,
   amountSat,
-  mnemonic
+  mnemonic,
 ) => {
   try {
     const response = await getWallet(mnemonic).getLightningSendFeeEstimate({
@@ -286,9 +286,8 @@ export const getSparkBitcoinPaymentFeeEstimate = async ({
 
 export const getSparkPaymentFeeEstimate = async (amountSats, mnemonic) => {
   try {
-    const feeResponse = await getWallet(mnemonic).getSwapFeeEstimate(
-      amountSats
-    );
+    const feeResponse =
+      await getWallet(mnemonic).getSwapFeeEstimate(amountSats);
     return feeResponse.feeEstimate.originalValue || SPARK_TO_SPARK_FEE;
   } catch (err) {
     console.log("Get bitcoin payment fee estimate error", err);
@@ -328,7 +327,7 @@ export const getSparkLightningPaymentStatus = async ({
 }) => {
   try {
     return await getWallet(mnemonic).getLightningReceiveRequest(
-      lightningInvoiceId
+      lightningInvoiceId,
     );
   } catch (err) {
     console.log("Get lightning payment status error", err);
@@ -350,6 +349,28 @@ export const sendSparkLightningPayment = async ({
     return { didWork: true, paymentResponse };
   } catch (err) {
     console.log("Send lightning payment error", err);
+    return { didWork: false, error: err.message };
+  }
+};
+
+export const getUtxosForDepositAddress = async ({
+  depositAddress,
+  mnemonic,
+  limit = 100,
+  offset = 0,
+  excludeClaimed = true,
+}) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const utxos = await wallet.getUtxosForDepositAddress(
+      depositAddress,
+      limit,
+      offset,
+      excludeClaimed,
+    );
+    return { didWork: true, utxos };
+  } catch (err) {
+    console.log("Send Bitcoin payment error", err);
     return { didWork: false, error: err.message };
   }
 };
@@ -380,7 +401,7 @@ export const sendSparkBitcoinPayment = async ({
 export const getSparkTransactions = async (
   transferCount = 100,
   offsetIndex,
-  mnemonic
+  mnemonic,
 ) => {
   try {
     return await getWallet(mnemonic).getTransfers(transferCount, offsetIndex);
@@ -461,8 +482,8 @@ export const useSparkPaymentType = (tx) => {
     return isLightningPayment
       ? "lightning"
       : isBitcoinPayment
-      ? "bitcoin"
-      : "spark";
+        ? "bitcoin"
+        : "spark";
   } catch (err) {
     console.log("Error finding which payment method was used", err);
   }
@@ -478,8 +499,8 @@ export const sparkPaymentType = (tx) => {
     return isLightningPayment
       ? "lightning"
       : isBitcoinPayment
-      ? "bitcoin"
-      : "spark";
+        ? "bitcoin"
+        : "spark";
   } catch (err) {
     console.log("Error finding which payment method was used", err);
   }
@@ -496,26 +517,26 @@ export const getSparkPaymentStatus = (status) => {
     status === ClaimStaticDepositStatus.TRANSFER_COMPLETED
     ? "completed"
     : status === "TRANSFER_STATUS_RETURNED" ||
-      status === "TRANSFER_STATUS_EXPIRED" ||
-      status === "TRANSFER_STATUS_SENDER_INITIATED" ||
-      status === LightningSendRequestStatus.LIGHTNING_PAYMENT_FAILED ||
-      status === SparkCoopExitRequestStatus.FAILED ||
-      status === SparkCoopExitRequestStatus.EXPIRED ||
-      status === LightningReceiveRequestStatus.TRANSFER_FAILED ||
-      status ===
-        LightningReceiveRequestStatus.PAYMENT_PREIMAGE_RECOVERING_FAILED ||
-      status ===
-        LightningReceiveRequestStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED ||
-      status === LightningReceiveRequestStatus.REFUND_SIGNING_FAILED ||
-      status === SparkLeavesSwapRequestStatus.FAILED ||
-      status === SparkLeavesSwapRequestStatus.EXPIRED ||
-      status === SparkUserRequestStatus.FAILED ||
-      status === ClaimStaticDepositStatus.TRANSFER_CREATION_FAILED ||
-      status === ClaimStaticDepositStatus.REFUND_SIGNING_FAILED ||
-      status === ClaimStaticDepositStatus.UTXO_SWAPPING_FAILED ||
-      status === LightningReceiveRequestStatus.FUTURE_VALUE
-    ? "failed"
-    : "pending";
+        status === "TRANSFER_STATUS_EXPIRED" ||
+        status === "TRANSFER_STATUS_SENDER_INITIATED" ||
+        status === LightningSendRequestStatus.LIGHTNING_PAYMENT_FAILED ||
+        status === SparkCoopExitRequestStatus.FAILED ||
+        status === SparkCoopExitRequestStatus.EXPIRED ||
+        status === LightningReceiveRequestStatus.TRANSFER_FAILED ||
+        status ===
+          LightningReceiveRequestStatus.PAYMENT_PREIMAGE_RECOVERING_FAILED ||
+        status ===
+          LightningReceiveRequestStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED ||
+        status === LightningReceiveRequestStatus.REFUND_SIGNING_FAILED ||
+        status === SparkLeavesSwapRequestStatus.FAILED ||
+        status === SparkLeavesSwapRequestStatus.EXPIRED ||
+        status === SparkUserRequestStatus.FAILED ||
+        status === ClaimStaticDepositStatus.TRANSFER_CREATION_FAILED ||
+        status === ClaimStaticDepositStatus.REFUND_SIGNING_FAILED ||
+        status === ClaimStaticDepositStatus.UTXO_SWAPPING_FAILED ||
+        status === LightningReceiveRequestStatus.FUTURE_VALUE
+      ? "failed"
+      : "pending";
 };
 
 export const useIsSparkPaymentPending = (tx, transactionPaymentType) => {
@@ -568,7 +589,7 @@ export const findTransactionTxFromTxHistory = async (
   sparkTxId,
   previousOffset = 0,
   previousTxs = [],
-  mnemonic
+  mnemonic,
 ) => {
   try {
     // Early return with cached transaction

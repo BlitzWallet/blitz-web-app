@@ -91,7 +91,7 @@ export const restoreSparkTxState = async (
   isSendingPayment,
   mnemonic,
   accountId,
-  onProgressSave = null
+  onProgressSave = null,
 ) => {
   const restoredTxs = [];
 
@@ -116,7 +116,7 @@ export const restoreSparkTxState = async (
     console.log(
       `Restore mode: ${
         isRestoring ? "ACTIVE" : "NORMAL"
-      }, batch size: ${localBatchSize}`
+      }, batch size: ${localBatchSize}`,
     );
 
     const donationPubKey = import.meta.env.VITE_BLITZ_SPARK_PUBKEY;
@@ -143,17 +143,7 @@ export const restoreSparkTxState = async (
           const type = sparkPaymentType(tx);
 
           // Check against pending transactions
-          if (type === "bitcoin") {
-            const duplicate = txsByType.bitcoin.find((item) => {
-              const details = JSON.parse(item.details);
-              return (
-                tx.transferDirection === details.direction &&
-                tx.totalValue === details.amount &&
-                details.time - new Date(tx.createdTime) < 1000 * 60 * 10
-              );
-            });
-            if (duplicate) continue;
-          } else if (type === "lightning") {
+          if (type === "lightning") {
             const duplicate = txsByType.lightning.find((item) => {
               const details = JSON.parse(item.details);
               return (
@@ -169,7 +159,7 @@ export const restoreSparkTxState = async (
 
         if (newTxsAtFront.length > 0) {
           console.log(
-            `Found ${newTxsAtFront.length} new transactions at the front`
+            `Found ${newTxsAtFront.length} new transactions at the front`,
           );
           restoredTxs.push(...newTxsAtFront);
           // Add these new tx IDs to savedIds to avoid duplicates
@@ -200,7 +190,7 @@ export const restoreSparkTxState = async (
         if (savedIds.has(tx.id)) {
           foundOverlap = true;
           console.log(
-            "Found overlap with saved transactions, stopping restore."
+            "Found overlap with saved transactions, stopping restore.",
           );
           break;
         }
@@ -218,18 +208,7 @@ export const restoreSparkTxState = async (
 
         const type = sparkPaymentType(tx);
 
-        if (type === "bitcoin") {
-          const response = txsByType.bitcoin.find((item) => {
-            const details = JSON.parse(item.details);
-            return (
-              tx.transferDirection === details.direction &&
-              tx.totalValue === details.amount &&
-              details.time - new Date(tx.createdTime) < 1000 * 60 * 10
-            );
-          });
-
-          if (response) continue;
-        } else if (type === "lightning") {
+        if (type === "lightning") {
           const response = txsByType.lightning.find((item) => {
             const details = JSON.parse(item.details);
             return (
@@ -301,7 +280,7 @@ async function processTransactionChunk(
   unpaidInvoices,
   identityPubKey,
   numberOfRestoredTxs,
-  unpaidContactInvoices
+  unpaidContactInvoices,
 ) {
   const chunkPaymentObjects = [];
 
@@ -316,7 +295,7 @@ async function processTransactionChunk(
         identityPubKey,
         numberOfRestoredTxs,
         undefined,
-        unpaidContactInvoices
+        unpaidContactInvoices,
       );
       if (paymentObject) {
         chunkPaymentObjects.push(paymentObject);
@@ -370,7 +349,7 @@ export async function fullRestoreSparkState({
             identityPubKey,
             txBatch.length,
             undefined,
-            unpaidContactInvoices
+            unpaidContactInvoices,
           );
           if (paymentObject) {
             paymentObjects.push(paymentObject);
@@ -379,7 +358,7 @@ export async function fullRestoreSparkState({
           console.error(
             "Error transforming tx during incremental save:",
             tx.id,
-            err
+            err,
           );
         }
       }
@@ -387,7 +366,7 @@ export async function fullRestoreSparkState({
       if (paymentObjects.length) {
         await bulkUpdateSparkTransactions(paymentObjects, "incrementalRestore");
         console.log(
-          `Incrementally saved ${paymentObjects.length} transactions`
+          `Incrementally saved ${paymentObjects.length} transactions`,
         );
       }
     };
@@ -398,7 +377,7 @@ export async function fullRestoreSparkState({
       isSendingPayment,
       mnemonic,
       identityPubKey,
-      handleProgressSave
+      handleProgressSave,
     );
     if (!restored.txs.length) return;
     const [unpaidInvoices, unpaidContactInvoices] = await Promise.all([
@@ -408,7 +387,7 @@ export async function fullRestoreSparkState({
     const txChunks = chunkArray(restored.txs, chunkSize);
 
     console.log(
-      `Processing ${restored.txs.length} transactions in ${txChunks.length} chunks`
+      `Processing ${restored.txs.length} transactions in ${txChunks.length} chunks`,
     );
 
     const allPaymentObjects = [];
@@ -426,8 +405,8 @@ export async function fullRestoreSparkState({
           unpaidInvoices,
           identityPubKey,
           restored.txs.length,
-          unpaidContactInvoices
-        )
+          unpaidContactInvoices,
+        ),
       );
 
       try {
@@ -456,7 +435,7 @@ export async function fullRestoreSparkState({
     }
 
     console.log(
-      `Transformed ${allPaymentObjects.length}/${restored.txs.length} transactions`
+      `Transformed ${allPaymentObjects.length}/${restored.txs.length} transactions`,
     );
 
     if (allPaymentObjects.length) {
@@ -514,7 +493,7 @@ export const updateSparkTxStatus = async (mnemoninc, accountId) => {
         txsByType.lightning,
         unpaidInvoicesByAmount,
         mnemoninc,
-        accountId
+        accountId,
       ),
       processBitcoinTransactions(txsByType.bitcoin, mnemoninc, accountId),
       processSparkTransactions(txsByType.spark, mnemoninc),
@@ -530,7 +509,7 @@ export const updateSparkTxStatus = async (mnemoninc, accountId) => {
 
     await bulkUpdateSparkTransactions(
       updatedTxs,
-      sparkUpdates.includesGift ? "fullUpdate-waitBalance" : "txStatusUpdate"
+      sparkUpdates.includesGift ? "fullUpdate-waitBalance" : "txStatusUpdate",
     );
     console.log(`Updated transactions:`, updatedTxs);
     return { updated: updatedTxs };
@@ -546,7 +525,7 @@ async function processLightningTransactions(
   lightningTxs,
   unpaidInvoicesByAmount,
   mnemonic,
-  accountId
+  accountId,
 ) {
   const CONCURRENCY_LIMIT = 5;
   const updatedTxs = [];
@@ -560,8 +539,8 @@ async function processLightningTransactions(
         (err) => {
           console.error("Error processing lightning tx:", tx.sparkID, err);
           return null;
-        }
-      )
+        },
+      ),
     );
 
     const results = await Promise.all(batchPromises);
@@ -616,7 +595,7 @@ async function processLightningTransactions(
       false,
       [],
       accountId,
-      1
+      1,
     );
 
     newTxs.push(transformedObject);
@@ -628,7 +607,7 @@ async function processLightningTransactions(
 async function processLightningTransaction(
   txStateUpdate,
   unpaidInvoicesByAmount,
-  mnemonic
+  mnemonic,
 ) {
   const details = JSON.parse(txStateUpdate.details);
   const possibleOptions = unpaidInvoicesByAmount.get(details.amount) || [];
@@ -653,7 +632,7 @@ async function processLightningTransaction(
     const matchResult = await findMatchingInvoice(
       possibleOptions,
       txStateUpdate.sparkID,
-      mnemonic
+      mnemonic,
     );
 
     // if (matchResult.savedInvoice) {
@@ -749,7 +728,7 @@ async function findMatchingInvoice(possibleOptions, sparkID, mnemonic) {
       const paymentDetails = await getPaymentDetailsWithRetry(
         invoice.sparkID,
         undefined,
-        mnemonic
+        mnemonic,
       );
       if (paymentDetails?.transfer?.sparkId === sparkID) {
         return { invoice, paymentDetails };
@@ -774,7 +753,7 @@ async function findMatchingInvoice(possibleOptions, sparkID, mnemonic) {
 async function getPaymentDetailsWithRetry(
   lightningInvoiceId,
   maxAttempts = 2,
-  mnemonic
+  mnemonic,
 ) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
@@ -857,7 +836,7 @@ async function processBitcoinTransactions(bitcoinTxs, mnemonic, accountId) {
 
       const transfer = await getSingleTxDetails(
         mnemonic,
-        txStateUpdate.sparkID
+        txStateUpdate.sparkID,
       );
 
       if (!transfer) continue;
@@ -872,7 +851,7 @@ async function processBitcoinTransactions(bitcoinTxs, mnemonic, accountId) {
       if (shouldBlockSendCheck) continue;
       const sparkResponse = await getSparkBitcoinPaymentRequest(
         txStateUpdate.sparkID,
-        mnemonic
+        mnemonic,
       );
 
       if (!sparkResponse?.transfer) {
@@ -937,7 +916,7 @@ async function processSparkTransactions(sparkTxs, mnemonic) {
     if (details.isGift) {
       const findTxResponse = await getSingleTxDetails(
         mnemonic,
-        txStateUpdate.sparkID
+        txStateUpdate.sparkID,
       );
 
       if (!findTxResponse) continue;
