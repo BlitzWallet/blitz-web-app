@@ -103,9 +103,14 @@ export const getSparkBalance = async (mnemonic) => {
 
     let currentTokensObj = {};
     for (const [tokensIdentifier, tokensData] of balance.tokenBalances) {
-      currentTokensObj[tokensIdentifier] = tokensData;
-      console.log("Tokens Identifier", tokensIdentifier);
-      console.log("Tokens Balance:", tokensData);
+      currentTokensObj[tokensIdentifier] = {
+        ...tokensData,
+        balance: BigInt(tokensData.availableToSendBalance),
+        tokenMetadata: {
+          ...tokensData.tokenMetadata,
+          maxSupply: BigInt(tokensData.tokenMetadata.maxSupply),
+        },
+      };
     }
 
     console.log("tokens in cache", cachedTokens);
