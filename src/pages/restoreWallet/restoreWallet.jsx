@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import getDataFromClipboard from "../../functions/getDataFromClipboard";
-import BackArrow from "../../components/backArrow/backArrow";
 import SuggestedWordContainer from "../../components/suggestedWordContainer/suggestedWords";
 import "./restoreWallet.css";
 import PageNavBar from "../../components/navBar/navBar";
@@ -18,6 +17,7 @@ import { wordlist } from "@scure/bip39/wordlists/english";
 import { handleRestoreFromText } from "../../functions/seed";
 import { useOverlay } from "../../contexts/overlayContext";
 import { useAuth } from "../../contexts/authContext";
+import { useTranslation } from "react-i18next";
 
 const NUMARRAY = Array.from({ length: 12 }, (_, i) => i + 1);
 const INITIAL_KEY_STATE = NUMARRAY.reduce((acc, num) => {
@@ -31,13 +31,14 @@ export default function RestoreWallet() {
   const location = useLocation();
   const params = location.state;
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [isValidating, setIsValidating] = useState(false);
   const [currentFocused, setCurrentFocused] = useState(null);
   const keyRefs = useRef({});
   const [inputedKey, setInputedKey] = useState(INITIAL_KEY_STATE);
 
-  const handleInputElement = (text, keyNumber) => {
+  const handleInputElement = useCallback((text, keyNumber) => {
     const restoredSeed = handleRestoreFromText(text);
 
     if (restoredSeed.didWork && restoredSeed?.seed?.length === 12) {
@@ -50,28 +51,31 @@ export default function RestoreWallet() {
       return;
     }
     setInputedKey((prev) => ({ ...prev, [`key${keyNumber}`]: text }));
-  };
+  }, []);
 
-  const handleFocus = (keyNumber) => {
+  const handleFocus = useCallback((keyNumber) => {
     setCurrentFocused(keyNumber);
-  };
+  }, []);
 
-  const handleSubmit = (keyNumber) => {
+  const handleBlur = useCallback(() => {
+    // Small delay so SuggestedWordContainer click can fire first
+    setTimeout(() => setCurrentFocused(null), 150);
+  }, []);
+
+  const handleSubmit = useCallback((keyNumber) => {
     if (keyNumber < 12) {
       keyRefs.current[keyNumber + 1]?.focus();
     } else {
       keyRefs.current[12]?.blur();
     }
-  };
+  }, []);
 
-  const handleSeedFromClipboard = async () => {
+  const handleSeedFromClipboard = useCallback(async () => {
     try {
       const response = await getDataFromClipboard();
-
       if (!response) throw new Error("Not able to get clipboard data");
 
-      const data = response;
-      const restoredSeed = handleRestoreFromText(data);
+      const restoredSeed = handleRestoreFromText(response);
       if (!restoredSeed.didWork) throw new Error(restoredSeed.error);
 
       const splitSeed = restoredSeed.seed;
@@ -88,103 +92,125 @@ export default function RestoreWallet() {
       setInputedKey(newKeys);
     } catch (err) {
       console.error(err);
-      openOverlay({
-        for: "error",
-        errorMessage: err.message,
-      });
+      openOverlay({ for: "error", errorMessage: err.message });
     }
-  };
+  }, [openOverlay]);
 
-  const keyValidation = async () => {
+  const keyValidation = useCallback(async () => {
     try {
       setIsValidating(true);
       const mnemonic = Object.values(inputedKey)
         .map((val) => val.trim().toLowerCase())
         .filter((val) => val);
 
-      if (!mnemonic || mnemonic.length !== 12) {
-        return;
-      }
+      if (!mnemonic || mnemonic.length !== 12)
+        throw new Error(t("createAccount.restoreWallet.home.error1"));
+
       if (!validateMnemonic(mnemonic.join(" "), wordlist))
-        throw new Error("Not a valid seedphrase");
+        throw new Error(t("createAccount.restoreWallet.home.error2"));
 
       setMnemoinc(mnemonic.join(" "));
-      navigate("/createPassword", {
-        state: {
-          didRestoreWallet: true,
-        },
-      });
+      navigate("/createPassword", { state: { didRestoreWallet: true } });
     } catch (err) {
       console.error(err);
-      openOverlay({
-        for: "error",
-        errorMessage: err.message,
-      });
+      openOverlay({ for: "error", errorMessage: err.message });
     } finally {
       setIsValidating(false);
     }
-  };
+  }, [inputedKey, navigate, openOverlay, setMnemoinc, t]);
 
-  useEffect(() => {
-    const handleBlur = () => setCurrentFocused(null);
-    window.addEventListener("click", handleBlur);
-    return () => window.removeEventListener("click", handleBlur);
-  }, []);
-
+  // Mirrors RN: pairs of inputs per row (2-column grid)
   const inputKeys = useMemo(() => {
     const rows = [];
-    for (let i = 1; i < NUMARRAY.length + 1; i += 1) {
+    for (let i = 0; i < NUMARRAY.length; i += 2) {
+      const item1 = NUMARRAY[i];
+      const item2 = NUMARRAY[i + 1];
       rows.push(
-        <div key={i} className="seedPill">
-          <span className="seedText">{i}.</span>
-          <input
-            className="textInput"
-            type="text"
-            value={inputedKey[`key${i}`]}
-            ref={(ref) => (keyRefs.current[i] = ref)}
-            onFocus={() => handleFocus(i)}
-            onChange={(e) => handleInputElement(e.target.value, i)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit(i)}
-          />
-        </div>
+        <div key={`row${item1}`} className="seedRow">
+          {[item1, item2].map((num) => (
+            <div key={num} className="seedItem">
+              <span className="seedNumber">{num}.</span>
+              <input
+                className="seedTextInput"
+                type="text"
+                autoCorrect="off"
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={inputedKey[`key${num}`]}
+                ref={(ref) => (keyRefs.current[num] = ref)}
+                onFocus={() => handleFocus(num)}
+                onBlur={handleBlur}
+                onChange={(e) => handleInputElement(e.target.value, num)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit(num)}
+              />
+            </div>
+          ))}
+        </div>,
       );
     }
     return rows;
-  }, [inputedKey]);
+  }, [inputedKey, handleFocus, handleBlur, handleInputElement, handleSubmit]);
 
   if (isValidating)
     return (
-      <div>
-        <p>Vaidating seed</p>
+      <div className="loadingScreen">
+        <p>{t("constants.validating")}</p>
       </div>
     );
 
   return (
     <div className="restoreContainer">
-      <PageNavBar text="Restore wallet" />
+      <PageNavBar />
 
-      <div className="inputKeysContainer">{inputKeys}</div>
+      {/* ── Scrollable seed grid ── */}
+      <div className="restoreScrollArea">
+        {/* Header (mirrors RN headerText + subHeader) */}
+        <h1 className="restoreHeader">
+          {t("createAccount.restoreWallet.home.header")}
+        </h1>
+        <p className="restoreSubHeader">
+          {t("createAccount.restoreWallet.home.desc")}
+        </p>
 
-      {/* {!currentFocused && ( */}
-      <div className="buttonsContainer">
-        <CustomButton
-          buttonStyles={{ backgroundColor: Colors.light.blue }}
-          textStyles={{ color: Colors.dark.text }}
-          actionFunction={handleSeedFromClipboard}
-          textContent={"Paste"}
-        />
-        <CustomButton actionFunction={keyValidation} textContent={"Restore"} />
+        <div className="inputKeysContainer">{inputKeys}</div>
       </div>
-      {/* )} */}
 
-      {/* {currentFocused && (
+      {/* ── Footer: only shown when no input is focused (mirrors RN !currentFocused) ── */}
+      {!currentFocused && (
+        <div className="restoreFooter">
+          {/* Paste + Restore row (mirrors RN secondaryButtonRow + restoreButton) */}
+          <div className="secondaryButtonRow">
+            <CustomButton
+              buttonStyles={{
+                flex: 1,
+              }}
+              textStyles={{ color: Colors.light.text }}
+              actionFunction={handleSeedFromClipboard}
+              textContent={t("constants.paste")}
+            />
+            <CustomButton
+              buttonStyles={{
+                backgroundColor: Colors.light.blue,
+                flex: 1,
+              }}
+              textStyles={{ color: Colors.dark.text }}
+              actionFunction={keyValidation}
+              textContent={t("constants.restore")}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Suggested words — shown when an input is focused ── */}
+      {currentFocused && (
         <SuggestedWordContainer
           inputedKey={inputedKey}
           setInputedKey={setInputedKey}
           selectedKey={currentFocused}
           keyRefs={keyRefs}
         />
-      )} */}
+      )}
     </div>
   );
 }

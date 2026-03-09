@@ -5,11 +5,34 @@ import { Colors } from "../../constants/theme";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ThemeText from "../../components/themeText/themeText";
-import Icon from "../../components/customIcon/customIcon";
 import PageNavBar from "../../components/navBar/navBar";
-import { disclaimerKeys } from "../../constants/icons";
 import { useOverlay } from "../../contexts/overlayContext";
-import { KeyRound } from "lucide-react";
+import {
+  Lock,
+  KeyRound,
+  TriangleAlert,
+  Check,
+  ShieldCheck,
+} from "lucide-react";
+
+// ─── Info rows config (mirrors RN's inlined array) ───────────────────────────
+const INFO_ROWS = [
+  {
+    Icon: Lock,
+    labelKey: "createAccount.disclaimerPage.row1Label",
+    descKey: "createAccount.disclaimerPage.row1Description",
+  },
+  {
+    Icon: KeyRound,
+    labelKey: "createAccount.disclaimerPage.row2Label",
+    descKey: "createAccount.disclaimerPage.row2Description",
+  },
+  {
+    Icon: TriangleAlert,
+    labelKey: "createAccount.disclaimerPage.row3Label",
+    descKey: "createAccount.disclaimerPage.row3Description",
+  },
+];
 
 function DisclaimerPage() {
   const { openOverlay } = useOverlay();
@@ -17,7 +40,7 @@ function DisclaimerPage() {
   const params = location.state;
   const nextPageName = params?.nextPageName;
   const navigate = useNavigate();
-  const [termsAccepted, setTermsAccepted] = useState(false); // Add acceptance state
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const { t } = useTranslation();
 
   const nextPage = () => {
@@ -32,82 +55,103 @@ function DisclaimerPage() {
   };
 
   const openTermsAndConditions = (e) => {
-    console.log("test");
-    console.log(e);
-
-    if (e) {
-      e.preventDefault(); // Stops default browser behavior
-      e.stopPropagation(); // Stops event from bubbling up to parent elements
-    }
-
-    // Remove the early return!
+    e.preventDefault();
+    e.stopPropagation();
     window.open("https://blitzwalletapp.com/pages/terms/", "_blank");
-  };
-  const toggleTermsAcceptance = () => {
-    setTermsAccepted(!termsAccepted);
   };
 
   return (
     <div className="disclaimerContainer">
       <PageNavBar />
+
+      {/* ── Scrollable content area ── */}
       <div className="disclaimerContentContainer">
-        <h1>{t("createAccount.disclaimerPage.header")}</h1>
-        <p className="recoveryText">
+        {/* ── Shield icon (mirrors RN's <IconActionCircle icon="ShieldCheck" />) ── */}
+        <div className="shieldIconWrap">
+          <ShieldCheck size={28} color={Colors.light.blue} strokeWidth={1.8} />
+        </div>
+
+        {/* ── Header ── */}
+        <h1 className="disclaimerHeader">
+          {t("createAccount.disclaimerPage.header")}
+        </h1>
+        <p className="disclaimerSubHeader">
           {t("createAccount.disclaimerPage.subHeader")}
         </p>
-        <div className="imgContainer">
-          <img src={disclaimerKeys} />
-        </div>
-        <p className="quoteText">
-          {t("createAccount.disclaimerPage.imgCaption")}
-        </p>
 
-        <div onClick={toggleTermsAcceptance} className="termsAndConditions">
-          <div
-            style={{
-              backgroundColor: termsAccepted
-                ? Colors.constants.blue
-                : "transparent",
-              borderColor: termsAccepted
-                ? Colors.constants.blue
-                : Colors.light.text,
-            }}
-            className="termsAndConditionsCheckbox"
-          >
-            {termsAccepted && (
-              <Icon
-                width={10}
-                height={10}
-                color={Colors.dark.text}
-                name={"expandedTxCheck"}
-              />
-            )}
-          </div>
-          <div className="termsTextContainer">
-            <ThemeText
-              textStyles={{ fontSize: "0.75rem", margin: 0, marginRight: 3 }}
-              textContent={t("createAccount.disclaimerPage.acceptPrefix")}
-            />
-            <div onClick={openTermsAndConditions}>
-              <ThemeText
-                textStyles={{
-                  fontSize: "0.75rem",
-                  margin: 0,
-                  color: "var(--primaryBlue)",
-                }}
-                className={"termsLink"}
-                textContent={t("createAccount.disclaimerPage.terms&Conditions")}
-              />
+        {/* ── Info rows (mirrors RN's infoContainer) ── */}
+        <div className="infoContainer">
+          {INFO_ROWS.map(({ Icon: RowIcon, labelKey, descKey }) => (
+            <div key={labelKey} className="infoRow">
+              <div className="infoIconWrap">
+                <RowIcon size={15} color={Colors.dark.text} strokeWidth={2} />
+              </div>
+              <div className="infoText">
+                <ThemeText
+                  textStyles={{
+                    fontSize: "0.9rem",
+                    fontWeight: 500,
+                    margin: 0,
+                  }}
+                  textContent={t(labelKey)}
+                />
+                <ThemeText
+                  textStyles={{ fontSize: "0.8rem", margin: 0, opacity: 0.65 }}
+                  textContent={t(descKey)}
+                />
+              </div>
             </div>
-          </div>
+          ))}
         </div>
-        <CustomButton
-          actionFunction={nextPage}
-          textStyles={{ color: Colors.dark.text }}
-          buttonStyles={{ backgroundColor: Colors.light.blue }}
-          textContent={"Next"}
-        />
       </div>
+
+      {/* ── Checkbox + inline T&C sentence (mirrors RN's checkboxContainer) ── */}
+      <div
+        className="termsAndConditions"
+        onClick={() => setTermsAccepted((prev) => !prev)}
+      >
+        <div
+          className="termsAndConditionsCheckbox"
+          style={{
+            backgroundColor: termsAccepted ? Colors.light.blue : "transparent",
+            borderColor: termsAccepted ? Colors.light.blue : Colors.light.text,
+          }}
+        >
+          {termsAccepted && (
+            <Check size={12} color={Colors.dark.text} strokeWidth={3} />
+          )}
+        </div>
+
+        {/*
+          Mirrors RN's inline <Text> pattern:
+            acceptPrefix + tappable termsLink + acceptSuffix
+        */}
+        <p className="checkboxText">
+          {t("createAccount.disclaimerPage.acceptPrefix")}{" "}
+          <a
+            className="termsLink"
+            href="https://blitzwalletapp.com/pages/terms/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={openTermsAndConditions}
+          >
+            {t("createAccount.disclaimerPage.terms&Conditions")}
+          </a>{" "}
+          {t("createAccount.disclaimerPage.acceptSuffix")}
+        </p>
+      </div>
+
+      {/* ── CTA ── */}
+      <CustomButton
+        actionFunction={nextPage}
+        textStyles={{ color: Colors.dark.text }}
+        buttonStyles={{
+          backgroundColor: Colors.light.blue,
+          opacity: termsAccepted ? 1 : 0.5,
+          width: "100%",
+        }}
+        textContent={t("createAccount.disclaimerPage.continueBTN")}
+      />
     </div>
   );
 }

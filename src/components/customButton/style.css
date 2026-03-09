@@ -1,9 +1,8 @@
 .customButton {
   width: 100%;
   min-width: 120px;
-  max-width: max-content;
-  min-height: 45px;
-  border-radius: 8px;
+  min-height: 50px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;

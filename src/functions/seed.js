@@ -58,7 +58,8 @@ export function handleRestoreFromText(seedString) {
     let maxIndex = seedString.length;
     let currentWord = "";
 
-    while (currentIndex <= maxIndex && wordArray.length < 13) {
+    while (currentIndex < maxIndex && wordArray.length < 12) {
+      // Changed to < 12 since we want exactly 12 words
       // Early break if we've processed too many characters without finding any words
       if (currentIndex > 20 && wordArray.length === 0) {
         break;
@@ -75,7 +76,7 @@ export function handleRestoreFromText(seedString) {
       const currentTry = currentWord;
 
       const posibleOptins = wordlist.filter((word) =>
-        word.toLowerCase().startsWith(currentTry)
+        word.toLowerCase().startsWith(currentTry),
       );
 
       if (!posibleOptins.length) {
@@ -85,13 +86,13 @@ export function handleRestoreFromText(seedString) {
         while (
           backtrackWord &&
           !wordlist.find(
-            (word) => word.toLowerCase() === backtrackWord.toLowerCase()
+            (word) => word.toLowerCase() === backtrackWord.toLowerCase(),
           )
         ) {
           backtrackAmount++;
           backtrackWord = currentWord.slice(
             0,
-            currentWord.length - backtrackAmount
+            currentWord.length - backtrackAmount,
           );
         }
 
@@ -113,6 +114,16 @@ export function handleRestoreFromText(seedString) {
       }
 
       currentIndex += 1;
+    }
+
+    // Handle any remaining word after loop ends
+    if (currentWord && wordArray.length < 12) {
+      const matchingWord = wordlist.find(
+        (word) => word.toLowerCase() === currentWord.toLowerCase(),
+      );
+      if (matchingWord) {
+        wordArray.push(currentWord);
+      }
     }
 
     return { didWork: true, seed: wordArray };
