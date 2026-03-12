@@ -1,5 +1,6 @@
 {
   "constants": {
+    "scan": "Scansiona",
     "next": "Avanti",
     "skip_all": "Salta tutto",
     "copy": "Copia",
@@ -13,7 +14,8 @@
     "receive": "Ricevi",
     "accept": "Accetta",
     "total_balance": "Saldo Totale",
-    "sat_balance": "Saldo SAT",
+    "sat_balance": "Saldo Bitcoin",
+    "usd_balance": "Saldo in dollari",
     "amount": "Importo",
     "sent": "Inviato",
     "received": "Ricevuto",
@@ -71,7 +73,6 @@
     "hide": "Nascondi",
     "show": "Mostra",
     "understandText": "Ho capito",
-    "retyr": "Riprova",
     "reportError": "Segnala errore",
     "address": "Indirizzo",
     "string": "Stringa",
@@ -107,15 +108,38 @@
     "instant": "Istantaneo",
     "andLower": "e",
     "onLower": "attivo",
-    "offLower": "disattivo"
+    "offLower": "disattivo",
+    "recover": "Recuperare",
+    "search": "Ricerca",
+    "review": "Revisione",
+    "loadMore": "Carica altro",
+    "invoice": "Fattura",
+    "annonName": "Utente anonimo",
+    "claim": "Riscatta",
+    "manage": "Gestire",
+    "reclaim": "Scaduto",
+    "optionalFlag": "(Opzionale)",
+    "gift": "Regalo",
+    "bitcoin_upper": "Bitcoin",
+    "dollars_upper": "Dollari",
+    "rate": "Tasso",
+    "swap": "Swap",
+    "paymentDescriptionPlaceholder": "Descrizione (facoltativa)",
+    "print": "Stampa",
+    "transfer": "Trasferimento",
+    "details": "Dettagli",
+    "total": "Totale"
   },
-
   "languages": {
     "english": "English",
     "spanish": "Español",
-    "italian": "Italiano"
+    "italian": "Italiano",
+    "portuguese_br": "Português (Brasil)",
+    "german": "Deutsch",
+    "french": "Française",
+    "swedish": "Svenska",
+    "russian": "Русский"
   },
-
   "weekdays": {
     "Mon": "Lunedì",
     "Tue": "Martedì",
@@ -125,7 +149,6 @@
     "Sat": "Sabato",
     "Sun": "Domenica"
   },
-
   "months": {
     "Jan": "Gennaio",
     "Feb": "Febbraio",
@@ -140,7 +163,6 @@
     "Nov": "Novembre",
     "Dec": "Dicembre"
   },
-
   "timeLabels": {
     "minute": "minuto",
     "minutes": "minuti",
@@ -155,7 +177,6 @@
     "monthly": "Mensile",
     "yearly": "Annuale"
   },
-
   "transactionLabelText": {
     "notSent": "Pagamento non inviato",
     "txTime_just_now": "Adesso",
@@ -178,42 +199,51 @@
     "date": "Data",
     "time": "Ora",
     "memo": "Memo",
-    "roostockSwap": "Roostock per Spark Swap"
+    "roostockSwap": "Trasferimento da Rootstock a Spark"
   },
-
   "createAccount": {
     "chooseLanguage": {
       "title": "Scegli la lingua"
     },
     "homePage": {
-      "subtitle": "Il tuo portafoglio, i tuoi satoshi, 100% open-source",
+      "COMMENT": "THE NEXT WORDS ARE A SENTENCE SPLIT UP FULL SENTENCE IS (Money Made Simple.)",
+      "money": "Denaro",
+      "made": "reso",
+      "simple": "semplice.",
+      "subtitle": "Il tuo wallet. Il tuo denaro. Open source.",
       "buttons": {
-        "button1": "Inserisci seed phrase",
-        "button2": "Crea nuovo portafoglio"
+        "button1": "Ripristina account",
+        "button2": "Inizia"
       }
     },
     "disclaimerPage": {
-      "header": "Auto-custodia",
-      "subHeader": "Blitz non può accedere ai tuoi fondi o aiutarti a recuperarli se la perdi. Continuando, accetti i termini e condizioni di Blitz Wallet.",
-      "imgCaption": "'Da grandi poteri derivano grandi responsabilità' - Zio Ben",
-      "acceptPrefix": "Accetto il ",
-      "terms&Conditions": "Termini e Condizioni",
-      "acceptError": "Per continuare, devi accettare i Termini e le Condizioni.",
+      "header": "Il tuo denaro. Il tuo controllo.",
+      "subHeader": "Alcune cose da sapere prima di iniziare.",
+      "row1Label": "Solo tu controlli i tuoi fondi",
+      "row1Description": "Blitz non detiene né accede mai al tuo denaro.",
+      "row2Label": "Avrai una frase di recupero",
+      "row2Description": "È la chiave maestra del tuo wallet. Trovala in Impostazioni → Backup wallet.",
+      "row3Label": "Nessun recupero se viene persa",
+      "row3Description": "Non possiamo ripristinare l’accesso. Conserva la tua frase in un luogo sicuro.",
+      "acceptPrefix": "Comprendo che perdere la mia frase di recupero comporta la perdita permanente dei fondi e accetto i",
+      "terms&Conditions": "Termini e condizioni",
+      "acceptSuffix": " di Blitz Wallet.",
+      "acceptError": "Per continuare, devi accettare i Termini e Condizioni.",
       "continueBTN": "Avanti"
     },
     "verifyKeyPage": {
-      "header": "Conferma il tuo backup!"
+      "header": "¡Confirmemos tu frase semilla!"
     },
     "keySetup": {
       "generateKey": {
         "header": "Questa è la tua password per i tuoi fondi, se la perdi perdi i tuoi fondi!",
         "subHeader": "Scrivila con penna e carta e conservala al sicuro!",
         "disclaimer": "NON POSSIAMO AIUTARTI SE LA PERDI",
-        "errorText": "Errore nel recupero del seed di backup",
-        "keyGenError": "Impossibile generare un seed valido",
+        "errorText": "Errore durante il recupero della frase seed",
+        "keyGenError": "Impossibile generare una frase seed valida",
         "seedPrivacyMessage": "Assicurati che nessuno sia vicino e veda lo schermo.",
         "showIt": "Mostra",
-        "invalidSeedError": "Impossibile generare un seed valido"
+        "invalidSeedError": "Impossibile generare una frase seed valida"
       },
       "pin": {
         "savePinError": "Impossibile salvare il PIN",
@@ -226,16 +256,17 @@
     },
     "restoreWallet": {
       "home": {
-        "header": "Inserisci le parole seed di recupero",
+        "header": "Ingrese su frase semilla",
+        "desc": "Inserisci le tue 12 parole di recupero per riaccedere al tuo wallet.",
         "continueBTN": "Ripristina portafoglio",
-        "error1": "Inserisci tutte le tue parole.",
-        "error2": "Questa mnemonica non è valida.",
+        "error1": "Inserisci tutte le parole della frase seme.",
+        "error2": "Questa non è una frase seed valida.",
         "error3": "Le parole non corrispondono a quelle generate",
-        "noSeedInString": "Impossibile trovare il seed nella stringa",
+        "noSeedInString": "Impossibile trovare una frase seed nella stringa",
         "invalidWordLen": "Non tutte le parole hanno una lunghezza valida",
-        "cannotFind12Words": "Impossibile trovare 12 parole dalla frase copiata.",
-        "noSeedInNumberArray": "Impossibile trovare il seed nell'array numerico",
-        "noSeedInQr": "Impossibile ottenere il seed dal QR Code",
+        "cannotFind12Words": "Impossibile trovare 12 parole dalla frase seme copiata.",
+        "noSeedInNumberArray": "Impossibile trovare una frase seed nell'array numerico",
+        "noSeedInQr": "Impossibile ottenere una frase seed dal codice QR",
         "scanQr": "Scansiona QR Code"
       }
     },
@@ -245,16 +276,15 @@
       "btn": "Ho capito"
     }
   },
-
   "adminLogin": {
     "pinPage": {
-      "isBiometricEnabledConfirmAction": "Poiché le impostazioni biometriche sono attivate, non puoi utilizzare il metodo di accesso predefinito con PIN. Vuoi terminare il tuo account?",
+      "isBiometricEnabledConfirmAction": "Non siamo riusciti a verificare i tuoi dati biometrici.\n\nVuoi eliminare tutti i dati del portafoglio? Continua solo se la tua seed phrase è stata salvata in modo sicuro.",
       "wrongPinError": "PIN errato, riprova",
       "enterPinMessage": "Inserisci PIN",
-      "attemptsText": "{{attempts}} tentativi rimasti"
+      "attemptsText": "{{attempts}} tentativi rimasti",
+      "biometricsHeader": "Apri con biometria"
     }
   },
-
   "apps": {
     "appList": {
       "AI": "IA",
@@ -290,16 +320,16 @@
         "fee": "Commissione: "
       },
       "durationSlider": {
+        "3": "mes",
+        "8": "trimestre",
+        "30": "año",
         "durationOption": "1 {{duration}}",
         "price": "Prezzo: ",
         "noDurations": "Nessuna durata disponibile",
         "duration": "Durata",
         "0.1": "hora",
         "0.5": "día",
-        "1.5": "semana",
-        "3": "mes",
-        "8": "trimestre",
-        "30": "año"
+        "1.5": "semana"
       },
       "historicalPurchasesPage": {
         "deleteVPNConfirmMessage": "Sei sicuro di voler rimuovere questa VPN?",
@@ -341,7 +371,8 @@
         "casualPlanTitle": "Piano Casual",
         "proPlanTitle": "Piano Pro",
         "powerPlanTitle": "Piano Power",
-        "paymentMemo": "Negozio - chatGPT"
+        "paymentMemo": "Negozio - chatGPT",
+        "notAvailableMessage": "Purtroppo, a causa delle linee guida di Apple per gli acquisti in-app, questa funzionalità non è attualmente disponibile su iOS. Stiamo valutando come renderla disponibile su iOS in futuro."
       },
       "countrySearch": {
         "inputPlaceholder": "Cerca un paese"
@@ -361,14 +392,12 @@
         "price": "Prezzo: ",
         "fee": "Commissione: "
       },
-
       "switchModel": {
         "inputLabel": "Input: {{amount}}/M",
         "outputLabel": "Output: {{amount}}/M",
         "chooseModel": "Scegli il modello",
         "noModels": "Nessun modello corrisponde a quel nome. Controlla l'ortografia o prova un nome diverso."
       },
-
       "exampleSearchCards": {
         "title": "Esempi di ricerche",
         "examples": [
@@ -674,7 +703,6 @@
           }
         ]
       },
-
       "saveChat": {
         "errorMessage": "Spiacenti, non è stato possibile salvare la conversazione."
       }
@@ -692,7 +720,6 @@
         "price": "Prezzo: ",
         "fee": "Commissione: "
       },
-
       "createAccount": {
         "title": "Offerto da",
         "saveEmail": "Non hai un’email salvata. Salva un’email per velocizzare il checkout.",
@@ -732,7 +759,6 @@
         "customCopyMessage": "Email di assistenza copiata"
       }
     },
-
     "sms4sats": {
       "home": {
         "pageDescription": "Invia e ricevi messaggi SMS senza rivelare il tuo numero di telefono personale.",
@@ -745,7 +771,6 @@
         "invalidNumber": "Non è un numero di telefono valido",
         "receiveTitle": "Conferma ricezione"
       },
-
       "sendPage": {
         "startingSendingMessage": "Creazione dell'ordine di invio",
         "phoneNumberInputDescription": "Inserisci il numero di telefono",
@@ -824,13 +849,101 @@
       "addListing": "Aggiungi Negozio"
     }
   },
-
   "wallet": {
     "halfModal": {
       "images": "Dall'Immagine",
       "clipboard": "Dalla Clipboard",
       "manual": "Inserimento Manuale",
-      "contacts": "Dai Contatti"
+      "contacts": "Dai Contatti",
+      "inputPlaceholder": "Inserisci un indirizzo per pagare",
+      "scanImage": "Scansiona immagine",
+      "tapToScan": "Tocca per ottenere un indirizzo da un'immagine",
+      "chooseWhatToSend": "Scegli cosa inviare",
+      "noContacts": "Aggiungi contatti per visualizzarli qui",
+      "selectAddressType": "Seleziona tipo di indirizzo",
+      "tapToGenerate_other": "Tocca per vedere altre opzioni di ricezione",
+      "tapToGenerate_bitcoin": "Tocca per generare un indirizzo Bitcoin",
+      "tapToGenerate_spark": "Tocca per generare un indirizzo Spark",
+      "tapToGenerate_liquid": "Tocca per generare un indirizzo Liquid",
+      "tapToGenerate_rootstock": "Tocca per generare un indirizzo Rootstock",
+      "chooseWhatToReceive": "Scegli cosa richiedere",
+      "instantLowFees": "Istantaneo, commissioni basse",
+      "onChainTransaction": "Transazione on-chain",
+      "otherAddresses": "Altri modi per ricevere",
+      "scanQrCode": "Scansiona codice QR",
+      "tapToScanQr": "Tocca per scansionare un codice QR",
+      "addressBook_request": "Richiedi a un contatto",
+      "qrReceiveOptions": "Ricevi tramite codice QR",
+      "addressBook_send": "Invia a un contatto",
+      "tapToGenerate_lightning_btc": "Ricevi BTC istantaneamente",
+      "tapToGenerate_lightning_usd": "Ricevi USD istantaneamente",
+      "noAddedContactsTitle": "Nessun contatto aggiunto",
+      "noAddedContactsDesc": "I tuoi contatti appariranno qui quando ne aggiungerai uno."
+    },
+    "pools": {
+      "receiveViaPool": "Ricevi tramite pool",
+      "createPool": "Crea pool",
+      "addDescription": "Aggiungi descrizione",
+      "collectPaymentsDescription": "Raccogli pagamenti per un obiettivo",
+      "whatIsPoolFor": "A cosa serve questo pool?",
+      "examplePlaceholder": "es. Viaggio a Miami",
+      "creating": "Creazione...",
+      "creatingPool": "Creazione pool...",
+      "gettingBalance": "Recupero saldo del pool...",
+      "checkingBalance": "Controllo saldo… ({{attempt}} di {{total}})",
+      "preparingTransfer": "Preparazione trasferimento...",
+      "connectingToPool": "Connessione al pool...",
+      "unableToConnect": "Impossibile connettersi al pool. Riprova.",
+      "unableToGetBalance": "Impossibile ottenere il saldo del pool",
+      "noFundsFound": "Nessun fondo trovato in questo pool",
+      "closingPool": "Chiusura pool...",
+      "gettingAddress": "Recupero indirizzo del wallet...",
+      "unableToGetAddress": "Impossibile ottenere l’indirizzo del wallet principale",
+      "transferringFunds": "Trasferimento fondi...",
+      "failedToTransfer": "Trasferimento dei fondi del pool non riuscito",
+      "notFound": "Pool non trovato",
+      "closePoolTitle": "Chiudere questo pool?",
+      "closePoolWarning": "Tutti i fondi verranno trasferiti al tuo wallet principale. Questo pool non accetterà più pagamenti e non potrà essere riaperto.",
+      "closePool": "Chiudi pool",
+      "goal": "Obiettivo: ",
+      "payment_one": "{{count}} pagamento",
+      "payment_other": "{{count}} pagamenti",
+      "closed": "Chiuso ",
+      "pool": "Pool",
+      "couldNotFind": "Non siamo riusciti a trovare questo pool.",
+      "createdBy": "Da ",
+      "moneyTransferred": "Fondi trasferiti al wallet principale",
+      "contribute": "Contribuisci",
+      "share": "Condividi",
+      "noActivity": "Nessuna attività al momento. Sii il primo a contribuire!",
+      "noPoolsCreated": "Non hai creato alcun pool",
+      "noActivePools": "Nessun pool attivo",
+      "closedSection": "Chiusi",
+      "noClosedPools": "Nessun pool chiuso",
+      "sendingContribution": "Invio contributo...",
+      "contributionSent": "Contributo inviato!",
+      "contributeTo": "a ",
+      "contributionWarning": "Questo pagamento è definitivo. I contributi non possono essere rimborsati, anche se l’obiettivo non viene raggiunto.",
+      "chooseContributionAmount": "Scegli l’importo del contributo",
+      "organizer": "Organizzatore",
+      "contributorCount_one": "{{count}} persona",
+      "contributorCount_other": "{{count}} persone",
+      "pool_contribution_label": "Contributo al pool \"{{poolName}}\"",
+      "closing_pool_label": "Chiusura del pool: {{poolName}}",
+      "late_pool_contribution_label": "Contributo tardivo a \"{{poolName}}\"",
+      "activitySection": "Attività",
+      "active": "Attivo",
+      "savingPoolError": "Non è stato possibile creare questo pool. Riprova.",
+      "info": {
+        "title": "Informazioni sui pool",
+        "whatArePools": "Cosa sono i pool?",
+        "whatArePoolsBody": "I pool ti permettono di raccogliere pagamenti in Bitcoin per un obiettivo condiviso. Crea un pool, imposta un importo obiettivo e condividilo con chi vuoi.",
+        "howItWorks": "Come funziona",
+        "howStep1": "• Crea un nuovo pool con un nome e un importo obiettivo",
+        "howStep2": "• Condividi il link del pool affinché altri possano trovarlo",
+        "howStep3": "• I contributori inviano Bitcoin direttamente al pool",
+        "howStep4": "• Chiudi il pool quando sei pronto a trasferire i fondi al tuo wallet"
+      }
     },
     "manualInputPage": {
       "inputPlaceholder": "Inserisci o incolla un indirizzo o una fattura Liquid o Lightning"
@@ -854,7 +967,7 @@
       "header": "Seleziona destinatario",
       "inputTextPlaceholder": "Cerca username...",
       "subHeader": "Tutti i Contatti",
-      "giftsText": "I miei regali"
+      "giftsText": "Regali dai contatti"
     },
     "cameraPage": {
       "noCameraAccess": "Nessun accesso alla fotocamera",
@@ -866,22 +979,28 @@
     "receivePages": {
       "editPaymentInfo": {
         "receive_amount": "importo ricevuto",
-        "descriptionInputPlaceholder": "Descrizione..."
+        "descriptionInputPlaceholder": "Descrizione...",
+        "editAmount": "Modifica importo",
+        "minUSDSwap": "I pagamenti convertiti in dollari richiedono un importo minimo di:\n{{amount}}"
       },
       "buttonContainer": {
-        "format": "Scegli Rete",
+        "format": "Altri metodi di ricezione",
         "infoMessage": "Gli importi personalizzati non sono supportati nei pagamenti Spark o Rootstock."
       },
-
       "switchReceiveOptionPage": {
-        "title": "Scegli Rete",
+        "title": "Metodi di ricezione",
         "actionBTN": "Mostra {{action}}",
         "sparkWarningMessage": "Ricevere direttamente tramite Spark esporrà il tuo saldo alla persona che paga e non è considerato privato.",
-        "swapWarning": "I pagamenti {{swapType}} verranno convertiti in Spark. I pagamenti inferiori a {{amount}} non verranno convertiti. I fondi verranno convertiti solo dopo la conferma del pagamento {{swapType}}.",
-        "unalignedSeeds": "Avviso: Non stai utilizzando il tuo account wallet principale. Tutti gli scambi Liquid verranno inviati al tuo account wallet principale.",
+        "swapWarning": "I pagamenti {{swapType}} verranno ricevuti in Spark. I pagamenti inferiori a {{amount}} non verranno trasferiti. I fondi verranno trasferiti solo dopo che il pagamento {{swapType}} sarà confermato.",
         "oneMinute": "~ {{numMins}} minuto",
         "tenMinutes": "~ {{numMins}} minuti",
-        "notUsingMainAccountWarning": "Avviso: Non stai utilizzando il tuo account principale del wallet. Tutti gli scambi {{swapType}} saranno inviati al tuo wallet principale."
+        "notUsingMainAccountWarning": "Attenzione: Non stai usando il tuo account principale. Tutti i trasferimenti {{swapType}} saranno inviati al tuo portafoglio principale.",
+        "sparkDesc": "Istantaneo, supporta token",
+        "sparkTitle": "Indirizzo Spark",
+        "bitcoinTitle": "Indirizzo Bitcoin",
+        "lightningTitle": "Fattura Lightning",
+        "liquidTitle": "Indirizzo Liquid",
+        "rootstockTitle": "Indirizzo Rootstock"
       },
       "editLNURLContact": {
         "informationMessage": "Modificare il tuo username aggiorna il modo in cui gli altri ti trovano in Blitz Contacts e il tuo indirizzo Lightning (username @blitzwalletapp.com).\n\nUn indirizzo Lightning permette agli altri di inviarti facilmente Bitcoin. Basta condividere il tuo indirizzo (username@blitzwalletapp.com) per essere pagati.",
@@ -891,9 +1010,19 @@
     "sendPages": {
       "sendPaymentScreen": {
         "initialLoadingMessage": "Preparazione dei dettagli della fattura",
-        "alreadyPaidInvoiceError": "Hai già pagato questa fattura",
-        "descriptionPlaceholder": "Descrizione pagamento...",
-        "fallbackErrorMessage": "Errore nel decodificare la fattura"
+        "alreadyPaidInvoiceError": "Questa fattura è già stata pagata.",
+        "fallbackErrorMessage": "Errore nel decodificare la fattura",
+        "connectToSparkMessage": "Connessione al tuo portafoglio.",
+        "switchTokenText": "Usa un token diverso",
+        "zeroAmountInvoiceDollarPayments": "Le fatture con importo zero non possono essere pagate in USD. Usa BTC.",
+        "decodingPayment": "Decodifica delle informazioni di pagamento...",
+        "selectPaymentMethod": "Seleziona un metodo di pagamento per continuare.",
+        "swapRatesChangedTitle": "Tasso di cambio aggiornato",
+        "swapRatesChangedBody": "Il tasso di cambio per questo scambio è cambiato durante la revisione. Inserisci nuovamente l’importo per continuare.",
+        "swapRatesChangedButton": "Reinserisci importo"
+      },
+      "selectPaymentMethod": {
+        "header": "Seleziona come desideri finanziare il pagamento."
       },
       "handlingAddressErrors": {
         "invlidFormat": "Gli indirizzi devono essere solo testo. Controlla e riprova.",
@@ -907,14 +1036,17 @@
         "lnurlAuthStartMeessage": "Avvio autenticazione LNURL",
         "lnurlFailedAuthMessage": "Autenticazione LNURL fallita",
         "lnurlConfirmMessage": "LNURL autenticato con successo",
-        "lnurlPayInvoiceError": "Impossibile recuperare la fattura da LNURL, riprova.",
+        "lnurlPayInvoiceError": "Impossibile generare la fattura per il pagamento LNURL. Riprova.",
+        "lnurlPayNoInvoiceError": "Il servizio che stai cercando di pagare è attualmente offline. Se il problema persiste, contatta l’azienda che stai cercando di pagare.",
+        "lnurlPayInvalidFormat": "Il servizio che stai cercando di pagare non ha restituito i dati corretti. Se il problema persiste, contatta l’azienda che stai cercando di pagare.",
         "lnurlWithdrawlStart": "Generazione fattura per prelievo",
         "lnurlWithdrawlInvoiceError": "Impossibile generare fattura per prelievo LNURL",
         "waitingForLnurlWithdrawl": "In attesa di pagamento...",
-        "LnurlwithDrawlSuccess": "Prelievo di successo! Il tuo pagamento è in arrivo.",
-        "invoiceDetails": "Caricamento dei dettagli"
+        "invoiceDetails": "Caricamento dei dettagli",
+        "timeoutError": "Il processo ha richiesto troppo tempo. Riprova.",
+        "payingToSameAddress": "Non puoi inviare un pagamento {{addressType}} a te stesso.",
+        "lnurlWithdrawlSuccess": "Prelievo di successo! Il tuo pagamento è in arrivo."
       },
-
       "errorScreen": {
         "ok": "OK",
         "title": "Messaggio di errore"
@@ -924,7 +1056,6 @@
         "backTextToAmount": "{{amount}}",
         "tenMinutes": "{{numMins}} minuti"
       },
-
       "selectLRC20Token": {
         "title": "Seleziona Token",
         "searchPlaceholder": "Nome token...",
@@ -935,12 +1066,16 @@
         "sendMaxShort": "Max"
       },
       "acceptButton": {
-        "noSendAmountError": "Inserisci un importo da inviare",
-        "liquidError": "Importo invio {{overFlowType}} {{amount}}",
-        "onchainError": "L'importo minimo da inviare on-chain è {{amount}}",
-        "lnurlPayError": "Importo invio {{overFlowType}} {{amount}}",
-        "lrc20FeeError": "Ti servono {{amount}} per inviare token. Il tuo saldo è {{balance}}. Ricevi prima qualche Bitcoin.",
-        "balanceError": "Fondi insufficienti per coprire importo da inviare e commissioni"
+        "noSendAmountError": "Inserisci un importo da inviare.",
+        "noSwapForBTCPaymentsError": "I pagamenti Bitcoin on-chain possono essere effettuati solo in BTC, non in USD. Gli swap non sono disponibili per i pagamenti on-chain.",
+        "balanceFragmentationError": "Il tuo saldo è diviso tra BTC e USD. Per completare il pagamento, consolida i fondi o modifica il metodo di pagamento.",
+        "liquidError": "L’importo del pagamento Liquid {{overFlowType}} è {{amount}}",
+        "onchainError": "I pagamenti Bitcoin on-chain richiedono un minimo di {{amount}}",
+        "lnurlPayError": "L’importo del pagamento deve rientrare nel {{overFlowType}} di {{amount}}",
+        "lrc20FeeError": "Hai bisogno di almeno {{amount}} per pagare la commissione di transazione. Saldo attuale: {{balance}}",
+        "balanceError": "Saldo insufficiente per completare questo pagamento",
+        "swapMinimumError": "Gli swap da {{currency1}} a {{currency2}} richiedono un minimo di {{amount}}",
+        "flashnetOffineError": "Le conversioni tra dollari e Bitcoin non sono attualmente disponibili. Riprova più tardi."
       }
     },
     "switchOption": {
@@ -950,9 +1085,15 @@
     "homeLightning": {
       "home": {
         "see_all_txs": "Vedi tutte le transazioni",
-        "no_transaction_history": "Invia o ricevi una transazione per visualizzarla qui"
+        "no_transaction_history": "Invia o ricevi una transazione per visualizzarla qui",
+        "activity": "Attività",
+        "see_all": "Vedi tutto",
+        "noTxs": "Nessuna transazione ancora",
+        "send": "Invia",
+        "receive": "Ricevi",
+        "scan": "Scansiona",
+        "swap": "Scambia"
       },
-
       "lrc20Assets": {
         "actionText": "token {{action}}",
         "tokensSearchPlaceholder": "Cerca token...",
@@ -966,6 +1107,12 @@
       "sparkErrorScreen": {
         "connectionError": "Abbiamo problemi a connetterci al tuo wallet. Faccelo sapere.\n\nRicorda, la tua frase seed mantiene i tuoi fondi al sicuro.",
         "retry": "Non siamo riusciti a caricare il tuo wallet al momento. Riprova.\n\nI tuoi fondi sono al sicuro fintanto che hai la tua frase seed."
+      },
+      "backupSeedWarning": {
+        "header": "Fai il backup della tua frase seed",
+        "description": "Hai denaro nel tuo portafoglio, ma non hai salvato la tua frase seed. La tua frase seed è un elenco di parole che sbloccano il tuo portafoglio. Se perdi questo dispositivo e non l’hai salvata, potresti perdere il tuo denaro per sempre.",
+        "backupBTN": "Fai il backup ora",
+        "laterBTN": "Lo farò più tardi"
       }
     },
     "exportTransactions": {
@@ -981,15 +1128,18 @@
       "loadingMessage": "Caricamento delle transazioni salvate"
     }
   },
-
   "contacts": {
     "contactsPage": {
+      "contactsHeader": "Contatti",
+      "addContactsText": "Aggiungi contatto",
       "searchContactsPlaceholder": "Cerca contatti aggiunti",
       "noContactsMessage": "Non hai contatti",
       "editContactProfileMessage": "Modifica il tuo profilo per iniziare a utilizzare i contatti.",
       "addContactButton": "Aggiungi Contatto",
       "editContactButton": "Modifica Profilo",
-      "unknownSender": "Mittente sconosciuto"
+      "unknownSender": "Mittente sconosciuto",
+      "noContactSearch": "Questo contatto non è ancora nella tua lista.",
+      "notFound": "non trovato."
     },
     "addContactsHalfModal": {
       "noContactsMessage": "Impossibile trovare il contatto.",
@@ -997,9 +1147,10 @@
       "searchPlaceholder": "Trova un contatto",
       "lnurlAddMessage": "Stai per aggiungere",
       "noProfilesFound": "Nessun profilo corrisponde a questa ricerca",
-      "startTypingMessage": "Cerca per LNURL (ad es. name@service.com) o nome utente Blitz."
+      "startTypingMessage": "Cerca per LNURL (ad es. name@service.com) o nome utente Blitz.",
+      "loadingMessage": "Ricerca del contatto...",
+      "profileImage": "Caricamento della foto del profilo..."
     },
-
     "expandedContactPage": {
       "loadingContactError": "Impossibile caricare il contatto, riprova.",
       "requestLNURLError": "Puoi richiedere denaro solo dai contatti Blitz, non dagli indirizzi LNURL.",
@@ -1010,7 +1161,7 @@
       "noDescription": "Nessuna descrizione"
     },
     "editMyProfilePage": {
-      "navTitle": "Modifica Profilo Contatto",
+      "navTitle": "Modifica Profilo",
       "nameInputDesc": "Nome",
       "nameInputPlaceholder": "Inserisci il tuo nome",
       "lnurlInputDesc": "Indirizzo LNURL",
@@ -1023,11 +1174,21 @@
       "unqiueNameRegexError": "Puoi avere solo lettere, numeri o trattini bassi nel tuo nome utente e deve contenere almeno 1 lettera.",
       "usernameAlreadyExistsError": "Questo nome utente esiste già, scegli un altro.",
       "unableToSaveError": "Impossibile salvare l'immagine del profilo, riprova.",
-      "deleteProfileImageError": "Impossibile eliminare l'immagine del profilo, riprova."
+      "deleteProfileImageError": "Impossibile eliminare l'immagine del profilo, riprova.",
+      "deleateWarning": "Sei sicuro di voler eliminare questo contatto? I messaggi più vecchi di una settimana non possono essere ripristinati."
     },
-
+    "selectCurrencyToSend": {
+      "header": "Cosa vuoi inviare?"
+    },
+    "selectCurrencyToRequest": {
+      "header": "Seleziona la valuta da richiedere"
+    },
     "sendAndRequestPage": {
-      "descriptionPlaceholder": "Descrizione del pagamento",
+      "sendBitcoin": "Invia Bitcoin",
+      "sendDollars": "Invia dollari",
+      "sendGift": "Invia regalo",
+      "requestBitcoin": "Richiedi Bitcoin",
+      "requestDollars": "Richiedi dollari",
       "profileMessage": "Stai pagando {{name}}",
       "contactMessage": "{{name}} ti ha pagato",
       "giftCardappVersionError": "Non puoi inviare una gift card a questo contatto. Non ha aggiornato all’ultima versione di Blitz Wallet.",
@@ -1038,7 +1199,10 @@
       "sendGiftText": "Invia regalo",
       "notVariableCard": "Questa carta regalo ha un importo fisso. Puoi inviare solo l'importo indicato sopra.",
       "giftCardText": "Carta regalo {{giftName}}",
-      "giftMessage": "Messaggio regalo"
+      "giftMessage": "Messaggio regalo",
+      "recipientReceives": "{{contactName}} riceverà",
+      "giftMessagePlaceholder": "Scrivi qui il tuo messaggio regalo...",
+      "paymentSourceHeader": "Fonte di pagamento"
     },
     "viewGiftCardCode": {
       "noCardInfoError": "Non siamo riusciti a caricare la tua gift card in questo momento. Per favore, riprova.",
@@ -1069,11 +1233,12 @@
         "pushNotificationUpdateMessage": "{{name}} {{option}} la tua richiesta",
         "acceptProfileMessage": "Hai pagato la richiesta di {{name}}",
         "acceptPayingContactMessage": "{{name}} ha pagato la tua richiesta",
-        "requestTitle": "Richiesta ricevuta per "
+        "requestTitle": "Richiesta ricevuta per {{amount}}",
+        "send": "Inviare"
       },
       "viewAllGiftCards": {
         "cardNamePlaceH": "Buono regalo",
-        "noCardsText": "I tuoi buoni regalo appariranno qui una volta ricevuti",
+        "noCardsText": "Le tue gift card appariranno qui quando un contatto te ne invierà una.",
         "header": "Le tue carte regalo",
         "cardsLenghSingular": "{{num}} carta",
         "cardsLenghPlurl": "{{num}} carte"
@@ -1081,34 +1246,76 @@
       "editGiftCard": {
         "header": "Cosa desideri fare con il tuo regalo?"
       }
+    },
+    "showProfileQr": {
+      "header": "Condividi profilo",
+      "lnAddress": "Indirizzo Lightning",
+      "blitzContact": "Contatto Blitz",
+      "copyMessage": "Copiato!",
+      "lnurlCopy": "Copia indirizzo",
+      "blitzCopy": "Copia link",
+      "scanProfile": "Scansiona profilo"
     }
   },
-
   "settings": {
+    "index": {
+      "editProfile": "Modifica profilo",
+      "showQR": "Mostra QR",
+      "profileHead": "Profilo",
+      "settingsHead": "Impostazioni",
+      "seedPopup": "Una frase di recupero è un elenco di parole che ti permette di recuperare i tuoi Bitcoin se il tuo dispositivo viene perso o danneggiato. Scrivila e conservala in un posto sicuro. Non darla mai a nessuno—se qualcuno la ottiene, può prendere tutti i tuoi Bitcoin."
+    },
     "about": {
-      "header1": "Software",
-      "text2": "Blitz è un'app gratuita e open source sotto la ",
-      "text3": "Licenza Apache",
-      "text4": " Versione 2.0",
-      "text5": "Questo è un wallet Bitcoin Lightning self-custodial. Blitz non ha accesso ai tuoi fondi; se perdi la tua frase di backup, potrebbe risultare nella perdita dei fondi.",
-      "text6": "Blitz utilizza ",
-      "text7": "Breez Liquid SDK, ",
-      "text8": "Spark, ",
-      "text9": "e ",
-      "text10": "Boltz API.",
-      "header2": "Cose da sapere",
-      "text12": "Blitz è alimentato dal protocollo Spark. Spark è un ",
-      "text13": "protocollo off-chain ",
-      "text14": "dove gli operatori Spark aggiornano lo stato della proprietà di Bitcoin off-chain ",
-      "text15": "permettendo trasferimenti veloci, a basse commissioni e non custodial senza toccare la blockchain.",
-      "text16": "Creatore",
-      "text17": "Versione:",
-      "learnMore": "Scopri di più"
+      "licenseHeader": "Software",
+      "licenseBody": "Blitz è un'app gratuita e open source distribuita sotto la",
+      "licenseLinkLabel": "Licenza Apache v2.0",
+      "walletHeader": "Blitz Wallet",
+      "walletDescription": "Questo è un portafoglio Bitcoin Spark auto-custodito compatibile con la rete Lightning. Blitz non ha accesso ai tuoi fondi. Se perdi la tua frase di recupero, potresti perdere i tuoi fondi.",
+      "poweredByLabel": "Basato su",
+      "poweredByBreez": "Breez Liquid SDK",
+      "poweredBySpark": "Spark",
+      "poweredByFlashnet": "Flashnet",
+      "poweredByBoltz": "Boltz API",
+      "sparkHeader": "Cose da Sapere",
+      "sparkDescription": "Blitz è alimentato dal protocollo Spark. Spark è un protocollo off-chain dove gli operatori Spark aggiornano lo stato della proprietà di Bitcoin off-chain, permettendo trasferimenti veloci, a basse commissioni e non custodial senza toccare la blockchain.",
+      "learnMore": "Scopri di più",
+      "creatorHeader": "Creatore",
+      "uiUxHeader": "UX / UI",
+      "olliRole": "Ingegneria",
+      "versionLabel": "Versione",
+      "bundleVerified": "Bundle verificato",
+      "bundleUnverified": "Bundle non verificato",
+      "showTechnicals": "Mostra dettagli tecnici",
+      "hideTechnicals": "Nascondi dettagli tecnici",
+      "backendHash": "Hash backend",
+      "expectedHash": "Hash previsto"
     },
     "language": {
       "inputPlaceHolder": ""
     },
     "displayOptions": {
+      "appearance": "Aspetto",
+      "theme": "Tema",
+      "light": "Chiaro",
+      "lightsOut": "Buio totale",
+      "dim": "Attenuato",
+      "balDisplay": "Visualizzazione saldo",
+      "prev": "Anteprima",
+      "denomination": "Denominazione",
+      "displayForm": "Formato di visualizzazione",
+      "homepage": "Pagina iniziale",
+      "txToDisplay": "Transazioni da mostrare",
+      "transactionsLabel_15": "15 transazioni",
+      "transactionsLabel_20": "20 transazioni",
+      "transactionsLabel_25": "25 transazioni",
+      "transactionsLabel_30": "30 transazioni",
+      "transactionsLabel_35": "35 transazioni",
+      "transactionsLabel_40": "40 transazioni",
+      "privFeat": "Privacy e funzioni",
+      "cameraSwipe": "Scorri per fotocamera",
+      "cameraSwipeDesc": "Scorri a destra in qualsiasi schermata principale per aprire la fotocamera.",
+      "unkownSenders": "Nascondi mittenti sconosciuti",
+      "unknownSenderDesc": "Nascondi transazioni da contatti sconosciuti",
       "text1": "Stile Modalità Scura",
       "text2": "Tutto spento",
       "text3": "Soffuso",
@@ -1116,21 +1323,31 @@
       "text5": "Denominazione corrente",
       "text6": "Riconnettiti a Internet per cambiare la tua denominazione",
       "text7": "Come visualizzare",
-      "text8": "fiat",
+      "fiat": "Fiat",
+      "hidden": "Nascosto",
+      "symbol": "Simbolo",
+      "word": "Parola",
       "text9": "Esempio",
       "text10": "Schermata Home",
       "text11": "Scorri per la fotocamera",
       "text12": "Scorri a destra dallo schermo principale—che tu sia su Contatti, Wallet, o la Home page—per aprire rapidamente la fotocamera per la scansione.",
       "text13": "Transazioni visualizzate",
       "text14": "Pagina Contatti",
-      "text15": "Nascondi mittenti sconosciuti"
+      "text15": "Nascondi mittenti sconosciuti",
+      "thousandsSeperator": "Separatore delle migliaia",
+      "space": "Spazio",
+      "local": "Formato locale",
+      "sparkTitle": "Spark",
+      "sliderTitle_enabled": "Attivato"
     },
     "fastPay": {
       "text1": "Errore nell'aggiungere il valore inserito, riprova.",
       "text2": "L'importo non può essere 0",
       "text3": "Abilita Fast Pay",
       "text4": "Soglia Fast Pay (SAT)",
-      "text5": "Fast pay ti permette di pagare istantaneamente fatture al di sotto di una soglia specificata senza bisogno di scorrere per la conferma."
+      "text5": "Fast pay ti permette di pagare istantaneamente fatture al di sotto di una soglia specificata senza bisogno di scorrere per la conferma.",
+      "text6": "Attuale",
+      "text7": "Nuovo"
     },
     "loginSecurity": {
       "text1": "Abilita Sicurezza Login",
@@ -1147,36 +1364,51 @@
       "biometricSignInError": "Errore nel login con Biometrici",
       "migratingStorageMessgae": "Migrazione dello storage alla nuova sicurezza.",
       "createPinPageHeader": "{{type}} il tuo PIN Blitz",
-      "invalidPinconfirmation": "I PIN non corrispondono. Riprova!"
+      "invalidPinconfirmation": "I PIN non corrispondono. Riprova!",
+      "randomPinKeyboardToggle": "Mescola tastierino numerico",
+      "randomPinKeyboardInfo": "Abilita questa funzione per mescolare i numeri del tastierino ogni volta che accedi. Aggiunge un ulteriore livello di sicurezza rendendo più difficile per chi ti sta vicino scoprire il tuo schema PIN."
     },
     "seedPhrase": {
-      "header": "Tieni questa frase in un posto sicuro e sicuro",
+      "header": "Conserva questa frase seme in un luogo sicuro e protetto",
       "headerDesc": "Non condividerla con nessuno!",
-      "qrWarning": "Sei sicuro di voler mostrare questo QR Code?\n\nScansionare il tuo seed è comodo, ma assicurati di usare un dispositivo sicuro e affidabile. Questo aiuta a mantenere il tuo wallet sicuro.",
+      "qrWarning": "Sei sicuro di voler mostrare questo codice QR?\n\nScansionare la tua frase seed è comodo, ma assicurati di utilizzare un dispositivo sicuro e affidabile. Questo aiuta a proteggere il tuo portafoglio.",
       "wordsText": "Parole",
       "qrText": "QR Code",
-      "showSeedWarning": "Sei sicuro di voler mostrare la tua frase di recupero?"
+      "showSeedWarning": "Sei sicuro di voler mostrare la tua frase seed?",
+      "warning": {
+        "title_accounts": "Mantieni segreta la tua frase di recupero",
+        "point1_accounts": "La tua frase segreta di recupero è come una chiave maestra del tuo wallet.",
+        "point2_accounts": "Se qualcuno la ottiene, può rubare i tuoi fondi. Non esiste alcun modo per recuperare fondi persi.",
+        "point3_accounts": "Non condividerla mai con nessuno: nessuna persona, sito web o app.",
+        "title_settings": "Mantieni segreta la tua frase di recupero",
+        "point1_settings": "La tua frase segreta di recupero è come una chiave maestra del tuo wallet.",
+        "point2_settings": "Se qualcuno la ottiene, può rubare i tuoi fondi. Non esiste alcun modo per recuperare fondi persi.",
+        "point3_settings": "Non condividerla mai con nessuno: nessuna persona, sito web o app.",
+        "checkbox": "Comprendo che condividere la mia frase di recupero potrebbe comportare la perdita permanente dei miei fondi.",
+        "continueButton": "Continua"
+      }
     },
     "crashReporting": {
-      "enabled": "Abilitato",
-      "disabled": "Disabilitato",
-      "crashreporting": "report dei crash",
+      "crashreporting_enabled": "Segnalazione degli arresti anomali abilitata",
+      "crashreporting_disabled": "Segnalazione degli arresti anomali disabilitata",
       "descriptionText": "I dati dei crash ci aiutano a migliorare la stabilità e le prestazioni della nostra applicazione.\n\nQuando si verifica un crash, le informazioni sul dispositivo che vengono registrate automaticamente includono:\n\n• Sistema Operativo: versione OS, orientamento del dispositivo e stato del jailbreak\n• Dettagli Dispositivo: Modello, orientamento e RAM disponibile\n• Informazioni Crash: Data del crash e versione dell'app"
     },
-
     "accounts": {
-      "inputPlaceholder": "Nome account",
-      "buttonCTA": "Scambia Fondi"
+      "inputPlaceholder": "Cerca account esistente",
+      "mainWalletPlace": "Portafoglio principale",
+      "nwcWalletPlace": "NWC"
     },
     "resetWallet": {
       "header": "Sei sicuro?",
       "dataDeleteHeader": "Seleziona i dati da eliminare da questo dispositivo.",
-      "dataDeleteDesc": "Qualsiasi opzione selezionata verrà rimossa per sempre. Se dimentichi il tuo seed, PERDERAI i tuoi fondi.",
-      "seedAndPinOpt": "Elimina frase seed e PIN dal mio dispositivo",
-      "localData": "Elimina i dati memorizzati localmente dal mio dispositivo",
+      "dataDeleteDesc": "Questo eliminerà tutti i dati del portafoglio dal tuo dispositivo. Se non hai una copia della tua frase seed salvata, PERDERAI l’accesso ai tuoi fondi.",
+      "seedAndPinOpt": "Elimina tutti i dati dal mio dispositivo",
       "balanceText": "Il tuo saldo è",
       "localStorageError": "Impossibile eliminare le informazioni memorizzate localmente",
-      "secureStorageError": "Impossibile eliminare le informazioni memorizzate in modo sicuro"
+      "secureStorageError": "Impossibile eliminare le informazioni memorizzate in modo sicuro",
+      "boxNotChecked": "Seleziona la casella per confermare che vuoi eliminare il wallet.",
+      "title": "Elimina wallet",
+      "warningText": "Comprendo che posso recuperare i miei fondi solo con la mia frase seed e che, se la perdo, i miei fondi non potranno essere recuperati."
     },
     "sparkInfo": {
       "title": "Info Wallet",
@@ -1186,38 +1418,38 @@
     "sparkLrc20": {
       "balanceError": "Il tuo saldo wallet corrente è {{balance}}. Blitz aggiunge una commissione di {{fee}} a tutti i pagamenti BTKN. Assicurati di avere un po' di Bitcoin nel tuo wallet per inviare token.",
       "title": "Impostazioni Spark",
-      "sliderTitle": "{{switchType}} BTKN",
-      "sliderDesc": "BTKN è il token nativo di Spark. Abilitando BTKN puoi inviare e ricevere token sulla rete Spark.\n\nBlitz è un wallet focalizzato su Bitcoin. Non promuoviamo né endoriamo l'uso di token. Questa funzione esiste perché crediamo che gli utenti debbano avere la libertà di usare la tecnologia che vogliono usare.\n\nBlitz applica anche una commissione del {{fee}} a tutte le transazioni token, con il 20% di quella commissione donata a supporto dello sviluppo open-source di Bitcoin."
+      "sliderTitle_enabled": "BTKN abilitato",
+      "sliderTitle_disabled": "BTKN disabilitato",
+      "sliderDesc": "BTKN è il token nativo di Spark. Abilitando BTKN puoi inviare e ricevere token sulla rete Spark.\n\nBlitz è un wallet focalizzato su Bitcoin. Non promuoviamo né endoriamo l'uso di token. Questa funzione esiste perché crediamo che gli utenti debbano avere la libertà di usare la tecnologia che vogliono usare.",
+      "selectTokenHeader": "Token predefinito",
+      "selectTokenInformationPopup": "Scegli quale token desideri utilizzare per primo quando invii pagamenti. Non preoccuparti: puoi comunque modificarlo nella pagina di pagamento in qualsiasi momento."
     },
-
     "viewSwapsHome": {
-      "swaps": "Scambi",
+      "swaps": "Trasferimenti di rete",
       "selectionTitle": "Scegli rete",
       "liquid": "Liquid",
       "rootstock": "Rootstock",
-      "pageTitle": "Scambi {{type}}"
+      "flashnet": "BTC <> USD",
+      "pageTitle": "Trasferimenti {{type}}"
     },
-
     "viewRoostockSwaps": {
-      "loadingMessage": "Caricamento degli scambi Rootstock salvati",
-      "noSwapsMessage": "Non hai scambi Rootstock salvati"
+      "loadingMessage": "Caricamento delle trasferenze Roostock salvate",
+      "noSwapsMessage": "Non hai trasferenze Roostock salvate"
     },
-
     "rootstockSwapInfo": {
       "title": "Submarine Swap",
       "id": "ID",
-      "swapDetails": "Dettagli dello scambio",
+      "swapDetails": "Dettagli del trasferimento",
       "claimAddress": "Indirizzo di riscossione",
       "timeoutBHeight": "Altezza del blocco di timeout",
       "expAmount": "Importo previsto",
       "invoice": "Fattura",
-      "refundSwap": "Rimborsa scambio"
+      "refundSwap": "Rimborso del trasferimento"
     },
-
     "viewAllLiquidSwaps": {
       "rescanComplete": "Riscansione completa",
-      "swapStartedMessage": "Lo swap è iniziato. Potrebbero volerci 10–20 secondi prima che il pagamento appaia.",
-      "balanceError": "Il saldo Liquid corrente è {{balance}} ma l'importo minimo di swap è {{swapAmount}}",
+      "swapStartedMessage": "Il trasferimento è iniziato. Potrebbero volerci 10–20 secondi prima che il pagamento appaia.",
+      "balanceError": "Il saldo Liquid attuale è {{balance}}, ma l’importo minimo per il trasferimento è {{swapAmount}}",
       "loadingMessage": "Ottieni info Liquid",
       "breakdownHead": "Dettaglio Saldo",
       "incoming": "{{amount}} in entrata in sospeso",
@@ -1225,18 +1457,27 @@
       "balance": "{{amount}} saldo Liquid",
       "rescan": "Riscansione",
       "totalBalance": "Saldo Totale",
-      "swapMessage": "Blitz Wallet tenterà di convertire i tuoi fondi Liquid in Spark quando carichi per la prima volta l'app o quando ricevi pagamenti Liquid.\n\nTuttavia, in alcuni casi uno swap potrebbe essere perso. Per spostare questi fondi in Spark manualmente, clicca semplicemente il pulsante Swap qui sotto.",
-      "swap": "Swap"
+      "swapMessage": "Blitz Wallet proverà a trasferire i tuoi fondi Liquid su Spark al primo avvio dell’app o quando ricevi pagamenti Liquid.\n\nTuttavia, in alcuni casi un trasferimento potrebbe essere mancato. Per spostare questi fondi su Spark manualmente, tocca il pulsante Trasferisci qui sotto.",
+      "swap": "Trasferisci",
+      "rescanning": "Scansione in corso…",
+      "autoClaimLabel": "Riscatto automatico",
+      "autoClaimHelper": "Converte automaticamente i fondi Liquid in Lightning quando viene raggiunta la soglia minima."
     },
     "notifications": {
-      "mainToggle": "{{state}} notifiche",
+      "mainToggle_enabled": "Notifiche abilitate",
+      "mainToggle_disabled": "Notifiche disabilitate",
       "mainToggleDesc": "Le notifiche ti tengono informato su eventi e aggiornamenti importanti che accadono nell'app.",
       "optionsTitle": "Opzioni notifiche",
       "contact": "Contatto",
+      "contactDesc": "Pagamenti ricevuti dai tuoi contatti salvati",
       "lnurl": "LNURL",
+      "lnurlDesc": "Pagamenti ricevuti tramite il tuo indirizzo Lightning",
       "nostrZaps": "Nostr zaps",
+      "nostrZapsDesc": "Pagamenti Zap inviati al tuo profilo Nostr",
       "nwc": "Nostr Wallet Connect",
-      "pos": "Terminale POS"
+      "nwcDesc": "Pagamenti autorizzati tramite Nostr Wallet Connect",
+      "pos": "Terminale POS",
+      "posDesc": "Pagamenti ricevuti al tuo punto vendita"
     },
     "nostrHome": {
       "nip5Title": "Verifica Nip5",
@@ -1245,19 +1486,23 @@
       "nwcDesc": "Connetti il Blitz Wallet ad app che usano il protocollo Nostr."
     },
     "fiatCurrency": {
-      "title": "Valuta di Visualizzazione",
+      "title": "Valuta",
       "placeholderText": "Cerca valuta",
       "saveCurrencyError": "Non siamo riusciti a salvare la valuta selezionata, riprova."
     },
     "feeInformation": {
       "title": "",
-      "description": "Blitz Wallet offre prodotti gratuiti e open-source per la community Bitcoin. \n\nPer aiutare a mantenere sostenibile il progetto, abbiamo aggiunto una piccola commissione di transazione a ogni pagamento.\n\nEcco come vengono distribuite quelle commissioni:",
+      "description": "Blitz Wallet fornisce strumenti gratuiti e open source alla comunità Bitcoin.\n\nPer supportare la sostenibilità a lungo termine del progetto, verrà applicata una piccola commissione di transazione a ogni pagamento.\n\nLa suddivisione delle commissioni è riportata di seguito.",
       "upTo": "Fino a",
       "fixedFee": "Commissione Fissa",
       "percent": "Percentuale",
-      "noLimit": "Nessun limite"
+      "noLimit": "Nessun limite",
+      "transactionType": "Tipo di transazione",
+      "swapsType": "Swap BTC <> USD",
+      "swapsFee": "{{poolFee}} % di commissione pool + {{blitzFee}} % di commissione Blitz",
+      "othersType": "Altro",
+      "othersFee": "Commissioni di rete"
     },
-
     "nip5": {
       "noNameError": "Il nome non può essere vuoto.",
       "noPubKey": "La chiave pubblica non può essere vuota.",
@@ -1303,7 +1548,6 @@
         "createConnection": "",
         "connectionName": ""
       },
-
       "hasNoAccounts": {
         "wanringMessage": "Per inviare soldi dal tuo wallet Nostr Connect, dovrai prima aggiungere fondi—ricevendo soldi o trasferendoli dal tuo wallet principale.\n\nPuoi trasferire fondi dal tuo wallet principale a NWC nella pagina impostazioni account."
       },
@@ -1311,27 +1555,45 @@
         "wanringMessage": "Per usare Nostr Wallet Connect devi avere le notifiche push per Nostr Wallet Connect abilitate.\n\nAbilita le notifiche push nelle impostazioni e riprova."
       },
       "showSeedPage": {
-        "loadingMessage": "Generazione Mnemonic",
-        "wanringMessage": "Per mantenere il tuo wallet sicuro, Nostr Wallet Connect crea una frase seed separata dal seed del tuo wallet principale.\n\nQuesto wallet usa il secondo percorso di derivazione e può sempre essere recuperato usando il seed del tuo wallet principale.\n\nSe non sei tecnico e non sei sicuro su come recuperare l'indirizzo wallet, per favore scrivi questa frase seed.",
-        "viewSeed": "Visualizza seed"
+        "loadingMessage": "Generazione della frase di recupero",
+        "wanringMessage": "Per mantenere il tuo wallet sicuro, Nostr Wallet Connect crea una frase di recupero separata da quella del tuo wallet principale.\n\nPuoi accedere a questa frase di recupero nelle impostazioni di Blitz, nella sezione Account.",
+        "viewSeed": "Visualizza frase di recupero"
+      },
+      "combinedOnboarding": {
+        "accountFundingHeader": "Finanziare il tuo wallet NWC",
+        "accountFundingMessage": "Per inviare denaro dal tuo wallet Nostr Connect, devi prima aggiungere fondi, ricevendoli oppure trasferendoli dal tuo wallet principale.\n\nPuoi trasferire fondi dal tuo wallet principale a NWC nella pagina delle impostazioni dell’account.",
+        "securityHeader": "Sicuro e isolato",
+        "securityMessage": "Nostr Wallet Connect crea un wallet separato dal tuo wallet principale per maggiore sicurezza. Questa frase seed è archiviata in modo sicuro e può essere visualizzata successivamente nella pagina Account nelle impostazioni, se necessario.",
+        "continueButton": "Inizia",
+        "initializingMessage": "Configurazione del tuo wallet NWC...",
+        "errorTitle": "Configurazione non riuscita",
+        "errorRetry": "Riprova configurazione"
       }
     },
     "accountComponents": {
+      "homepage": {
+        "addNewAccount": "Aggiungi",
+        "swap": "Trasferire",
+        "viewSeed": "Visualizza frase seed",
+        "editAccount": "Modifica account",
+        "swapAccountError": "Hai bisogno di almeno due account per effettuare un trasferimento.",
+        "noAccountsFound": "Nessun account corrisponde alla tua ricerca."
+      },
       "accountPaymentPage": {
-        "noAmountError": "Inserisci un importo da scambiare",
-        "noAccountError": "Seleziona un account da cui scambiare i fondi",
-        "noAccountToError": "Seleziona un account a cui scambiare i fondi",
-        "loadingFeeError": "Non puoi iniziare uno swap quando la commissione viene calcolata",
-        "alreadyStartedTransferError": "Un trasferimento è già stato iniziato",
-        "balanceError": "L'importo da inviare è superiore al tuo saldo e alle commissioni",
-        "noSendAddressError": "Impossibile ottenere l'indirizzo di trasferimento",
-        "noAccountInformation": "Impossibile ottenere le informazioni account",
-        "title": "Swap",
-        "selectAccount": "Seleziona Account",
-        "inputPlaceHolderText": "Swap Account"
+        "noAmountError": "Inserisci un importo da trasferire",
+        "noAccountError": "Seleziona un account da cui trasferire i fondi",
+        "noAccountToError": "Seleziona un account a cui trasferire i fondi",
+        "loadingFeeError": "Impossibile avviare il trasferimento mentre la commissione è in calcolo",
+        "alreadyStartedTransferError": "Un trasferimento è già stato avviato",
+        "balanceError": "L’importo supera il tuo saldo incluse le commissioni",
+        "noSendAddressError": "Impossibile ottenere l’indirizzo di trasferimento",
+        "noAccountInformation": "Impossibile ottenere le informazioni dell’account",
+        "title": "Trasferimento",
+        "selectAccount": "Seleziona account",
+        "inputPlaceHolderText": "Trasferimento tra account"
       },
       "createAccountPage": {
-        "alreadyUsingSeedError": "Questo seed esiste già per un altro account",
+        "alreadyUsingSeedError": "Questa frase seed esiste già per un altro account",
         "editTitle": "Modifica Account",
         "createTitle": "Crea Account",
         "updateTitle": "Aggiorna Account",
@@ -1340,10 +1602,83 @@
         "inputDesc": "Nome Account",
         "nameTakenError": "Questo nome è attualmente in uso. Usa un nome account differente.",
         "nameInputPlaceholder": "Nome...",
-        "seedHeader": "Seed Account"
+        "seedHeader": "Frase iniziale dell'account"
       },
       "viewAccountPage": {
         "informationMessage": "Sei sicuro di voler mostrare questo QR Code?\n\nScansionare il tuo seed è comodo, ma assicurati di usare un dispositivo sicuro e affidabile. Questo aiuta a mantenere il tuo wallet sicuro."
+      },
+      "editAccountName": {
+        "title": "Nome account",
+        "namePlaceholder": "Nome"
+      },
+      "editAccountPage": {
+        "title": "Modifica account",
+        "accountNameLabel": "Nome account",
+        "showRecoveryPhraseLabel": "Mostra frase di recupero",
+        "removeAccountLabel": "Rimuovi account",
+        "activeAccountError": "Non puoi eliminare l'account attualmente attivo. Passa a un altro account prima di eliminare questo.",
+        "account_pin": "Fissa account",
+        "account_unpin": "Rimuovi fissaggio",
+        "pin_account_info": "Quando fissi un account, viene visualizzato nella pagina principale delle Impostazioni, così puoi passare rapidamente tra il tuo account principale e quello fissato."
+      },
+      "selectCreateAccountType": {
+        "title": "Aggiungi account",
+        "createNewAccountTitle": "Crea nuovo account",
+        "createNewAccountDescription": "Recuperabile dalla frase seed principale",
+        "importRecoveryPhraseTitle": "Importa frase di recupero",
+        "importRecoveryPhraseDescription": "Importa account da un altro wallet",
+        "recoverRecoveryPhraseTitle": "Recupera account",
+        "recoverRecoveryPhraseDescription": "Ripristina un account già creato"
+      },
+      "selectProfileImage": {
+        "title": "Scegli avatar",
+        "searchPlaceholder": "Cerca emoji...",
+        "saveButton": "Salva avatar"
+      },
+      "restoreDerivedAccount": {
+        "title": "Ripristina account",
+        "emptyStateTitle": "Nessun account da ripristinare",
+        "emptyStateMessage": "Tutti gli account sono attualmente ripristinati. Nessun account mancante trovato.",
+        "accountCardTitle": "Account {{index}}",
+        "accountCardSubtitle": "Indice di derivazione: {{index}}",
+        "restoreButton": "Ripristina",
+        "nameInputTitle": "Nomina questo account",
+        "nameInputPlaceholder": "Account {{index}}",
+        "nameInputConfirm": "Ripristina account",
+        "nameInputCancel": "Annulla",
+        "successMessage": "Account {{index}} ripristinato con successo",
+        "errorMessage": "Impossibile ripristinare l'account"
+      },
+      "selectAltAccount": {
+        "from": "Seleziona l’account da cui vuoi inviare.",
+        "to": "Seleziona l’account su cui vuoi ricevere."
+      },
+      "removeAccountPage": {
+        "title": "Rimuovi account",
+        "explanation_derived": "Questo account è stato derivato dalla tua frase seed. Puoi ripristinarlo in qualsiasi momento aggiungendolo di nuovo.",
+        "explanation_imported": "Questo account è stato importato. Se lo rimuovi, dovrai reimportare la tua chiave privata per accedervi.",
+        "cancelButton": "Annulla",
+        "removeButton": "Rimuovi account"
+      }
+    },
+    "accountsPoolsScreen": {
+      "profileButton": "Profilo",
+      "settingsButton": "Impostazioni",
+      "poolsTitle": "Pool",
+      "noPoolsMessage": "Non hai ancora creato alcun pool. Tocca per creare il tuo primo pool.",
+      "noActivePools": "Non hai pool attivi",
+      "yourAccountsTitle": "I tuoi account",
+      "addAccountButton": "Aggiungi account"
+    },
+    "hub": {
+      "viewAll": "Vedi tutto",
+      "accounts": "Account",
+      "pinAccount": "Fissa",
+      "unpinAccount": "Rimuovi",
+      "maxPinsReached": "Massimo 2 account fissati. Rimuovine uno prima.",
+      "morePoolsCount": "+{{count}} altri",
+      "pos": {
+        "desc": "Accetta facilmente pagamenti in Bitcoin per la tua attività"
       }
     },
     "posPath": {
@@ -1360,14 +1695,18 @@
         "itemsDescription": "Aggiungere articoli al tuo sistema Terminale significa che i dipendenti non dovranno digitare manualmente i prezzi. Invece, possono semplicemente cliccare sui nomi dei prodotti e i prezzi che imposti verranno aggiunti automaticamente al totale.",
         "updateItems": "Aggiorna Articoli",
         "addItem": "Aggiungi Articolo",
-        "openPos": "Apri Terminale POS"
+        "openPos": "Apri Terminale POS",
+        "brandLogo": "Logo del marchio",
+        "changeLogo": "Cambia logo",
+        "removeLogo": "Rimuovi",
+        "uploadLogo": "Tocca per caricare il logo del marchio",
+        "addProducts": "Aggiungi prodotti"
       },
       "posInstructionsPath": {
         "title": "Istruzioni",
         "head1": "Come accettare",
         "head2": "pagamenti Bitcoin",
-        "step1": "1. Scansiona il QR Code con la tua fotocamera",
-        "step2": "2. È tutto."
+        "step1": "Scansiona il QR Code con la tua fotocamera"
       },
       "totalTipsScreen": {
         "noTipBalanceError": "L'utente non ha alcun saldo mance.",
@@ -1389,6 +1728,7 @@
         "unpaidtips": "Mance: {{number}}",
         "title": "Mance da pagare",
         "empNamePlaceholder": "Nome dipendente",
+        "noEmployees": "Al momento non hai dipendenti con mance salvate. Una volta che un dipendente utilizza il punto vendita, le sue mance appariranno qui così potrai pagarle.",
         "noTips": "Il dipendente non ha mance"
       },
       "items": {
@@ -1419,45 +1759,59 @@
           "tipMessage": "Mancia: {{amount}}",
           "ctaBTN": "Segna come {{option}}"
         }
-      },
-      "popups": {
-        "confirmActionPage": {
-          "defaultMessage": "Sei sicuro di voler svuotare il tuo wallet?",
-          "ctaBTN": "Segna come {{option}}"
-        }
+      }
+    },
+    "popups": {
+      "confirmActionPage": {
+        "defaultMessage": "Sei sicuro di voler svuotare il tuo wallet?",
+        "ctaBTN": "Segna come {{option}}"
       }
     }
   },
-
   "screens": {
     "inAccount": {
+      "tokens": {
+        "yourTokens": "I tuoi token",
+        "noTokens": "Non hai token"
+      },
       "appStore": {
         "soonMessage": "Ci piace che tu voglia più app. Suggeriscile qui sotto!",
         "title": "Negozio",
         "shopTitle": "Acquista con Bitcoin",
         "shopDescription": "Acquista gift card da migliaia di mercanti diversi in tutto il mondo",
         "callToAction": "C'è qualcosa che desideri qui?",
-        "featuredApps": "C'è qualcosa che desideri qui?"
+        "featuredApps": "C'è qualcosa che desideri qui?",
+        "comingSoon": "Questa funzione è temporaneamente non disponibile. Stiamo lavorando per ripristinarla il prima possibile."
       },
-
       "confirmTxPage": {
         "failedToSend": "Invio fallito",
-        "confirmMessage": "{{direction}} con successo",
         "paymentErrorMessage": "C'è stato un problema nell'inviare questo pagamento, riprova.",
         "sendReport": "Invia report allo sviluppatore",
-        "Lnurlauthsuccess": "Autenticazione del portafoglio successo! Ora hai effettuato l'accesso."
+        "emailReport": "Invia via email",
+        "copyReport": "Copia negli appunti",
+        "confirmMessage_sent": "Inviato con successo",
+        "confirmMessage_received": "Ricevuto con successo",
+        "confirmMessage": "{{direction}} con successo",
+        "lnurlAuthSuccess": "Autenticazione del portafoglio successo! Ora hai effettuato l'accesso."
       },
       "expandedTxPage": {
-        "confirmMessage": "Importo {{direction}}",
+        "confirmMessage_received": "Importo ricevuto",
         "paymentStatus": "Stato pagamento",
         "confReqired": "Confs richiesti",
-        "detailsBTN": "Dettagli tecnici"
+        "detailsBTN": "Dettagli tecnici",
+        "contactPaymentType": "Contatto",
+        "converstionRate": "{{satAmount}} per {{dollarAmount}}",
+        "confirmMessage_sent": "Importo inviato",
+        "gift": "Regalo",
+        "claimPayment": "Richiedi pagamento"
       },
       "explorePage": {
-        "timeLeft": "({{time}} rimasto)",
-        "title": "Download Blitz"
+        "timeLeft": "({{time}} rimanenti)",
+        "title": "Download di Blitz",
+        "goalUserCount": "su {{goalUserCount}} utenti.",
+        "percentOfGoal": "{{goalPercent}}% dell’obiettivo",
+        "numAddedUsers": "+{{numNewUsers}} utenti oggi"
       },
-
       "loadingScreen": {
         "loadingMessage1": "Non chiudere l'app",
         "loadingMessage2": "Stiamo configurando tutto",
@@ -1465,41 +1819,80 @@
         "dbInitError": "Impossibile aprire il database. Riprova.",
         "userSettingsError": "Impossibile caricare le impostazioni utente. Riprova.",
         "liquidWalletError": "Le informazioni del wallet non sono state impostate correttamente, riprova.",
-        "liquidWalletError2": "Non siamo riusciti a configurare il tuo wallet. Riprova."
+        "liquidWalletError2": "Non siamo riusciti a configurare il tuo wallet. Riprova.",
+        "dbInitError1": "Non siamo in grado di configurare la tua app.",
+        "dbInitError2": "Per favore riprova. Se il problema persiste, puoi recuperare i tuoi fondi in tutta sicurezza utilizzando la frase seed."
       },
-
       "receiveBtcPage": {
         "onchainFeeMessage": "I pagamenti on-chain hanno una commissione di rete e una commissione Spark dello 0,1%.\n\nSe invii soldi a te stesso, pagherai la commissione di rete due volte — una per inviarli e una per reclamarli.\n\nSe qualcun altro ti invia fondi, pagherai la commissione di rete una sola volta per reclamarli.",
-        "liquidFeeMessage": "I pagamenti Liquid devono essere convertiti in Spark.\n\nQuesto processo include una commissione di blocco di circa {{fee}}, una commissione di prelievo di circa {{claimFee}} e una commissione di servizio dello 0,1% da Boltz basata sull'importo che stai inviando.",
-        "rootstockFeeMessage": "I pagamenti in Rootstock devono essere convertiti in Spark. Questo processo include una commissione di blocco di circa {{fee}} e una commissione di servizio dello 0,1% da parte di Boltz, calcolata sull’importo che stai inviando.",
-        "generatingInvoice": "Generazione Fattura"
+        "liquidFeeMessage": "I pagamenti ricevuti su indirizzi Liquid devono essere trasferiti su Spark.\n\nQuesto processo include una commissione di blocco di circa {{fee}}, una commissione di riscossione di circa {{claimFee}} e una commissione di servizio dello 0,1% da parte di Boltz in base all'importo inviato.",
+        "rootstockFeeMessage": "I pagamenti ricevuti su indirizzi Rootstock devono essere trasferiti su Spark.\n\nQuesto processo include una commissione di blocco di circa {{fee}} e una commissione di servizio dello 0,1% da parte di Boltz in base all'importo inviato.",
+        "lightningConvertMessage": "Ricevere dollari tramite Lightning richiede la conversione di Bitcoin in USD. Si applica una commissione del {{convertFee}} % e il tasso di cambio attuale è:\n{{satExchangeRate}}.",
+        "generatingInvoice": "Generazione Fattura",
+        "amountPlaceholder": "Qualsiasi importo",
+        "receiveAsHeader": "Ricevi come",
+        "receiveAs_spark_BTC": "Bitcoin o token",
+        "receiveAs_lightning_BTC": "Mantieni in Bitcoin",
+        "receiveAs_spark_USD": "Dollari",
+        "receiveAs_lightning_USD": "Converti in dollari",
+        "amount_USD_MIN": "Min. {{swapAmountSat}}",
+        "invoiceDescription_lightningInvoice": "Fattura Lightning",
+        "invoiceDescription_lightningAddress": "Indirizzo Lightning",
+        "invoiceDescription_bitcoinAddress": "Indirizzo Bitcoin",
+        "invoiceDescription_liquidAddress": "Indirizzo Liquid",
+        "invoiceDescription_sparkAddress": "Indirizzo Spark",
+        "invoiceDescription_rootstockAddress": "Indirizzo Rootstock",
+        "header_lightning_btc": "Bitcoin tramite Lightning",
+        "header_lightning_usd": "Dollari tramite Lightning",
+        "header_bitcoin": "Bitcoin",
+        "header_spark_btc": "Bitcoin/Token tramite Spark",
+        "header_spark_usd": "Dollari tramite Spark",
+        "header_liquid": "Bitcoin tramite Liquid",
+        "header_rootstock": "Bitcoin tramite Rootstock",
+        "selectReceiveAssetHead": "Seleziona l’asset da ricevere",
+        "usd_convert_warning": "L'importo finale che riceverai può variare a causa delle variazioni di prezzo di mercato durante la conversione.",
+        "editDescriptionHead": "Cosa vorresti dire?",
+        "editDescriptionPlaceholder": "Aggiungi una descrizione",
+        "confirmToClaimTitle": "Conferma prima di ricevere",
+        "confirmToClaimOff": "Disattivato, i pagamenti sono confermati immediatamente",
+        "confirmToClaimOn": "Attivato, approvi ogni pagamento",
+        "holdInvoiceExplainer": "Quando è attivo, i pagamenti inviati a questa fattura vengono trattenuti finché non li confermi. Se non li richiedi in tempo, il pagamento viene automaticamente restituito al mittente.",
+        "expiryTitle": "Scade dopo",
+        "expiry_3600": "1 ora",
+        "expiry_21600": "6 ore",
+        "expiry_86400": "24 ore",
+        "expiry_604800": "7 giorni",
+        "expiry_2592000": "30 giorni",
+        "expiry_7776000": "90 giorni"
       },
-
       "settingsContent": {
         "about": "Informazioni",
         "language": "Lingua",
-        "display currency": "Valuta di Visualizzazione",
+        "display currency": "Valuta",
         "display options": "Opzioni di Visualizzazione",
         "edit contact profile": "Modifica Profilo Contatto",
-        "view all swaps": "Scambi",
+        "view all swaps": "Trasferimenti di rete",
         "fast pay": "Pagamento Rapido",
         "blitz fee details": "Dettagli Commissione Blitz",
         "crash reports": "Report Crash",
         "notifications": "Notifiche",
         "blitz stats": "Statistiche Blitz",
         "accounts": "Account",
-        "nostr": "nostr",
+        "nostr": "Nostr",
         "login mode": "Modalità Login",
         "backup wallet": "Backup Wallet",
         "spark info": "Info Spark",
         "delete wallet": "Elimina Wallet",
         "general": "Generale",
+        "preferences": "Preferenze",
         "security": "Sicurezza",
         "technical settings": "Impostazioni Tecniche",
         "experimental features": "Funzionalità Sperimentali",
         "settings": "Impostazioni",
         "blitzRestore": "Ripristino Blitz",
-        "point-of-sale": "Terminale POS"
+        "point-of-sale": "Terminale POS",
+        "pools": "Pools",
+        "show seed phrase": "Backup portafoglio"
       },
       "technicalTransactionDetails": {
         "txHash": "Hash Transazione",
@@ -1514,9 +1907,19 @@
         "senders": "del mittente"
       },
       "viewAllTxPage": {
-        "title": "Transazioni"
+        "title": "Transazioni",
+        "filterAll": "Tutti",
+        "filterLightning": "Lightning",
+        "filterBitcoin": "Bitcoin",
+        "filterSpark": "Spark",
+        "filterContacts": "Contatti",
+        "filterGifts": "Regali",
+        "filterSwaps": "Scambi",
+        "filterSavings": "Risparmi",
+        "filterPools": "Pool",
+        "noTxHistoryTitle": "Nessuna cronologia delle transazioni",
+        "noTxHistorySub": "Le tue transazioni appariranno qui una volta che ne invii o ricevi una."
       },
-
       "lrc20HalfModal": {
         "title": "Cerca Token",
         "searchPlaceholder": "Nome token...",
@@ -1527,15 +1930,207 @@
         "maxSupply": "Offerta Massima",
         "tokenTicker": "Token Ticker",
         "tokenPubKey": "Token Chiave Pubblica"
+      },
+      "giftPages": {
+        "expired": "Scaduto",
+        "lessThanMin": "Meno di un minuto rimasto",
+        "timeLeft": {
+          "days_one": "Rimane {{count}} giorno",
+          "days_other": "Rimangono {{count}} giorni",
+          "hours_one": "Rimane {{count}} ora",
+          "hours_other": "Rimangono {{count}} ore",
+          "minutes_one": "Rimane {{count}} minuto",
+          "minutes_other": "Rimangono {{count}} minuti"
+        },
+        "shareMessage": "Hai ricevuto un regalo di {{amount}}! Riscattalo qui:\n{{link}}",
+        "fundGiftMessage": "Creazione del regalo",
+        "reclaimGiftMessage": "Recupero del regalo",
+        "giftsHome": {
+          "title": "Regali in Blitz",
+          "desc": "Condividi Bitcoin o Dollari con amici e famiglia"
+        },
+        "giftsOverview": {
+          "noGiftsHead": "Nessun regalo ancora",
+          "noGiftsDesc": "Crea il tuo primo regalo per condividere Bitcoin o dollari con amici e familiari.",
+          "createGift": "Crea regalo",
+          "claimed": "Riscattato",
+          "expired": "Scaduto",
+          "unclaimed": "Non riscattato",
+          "reclaimed": "Recuperato"
+        },
+        "createGift": {
+          "noAmountError": "Inserisci un importo per creare il tuo regalo.",
+          "connectError": "Non siamo riusciti a configurare il portafoglio del regalo.",
+          "addressError": "Non siamo riusciti a ottenere l'indirizzo del regalo.",
+          "saveError": "Non siamo riusciti a salvare il tuo regalo.",
+          "fundError": "Non siamo riusciti ad aggiungere fondi al tuo regalo.",
+          "startProcess1": "Preparando il tuo regalo…",
+          "startProcess2": "Configurazione in corso…",
+          "startProcess3": "Aggiunta dei fondi…",
+          "header": "Crea regalo",
+          "inputPlaceholder": "Aggiungi un messaggio o una nota...",
+          "button": "Crea regalo",
+          "disclaimer": "Quando crei un regalo, il denaro rimane bloccato per {{numDays}} giorni. Se nessuno lo riscatta entro quel periodo, puoi andare alla pagina di recupero per riaverlo.",
+          "durationText": "{{numDays}} giorni",
+          "type": "Tipo"
+        },
+        "giftConfirmation": {
+          "header": "Regalo creato!",
+          "whatToDo": "Condividi questo regalo tramite QR o link",
+          "details": "Dettagli del regalo",
+          "expire": "Scade",
+          "giftLink": "Link del regalo",
+          "shareGift": "Condividi regalo",
+          "createAnother": "Crea un altro",
+          "done": "Fatto"
+        },
+        "claimHome": {
+          "header": "Inserisci il link del regalo",
+          "desc": "Incolla il link ricevuto o scansiona il QR per riscattare il regalo",
+          "inputPlaceholder": "Inserisci il link del regalo",
+          "claim": "Riscatta",
+          "noGiftLinkError": "Impossibile trovare un link regalo. Scansiona o incolla il link ricevuto.",
+          "invliadGiftFormat": "Link regalo non valido. Copia il link completo e riprova."
+        },
+        "reclaimPage": {
+          "header": "Recupera il tuo regalo",
+          "desc": "Inserisci o scegli l'ID per recuperare un regalo scaduto o non riscattato.",
+          "inputPlaceholder": "Inserisci ID regalo",
+          "dropdownPlaceHolder": "Seleziona regalo scaduto",
+          "button": "Recupera regalo",
+          "noReclaimsMessage": "Non hai regali scaduti al momento. Torna quando un regalo sarà scaduto per recuperarlo.",
+          "advancedModeBTN": "Modalità avanzata"
+        },
+        "advancedMode": {
+          "header": "Modalità avanzata",
+          "currentIndexHead": "Indice regalo corrente",
+          "infoHead": "Come funzionano i regali in Blitz",
+          "infoDesc1": "I regali Blitz utilizzano portafogli separati creati dal tuo portafoglio principale. Questo ti permette di recuperare fondi non riscattati mantenendo protetto il tuo portafoglio principale.",
+          "infoDesc2": "La maggior parte dei regali scaduti può essere recuperata tramite la pagina normale di recupero. Se un regalo non è stato ricevuto completamente o l'opzione standard non funziona, puoi usare questa pagina per selezionare un regalo specifico e verificare se è rimasto del denaro.",
+          "inputHead": "Inserisci il numero del regalo",
+          "invalidGiftNum": "Inserisci un numero di regalo valido tra 1 e {{currentGiftIndex}}",
+          "restoreGiftBTN": "Ripristina regalo",
+          "advancedWarning": "Questa funzione avanzata dovrebbe essere utilizzata solo quando il normale processo di recupero non funziona. Se non sei sicuro, prova prima la pagina normale di recupero."
+        },
+        "claimPage": {
+          "parseError": "Non siamo riusciti a leggere i dettagli del regalo.",
+          "noGiftForReclaim": "Regalo non trovato. Forse è già stato riscattato.",
+          "expiredOrClaimed": "Il regalo è stato riscattato o è scaduto.",
+          "noGiftSeed": "Impossibile raggiungere il regalo. Riprova più tardi.",
+          "giftWalletInitError": "Impossibile raggiungere il regalo. Riprova più tardi.",
+          "noBalanceErrorReclaim": "Nessun fondo rimasto da recuperare.",
+          "nobalanceError": "Non siamo riusciti a trovare un importo per questo regalo. Riprova più tardi o prova a ripristinare il regalo.",
+          "nobalanceErrorExpert": "Non è disponibile alcun importo da ripristinare per questo regalo.",
+          "balanceMismatchError": "Si è verificato un problema durante il recupero dell’importo del regalo. Riprova.",
+          "notExpired": "Non puoi ancora recuperare questo regalo.",
+          "paymentError": "Impossibile riscattare il regalo.",
+          "claimHead": "Accetta regalo",
+          "reclaimHead": "Rimborso regalo",
+          "claimLoading": "Riscatto in corso… rimani nell'app.",
+          "reclaimLoading": "Restituzione fondi… rimani nell'app.",
+          "claimAmountHead": "Importo ricevuto",
+          "reclaimAmountHead": "Importo restituito",
+          "reclaimAmountHeadExpert": "Numero del regalo ripristinato",
+          "networkFeeWarningExpert": "Qualsiasi importo trovato, meno le commissioni di rete, verrà aggiunto al tuo saldo",
+          "networkFeeWarning": "Questo importo meno le commissioni verrà aggiunto al saldo",
+          "buttonTextClaiming": "Riscattando",
+          "reclaimButton": "Recupera regalo",
+          "claimButton": "Accetta regalo",
+          "confirmMessage": "Il tuo regalo è stato riscattato; riceverai i tuoi fondi a breve",
+          "defaultDesc": "Regalo Blitz",
+          "claimingGiftMessage1": "Preparazione del regalo...",
+          "giftBalanceMessage_0": "Un momento mentre prepariamo tutto...",
+          "giftBalanceMessage_1": "Stiamo recuperando le informazioni del tuo regalo...",
+          "giftBalanceMessage_2": "Quasi fatto—per favore tieni l’app aperta...",
+          "giftBalanceMessage_3": "Stiamo completando gli ultimi passaggi...",
+          "claimingGiftMessage4": "Riscatto del regalo..."
+        }
+      },
+      "swapsPage": {
+        "noPoolFoundBackup": "Pool BTC/USDB non trovato",
+        "loadPoolError": "Impossibile caricare le informazioni del pool",
+        "noPoolsFoundError": "Nessun pool trovato per {{tokenAAddress}}/{{tokenBAddress}}",
+        "highPriceImpact": "Impatto sul prezzo elevato: {{priceImpact}}",
+        "slippageError": "Il prezzo è cambiato troppo. Prova ad aumentare la tolleranza allo slippage.",
+        "noLiquidity": "Liquidità insufficiente. Prova con un importo minore o un pool diverso.",
+        "authenticationError": "Autenticazione non riuscita. Ricollegati.",
+        "noPoolError": "Il pool non esiste.",
+        "automaticRecovery": "Fondi recuperati automaticamente.",
+        "semiRecovered": "Alcuni fondi richiedono il recupero manuale.",
+        "willRecover": "I fondi verranno restituiti automaticamente.",
+        "failedSimulation": "Simulazione fallita",
+        "swapAmountCalculatorFailed": "Impossibile calcolare l'importo dello swap",
+        "invalidAmount": "Inserisci un importo valido",
+        "priceImpact": "Impatto sul prezzo: {{impact}}%\n Vuoi comunque procedere con lo swap?",
+        "swapFailedBackupError": "Swap fallito",
+        "swapAutomaticRecovery": "\n\nI tuoi fondi sono stati recuperati automaticamente.",
+        "swapPartialRecovery": "\n\nAlcuni fondi sono stati recuperati automaticamente ({{count}}).",
+        "swapFutureRecovery": "\n\nI tuoi fondi verranno rimborsati automaticamente.",
+        "swapSlippageError": "\n\nProva ad aumentare la tolleranza allo slippage o attendi condizioni di mercato migliori.",
+        "swapLiquidityError": "\n\nProva a scambiare un importo minore o attendi più liquidità.",
+        "fullSwapError": "Si è verificato un errore imprevisto durante lo swap. Riprova.",
+        "checkSwapMessage": "Impatto sul prezzo elevato",
+        "swapConfimred": "Swap riuscito",
+        "youSent": "Hai inviato",
+        "youReceived": "Hai ricevuto",
+        "newSwap": "Nuovo swap",
+        "loadingPool": "Caricamento informazioni swap...",
+        "fromBalance": "Ho {{amount}}",
+        "fromBalanceHidden": "Ho",
+        "toBalance": "Voglio",
+        "min": "MIN",
+        "half": "METÀ",
+        "max": "MAX",
+        "swappingMessageButton": "Swap in corso...",
+        "loadingMessageButton": "Caricamento...",
+        "swapMessageButton": "Swap {{fromAsset}} → {{toAsset}}",
+        "swapDisclaimer": "I servizi di swap sono forniti tramite API di terze parti.",
+        "serviceUnavailableHead": "Servizio non disponibile",
+        "serviceUnavailableDesc": "Impossibile connettersi al servizio di swap. Controlla la connessione e riprova.",
+        "swapDirection_usdbtc": "USD → BTC",
+        "swapDirection_btcusd": "BTC → USD",
+        "paymentDescription_outgoing": "{{swapDirection}}",
+        "paymentDescription_incoming": "{{swapDirection}}",
+        "yourAreConverting": "Stai convertendo",
+        "youWillReceive": "Riceverai",
+        "bitcoinPrice": "Prezzo di Bitcoin",
+        "swapFee": "Commissione di swap",
+        "exchangeRate": "Tasso di cambio",
+        "minBTCError": "L’importo minimo in BTC è {{min}}. Aumenta l’importo per continuare.",
+        "minUSDError": "L’importo minimo in USD è {{min}}. Aumenta l’importo per continuare.",
+        "simulationError": "Non è stato possibile calcolare questo swap al momento. Riprova.",
+        "swapInProgressError": "È già in corso uno swap. Attendi.",
+        "insufficientBalance": "L’importo è superiore al saldo disponibile. Inserisci un importo inferiore.",
+        "simulationInProgress": "Attendi, il calcolo dello swap è ancora in corso.",
+        "convertHead": "Converti",
+        "percentConvertSelector": "% da convertire",
+        "slippage": "Slippage",
+        "slippageDesc": "Lo slippage è la percentuale di variazione del prezzo che sei disposto ad accettare. Uno slippage basso può causare il fallimento della transazione, mentre uno slippage alto può portare a ricevere un importo inferiore a quello previsto.",
+        "auto": "Auto",
+        "navbar": {
+          "swap": "Scambia",
+          "amount": "Importo",
+          "details": "Dettagli"
+        },
+        "chooseCurrencyTitle": "Scegli la valuta da cui effettuare lo scambio.",
+        "enterAmountTitle": "Inserisci l’importo da scambiare."
+      },
+      "swapHistory": {
+        "loadingSwapHistoryError": "Impossibile caricare la cronologia degli swap. Riprova più tardi.",
+        "noHisotorytitle": "Nessuna cronologia degli swap",
+        "noHisotorydesc": "Le tue transazioni di swap appariranno qui.",
+        "pageTitle": "Cronologia"
       }
     }
   },
-
   "toastmessages": {
     "confirmCopy": "Copiato negli appunti",
-    "failedCopy": "Impossibile copiare"
+    "failedCopy": "Impossibile copiare",
+    "handleSwap": {
+      "title": "Pagamento di swap ricevuto",
+      "desc": "Il tuo saldo verrà aggiornato a breve"
+    }
   },
-
   "errormessages": {
     "nointernet": "Riconnettiti a Internet per usare questa funzione",
     "genericError": "Si è verificato un errore inatteso",
@@ -1571,22 +2166,26 @@
     "noDataInQRError": "Impossibile trovare i dati nell'immagine.",
     "noInvoiceInImageError": "Impossibile ottenere la fattura dall'immagine.",
     "savingImageError": "Impossibile salvare l'immagine, riprova.",
-    "invalidSeedError": "Non hai inserito un seed valido",
+    "invalidSeedError": "Non è stata inserita una frase seed valida",
     "invalidSeedWordLengthErorr": "Non tutte le parole sono della lunghezza valida",
-    "invalidSeedLengthError": "Impossibile trovare 12 parole dalla frase di recupero copiata.",
+    "invalidSeedLengthError": "Impossibile trovare 12 parole dalla frase seed copiata.",
     "noGooglePlay": "I servizi Google Play sono necessari per ricevere notifiche.",
     "noNotificationPermission": "Blitz non ha i permessi per le notifiche. Abilitali nelle impostazioni per usare le notifiche.",
     "rootstockInvoiceError": "C'è stato un problema nella generazione del tuo indirizzo Rootstock. Riprova.",
     "liquidInvoiceError": "C'è stato un problema nella generazione del tuo indirizzo Liquid. Riprova.",
-    "bitcoinInvioceError": "C'è stato un problema nella generazione del tuo indirizzo Bitcoin. Riprova.",
+    "bitcoinInvoiceError": "C'è stato un problema nella generazione del tuo indirizzo Bitcoin. Riprova.",
     "sparkInvioceError": "C'è stato un problema nella generazione del tuo indirizzo Spark. Riprova.",
-    "lightningInvioceError": "C'è stato un problema nella generazione del tuo indirizzo Lightning. Riprova.",
+    "lightningInvoiceError": "C'è stato un problema nella generazione del tuo indirizzo Lightning. Riprova.",
     "sparkConnectionError": "Connessione Spark fallita. Riprova.",
     "giftCardExpiration": "Le carte regalo possono essere recuperate solo entro 7 giorni dall'invio. Se questa app viene eliminata o l'archiviazione locale viene cancellata dopo tale periodo, le tue carte regalo andranno perse. Assicurati di salvare i link di richiesta o i codici delle carte regalo in un luogo sicuro.",
     "receivedRootstock": "Pagamento Rootstock ricevuto: il tuo scambio sta iniziando. Potrebbe volerci fino a un minuto, quindi tieni l'app aperta.",
-    "receivedLiquid": "Pagamento Liquid ricevuto: il tuo scambio sta iniziando. Potrebbe volerci fino a un minuto, quindi tieni l'app aperta."
+    "receivedLiquid": "Pagamento Liquid ricevuto: il tuo scambio sta iniziando. Potrebbe volerci fino a un minuto, quindi tieni l'app aperta.",
+    "invalidData": "I dati forniti non sono validi",
+    "paymentError": "Si è verificato un errore durante l'elaborazione del pagamento. Riprova. Se continua a non funzionare, chiudi l'app e riaprila prima di riprovare.",
+    "paymentFeeError": "Non siamo riusciti a recuperare la commissione di pagamento. Riprova. Se il problema persiste, chiudi l'app e riaprila prima di riprovare.",
+    "priceImpact": "Questo pagamento è elevato, quindi l'importo finale che riceverai in dollari potrebbe cambiare.",
+    "removingImageError": "Impossibile rimuovere l'immagine. Riprova."
   },
-
   "loadingScreen": {
     "message1": "Non chiudere l'app",
     "message2": "Stiamo configurando tutto",
@@ -1598,17 +2197,22 @@
       "depositLabel": "Pagamento indirizzo deposito"
     }
   },
-
-  "swapMessages": {
-    "liquid": "Scambio da Liquid a Spark"
+  "share": {
+    "contact": "Ciao, aggiungimi su Blitz!"
   },
-
+  "swapMessages": {
+    "liquid": "Trasferimento da Liquid a Spark"
+  },
   "tabs": {
     "home": "Portafoglio",
     "appStore": "Negozio",
     "contacts": "Contatti"
   },
   "pushNotifications": {
+    "paymentReceived": {
+      "title": "Pagamento ricevuto",
+      "body": "Hai ricevuto {{totalAmount}}"
+    },
     "LNURL": {
       "zapped": "Sei stato zappato {{totalAmount}}",
       "regular": "Hai appena ricevuto {{totalAmount}}"
@@ -1620,5 +2224,222 @@
       "payment": "{{name}} ti ha pagato {{amount}}",
       "giftCard": "{{name}} ti ha inviato una carta regalo {{giftCardName}}"
     }
+  },
+  "accountCard": {
+    "fallbackAccountName": "Account {{index}}"
+  },
+  "flashnetUserMessages": {
+    "FSAG-1000": "La richiesta non ha superato i controlli di validazione.",
+    "FSAG-1001": "Manca un campo obbligatorio nella richiesta.",
+    "FSAG-1002": "Uno o più campi hanno un formato non valido.",
+    "FSAG-1003": "Un valore è al di fuori dell’intervallo consentito.",
+    "FSAG-1004": "Questo valore esiste già e deve essere univoco.",
+    "FSAG-2001": "Impossibile verificare la firma della richiesta.",
+    "FSAG-2002": "L’identità del token non corrisponde alla chiave pubblica prevista.",
+    "FSAG-2003": "È richiesta l’autenticazione per questa operazione.",
+    "FSAG-2004": "La sessione è scaduta o il token non è valido.",
+    "FSAG-2005": "Il nonce della richiesta non è valido o è già stato utilizzato.",
+    "FSAG-2101": "La chiave pubblica fornita non è valida.",
+    "FSAG-3001": "Si è verificato un problema temporaneo del servizio. Riprova.",
+    "FSAG-3002": "Si è verificato un problema temporaneo del servizio. Riprova.",
+    "FSAG-3101": "Si è verificato un errore del database. Riprova.",
+    "FSAG-3201": "Il servizio di regolamento non è temporaneamente disponibile.",
+    "FSAG-3201T1": "Il servizio di regolamento non è temporaneamente disponibile.",
+    "FSAG-3201T2": "La richiesta di regolamento è scaduta.",
+    "FSAG-3202": "Un servizio dipendente non è temporaneamente disponibile.",
+    "FSAG-3301": "Il processore AMM non ha potuto ricevere la richiesta.",
+    "FSAG-3302": "Il processore AMM ha superato il tempo limite durante l’elaborazione.",
+    "FSAG-3401": "Si è verificato un errore interno di elaborazione.",
+    "FSAG-3402": "Si è verificato un errore interno di elaborazione.",
+    "FSAG-4001": "Il pool specificato non esiste.",
+    "FSAG-4002": "Il namespace host specificato non esiste.",
+    "FSAG-4101": "La sessione di autenticazione non è stata trovata o è scaduta.",
+    "FSAG-4102": "Il flusso di autenticazione non è stato seguito correttamente.",
+    "FSAG-4201": "Il pool non ha liquidità sufficiente per completare lo swap.",
+    "FSAG-4202": "Il prezzo si è mosso oltre la tolleranza di slippage consentita.",
+    "FSAG-4203": "Questa operazione non può essere eseguita nello stato attuale del pool.",
+    "FSAG-4204": "Non hai abbastanza token LP per completare questo prelievo.",
+    "FSAG-4301": "La configurazione delle commissioni non è valida.",
+    "FSAG-4401": "Questo trasferimento Spark è già stato utilizzato in un’operazione.",
+    "FSAG-5001": "Si è verificato un errore interno durante l’elaborazione della richiesta.",
+    "FSAG-5002": "Questa funzionalità non è ancora disponibile.",
+    "FSAG-5003": "Si è verificato un errore interno. Contatta l’assistenza se il problema persiste.",
+    "FSAG-5004": "Si è verificato un errore di configurazione del sistema.",
+    "FSAG-5100": "Si è verificato un errore imprevisto del server."
+  },
+  "savings": {
+    "home": {
+      "title": "Risparmi",
+      "howItWorksLink": "Come funziona",
+      "earnedCard": "Guadagnato: {{amount}}",
+      "setGoalTitle": "Imposta un obiettivo",
+      "setGoalSubtitle": "Risparmia per ciò che conta di più",
+      "savingsGoalFallback": "Obiettivo di risparmio",
+      "createAnotherGoal": "Crea un altro obiettivo",
+      "disclaimer": "I saldi in contanti sono detenuti in USDB, una stablecoin ancorata al dollaro emessa da Brale e completamente garantita 1:1 da Buoni del Tesoro USA ed equivalenti di cassa presso istituzioni finanziarie regolamentate."
+    },
+    "preview": {
+      "title": "Risparmi",
+      "earnInterest": "Guadagna il di interessi pagati in Bitcoin"
+    },
+    "goalEmoji": {
+      "screenTitle": "Scegli emoji",
+      "title": "Scegli un emoji per il tuo obiettivo",
+      "subtitle": "Cosa rappresenta meglio il tuo obiettivo?",
+      "continueButton": "Scegli emoji"
+    },
+    "goalDescribe": {
+      "screenTitle": "Inserisci descrizione",
+      "title": "Descrivi il tuo obiettivo",
+      "placeholder": "Fondo extra"
+    },
+    "goalAmount": {
+      "screenTitle": "Imposta obiettivo",
+      "goalFallbackName": "Obiettivo di risparmio",
+      "errors": {
+        "unableToSetGoal": "Impossibile impostare l'obiettivo"
+      }
+    },
+    "goalSuccess": {
+      "title": "Il tuo obiettivo è stato impostato a {{amount}}",
+      "subtitle": "Inizia ad aggiungere denaro per raggiungere il tuo obiettivo."
+    },
+    "goalDetails": {
+      "screenTitleFallback": "Obiettivo",
+      "updateGoalButton": "Aggiorna obiettivo",
+      "emptyState": "Nessun obiettivo impostato"
+    },
+    "updateGoal": {
+      "screenTitle": "Aggiorna obiettivo",
+      "title": "Aggiorna obiettivo",
+      "body": "Puoi modificare l'importo dedicato al tuo obiettivo oppure rimuoverlo.",
+      "removeButton": "Rimuovi obiettivo",
+      "updateButton": "Aggiorna obiettivo"
+    },
+    "removeGoalConfirm": {
+      "screenTitle": "Rimuovi obiettivo",
+      "title": "Rimuovi obiettivo",
+      "warningProgressLost": "Non vedrai più i progressi verso il tuo obiettivo «{{goalName}}».",
+      "warningMoneyReturned": "Il denaro dedicato a questo obiettivo verrà trasferito automaticamente ai Risparmi.",
+      "removeButton": "Rimuovi obiettivo",
+      "errors": {
+        "unableToRemoveGoal": "Impossibile rimuovere l'obiettivo"
+      }
+    },
+    "goalRemovedSuccess": {
+      "title": "Obiettivo rimosso"
+    },
+    "actionButtons": {
+      "addMoney": "Aggiungi denaro",
+      "withdraw": "Preleva"
+    },
+    "activity": {
+      "title": "Attività",
+      "emptyState": "Le transazioni future appariranno qui."
+    },
+    "addMoney": {
+      "chooseGoalTitle": "Aggiungi denaro a",
+      "generalSavings": "Risparmi generali",
+      "noSpecificGoal": "Nessun obiettivo specifico",
+      "sourceTitle": "Aggiungi denaro da",
+      "minHint": "Min: {{amount}}",
+      "confirmTitle": "Conferma deposito",
+      "youAreAdding": "Stai aggiungendo",
+      "fromBalance_dollar": "dal saldo in dollari",
+      "fromBalance_bitcoin": "dal saldo Bitcoin",
+      "confirmButton": "Conferma",
+      "processing": "Elaborazione in corso…",
+      "steps": {
+        "processing": "Elaborazione in corso...",
+        "swapping": "Conversione dei fondi in dollari...",
+        "adding": "Aggiunta al conto risparmi...",
+        "complete": "Completato."
+      },
+      "successTitle": "Denaro aggiunto",
+      "paymentLabel_unallocated": "Deposito risparmio",
+      "paymentLabel": "Deposito risparmio su {{savingsGoal}}",
+      "errors": {
+        "unableToCompleteTransfer": "Impossibile completare il trasferimento"
+      }
+    },
+    "withdraw": {
+      "balanceTypeTitle": "Cosa desideri prelevare?",
+      "interestOption": "Interessi maturati",
+      "savingsOption": "Saldo risparmi",
+      "interestZeroHint": "Nessun interesse maturato finora",
+      "savingsZeroHint": "Nessun risparmio ancora",
+      "interestBelowMinHint": "Il tuo saldo in Bitcoin è inferiore all’importo minimo per lo scambio. Effettua il prelievo verso il tuo saldo Bitcoin.",
+      "loadingBalances": "Caricamento saldi...",
+      "balanceLoadError": "Impossibile caricare il wallet. Torna indietro e riprova.",
+      "fromInterest": "Dai tuoi interessi",
+      "fromSavings": "Dai tuoi risparmi",
+      "interestPaymentLabel": "Prelievo interessi",
+      "chooseGoalTitle": "Preleva denaro da",
+      "withdrawAll": "Preleva tutto",
+      "generalSavings": "Risparmi generali",
+      "destinationTitle": "Preleva denaro su",
+      "availableHint": "Disponibile: {{amount}}",
+      "minHint": "Min: {{amount}}",
+      "confirmTitle": "Conferma prelievo",
+      "youAreWithdrawingAll": "Stai prelevando tutti i risparmi",
+      "youAreWithdrawing": "Stai prelevando",
+      "toYourBalance": "sul tuo {{destination}}",
+      "estimatedSats": "≈ {{sats}} sats dopo lo scambio",
+      "confirmButton": "Conferma",
+      "processing": "Prelievo in corso…",
+      "steps": {
+        "processing": "Elaborazione in corso...",
+        "withdrawing_savings": "Prelievo dal conto risparmi...",
+        "withdrawing_rewards": "Prelievo dal conto premi Bitcoin...",
+        "swapping": "Conversione in Bitcoin...",
+        "complete": "Completato."
+      },
+      "successTitle": "Prelievo completato",
+      "paymentLabel_unallocated": "Prelievo risparmio",
+      "paymentLabel": "Prelievo risparmio da {{savingsGoal}}",
+      "errors": {
+        "unableToCompleteWithdrawal": "Impossibile completare il prelievo"
+      }
+    },
+    "howItWorks": {
+      "headline1": "Il tuo denaro,",
+      "headline2": "che cresce ogni giorno.",
+      "subtext": "Una stablecoin ancorata al dollaro che accumula automaticamente premi mentre la detieni.",
+      "transparencyIssuer": "USDB emesso da Brale, Inc. · Rendimento tramite Flashnet",
+      "transparencyLegal": "Il rendimento è variabile e non garantito. Non è un deposito bancario. Non assicurato da FDIC o SIPC.",
+      "disclaimerLegal": "Blitz Wallet non è una banca, un broker o un consulente finanziario. I tassi sono variabili e possono cambiare in qualsiasi momento. Consulta i Termini di utilizzo per le informazioni complete sui rischi.",
+      "features": {
+        "earnTitle": "Guadagna premi ogni giorno",
+        "earnBody": "USDB accumula automaticamente premi di risparmio. Nessuno staking, nessun blocco — tienila e guadagna.",
+        "accessTitle": "Accesso immediato",
+        "accessBody": "Preleva sul tuo wallet Lightning in pochi secondi, in qualsiasi momento. I tuoi fondi non sono mai bloccati.",
+        "backedTitle": "Completamente garantito",
+        "backedBody": "Ogni USDB è garantito 1:1 da USD in conti di riserva segregati e certificati.",
+        "goalTitle": "Imposta un obiettivo di risparmio",
+        "goalBody": "Monitora i progressi verso un obiettivo — una vacanza, un fondo d'emergenza o qualsiasi altra cosa."
+      },
+      "stats": {
+        "currentApyLabel": "APY",
+        "currentApyValue": "3,5%",
+        "accrualLabel": "Accumulo",
+        "accrualValue": "Giornaliero"
+      },
+      "context": {
+        "goalNameReqiured": "Il nome dell'obiettivo è obbligatorio",
+        "goalNotFound": "Obiettivo non trovato"
+      },
+      "transparencyTitle": "Garantito da riserve reali",
+      "transparencyBody": "Le riserve sono detenute in conti segregati e certificati — principalmente titoli del Tesoro USA a breve termine e fondi del mercato monetario. Flashnet pubblica report di attestazione mensili.",
+      "disclaimer": "I tassi sono variabili e soggetti a modifiche. Non si tratta di un deposito bancario. Consulta flashnet.xyz per le informative complete."
+    },
+    "withdrawal": "Prelievo",
+    "withdrawalWithGoal": "Prelievo da {{goalName}}",
+    "deposit": "Deposito",
+    "depositWithGoal": "Deposito su {{goalName}}",
+    "swapSimulationError": "Simulazione di scambio non disponibile",
+    "savingsWalletError": "Wallet risparmio non pronto",
+    "rewardsPayout": "Pagamento ricompense in Bitcoin",
+    "rewardsWithdrawl": "Prelievo delle ricompense in Bitcoin",
+    "total_balance": "Saldo Totale"
   }
 }
