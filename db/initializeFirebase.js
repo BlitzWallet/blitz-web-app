@@ -1,10 +1,11 @@
 import { initializeApp } from "firebase/app";
 import {
+  connectAuthEmulator,
   getAuth,
   signInAnonymously,
   signInWithCustomToken,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 import fetchBackend from "./handleBackend";
@@ -23,6 +24,19 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+
+// Connect emulators exactly once at module load, before any auth operations.
+// Uses globalThis flag to survive Vite HMR re-execution.
+// Set MODE=development in .env to enable.
+if (
+  import.meta.env.MODE === "development" &&
+  !globalThis.__emulatorsConnected
+) {
+  globalThis.__emulatorsConnected = true;
+  connectFunctionsEmulator(functions, "localhost", 5001);
+  connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "localhost", 8080);
+}
 
 let initializationPromise = null;
 let lastInitializedKey = null;
@@ -43,12 +57,6 @@ export async function initializeFirebase(publicKey, privateKey) {
 
     initializationPromise = (async () => {
       try {
-        // Initialize App Check first
-        // Sign in anonymously;
-        if (import.meta.env.MODE === "development") {
-          connectFunctionsEmulator(functions, "localhost", 5001);
-        }
-
         const currentUser = auth.currentUser;
         console.log("current auth", {
           currentUser,
@@ -66,7 +74,7 @@ export async function initializeFirebase(publicKey, privateKey) {
           "customToken",
           { userAuth: isSignedIn?.uid },
           privateKey,
-          publicKey
+          publicKey,
         );
         if (!token)
           throw new Error("Not able to get custom token from backend");
@@ -78,7 +86,6 @@ export async function initializeFirebase(publicKey, privateKey) {
         return customSignIn;
       } catch (error) {
         console.error("Error initializing Firebase:", error);
-        // Clear the cache on error so the next call can retry
         initializationPromise = null;
         lastInitializedKey = null;
         throw new Error(String(error.message));
