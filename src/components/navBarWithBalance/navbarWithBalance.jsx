@@ -5,7 +5,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import { Colors } from "../../constants/theme";
 import FormattedSatText from "../formattedSatText/formattedSatText";
 import { useSpark } from "../../contexts/sparkContext";
-import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
+import formatTokensNumber from "../../functions/lrc20/formatTokensBalance";
 
 export default function NavBarWithBalance({
   backFunction,
@@ -55,7 +55,7 @@ export default function NavBarWithBalance({
             balance={
               selectedLRC20Asset !== "Bitcoin"
                 ? Number(formattedTokensBalance).toFixed(
-                    formattedTokensBalance < 1 ? 4 : 2
+                    formattedTokensBalance < 1 ? 4 : 2,
                   )
                 : balance
             }

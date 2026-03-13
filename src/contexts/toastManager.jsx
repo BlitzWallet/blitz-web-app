@@ -16,7 +16,7 @@ import displayCorrectDenomination from "../functions/displayCorrectDenomination"
 import { useSpark } from "./sparkContext";
 import { useNodeContext } from "./nodeContext";
 import { useGlobalContextProvider } from "./masterInfoObject";
-import { formatTokensNumber } from "../functions/lrc20/formatTokensBalance";
+import formatTokensNumber from "../functions/lrc20/formatTokensBalance";
 
 // Toast Context
 const ToastContext = createContext();

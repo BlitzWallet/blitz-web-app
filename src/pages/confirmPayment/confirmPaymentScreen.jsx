@@ -16,7 +16,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 import ThemeText from "../../components/themeText/themeText";
 import { useTranslation } from "react-i18next";
 import { useSpark } from "../../contexts/sparkContext";
-import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
+import formatTokensNumber from "../../functions/lrc20/formatTokensBalance";
 
 export default function ConfirmPayment({ setValue }) {
   const navigate = useNavigate();
@@ -38,8 +38,8 @@ export default function ConfirmPayment({ setValue }) {
   const paymentNetwork = sendingContactUUID
     ? t("screens.inAccount.expandedTxPage.contactPaymentType")
     : transaction.details.isGift
-    ? t("constants.gift")
-    : transaction.paymentType;
+      ? t("constants.gift")
+      : transaction.paymentType;
   const errorMessage = transaction?.details.error || "Unknown Error";
   const amount = transaction?.details.amount;
   const showPendingMessage = transaction?.paymentStatus === "pending";
@@ -51,7 +51,7 @@ export default function ConfirmPayment({ setValue }) {
 
   const formattedTokensBalance = formatTokensNumber(
     amount,
-    token?.tokenMetadata?.decimals
+    token?.tokenMetadata?.decimals,
   );
 
   console.log(paymentFee, "etstasdas");
@@ -59,14 +59,14 @@ export default function ConfirmPayment({ setValue }) {
   const confirmAnimation = useMemo(() => {
     return updateConfirmAnimation(
       confirmTxAnimation,
-      theme ? (darkModeType ? "lightsOut" : "dark") : "light"
+      theme ? (darkModeType ? "lightsOut" : "dark") : "light",
     );
   }, [theme, darkModeType]);
 
   const errorAnimation = useMemo(() => {
     return applyErrorAnimationTheme(
       errorTxAnimation,
-      theme ? (darkModeType ? "lightsOut" : "dark") : "light"
+      theme ? (darkModeType ? "lightsOut" : "dark") : "light",
     );
   }, []);
 
@@ -98,8 +98,8 @@ export default function ConfirmPayment({ setValue }) {
               !didSucceed
                 ? "Failed to send"
                 : paymentType?.toLowerCase() === "paymentsucceed"
-                ? "Sent successfully"
-                : "Received successfully"
+                  ? "Sent successfully"
+                  : "Received successfully"
             }
           />
         )}
@@ -175,7 +175,7 @@ export default function ConfirmPayment({ setValue }) {
           <CustomButton
             actionFunction={() => {
               const mailto = `mailto:blake@blitzwalletapp.com?subject=Payment Failed&body=${encodeURIComponent(
-                errorMessage
+                errorMessage,
               )}`;
               window.location.href = mailto;
             }}

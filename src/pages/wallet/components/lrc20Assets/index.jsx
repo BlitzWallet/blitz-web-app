@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import "./style.css";
 import ThemeText from "../../../../components/themeText/themeText";
-import { formatTokensNumber } from "../../../../functions/lrc20/formatTokensBalance";
 import {
   getContrastingTextColor,
   stringToColorCrypto,
@@ -16,12 +15,15 @@ import { useSpark } from "../../../../contexts/sparkContext";
 import { Colors } from "../../../../constants/theme";
 import { useOverlay } from "../../../../contexts/overlayContext";
 import { ArrowLeft } from "lucide-react";
+import formatTokensNumber from "../../../../functions/lrc20/formatTokensBalance";
+import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 
 export default function LRC20Assets() {
   const { openOverlay } = useOverlay();
   const { darkModeType, theme } = useThemeContext();
   const { sparkInformation } = useSpark();
   const { textColor } = useThemeColors();
+  const { masterInfoObject } = useGlobalContextProvider();
   const { t } = useTranslation();
 
   const homepageBackgroundOffsetColor = useMemo(() => {
@@ -56,7 +58,7 @@ export default function LRC20Assets() {
 
       const backgroundColor = stringToColorCrypto(
         tokenIdentifier,
-        theme && darkModeType ? "lightsout" : "light"
+        theme && darkModeType ? "lightsout" : "light",
       );
       const contrastColor = getContrastingTextColor(backgroundColor);
 
@@ -95,7 +97,7 @@ export default function LRC20Assets() {
               textStyles={{ opacity: 0.7, margin: 0 }}
               textContent={`${tokenIdentifier.slice(
                 0,
-                6
+                6,
               )}...${tokenIdentifier.slice(tokenIdentifier.length - 4)}`}
             />
           </div>
@@ -105,15 +107,22 @@ export default function LRC20Assets() {
             textContent={formatBalanceAmount(
               formatTokensNumber(
                 details?.balance,
-                details?.tokenMetadata?.decimals
+                details?.tokenMetadata?.decimals,
               ),
-              true
+              true,
+              masterInfoObject,
             )}
           />
         </div>
       );
     });
-  }, [filteredTokens, theme, darkModeType, homepageBackgroundOffsetColor]);
+  }, [
+    filteredTokens,
+    theme,
+    darkModeType,
+    homepageBackgroundOffsetColor,
+    masterInfoObject,
+  ]);
 
   return (
     <div className="lrc20-container">
@@ -161,7 +170,7 @@ export default function LRC20Assets() {
                 setInputText={setSearchQuery}
                 containerStyles={{ marginBottom: 10 }}
                 placeholderText={t(
-                  "wallet.homeLightning.lrc20Assets.tokensSearchPlaceholder"
+                  "wallet.homeLightning.lrc20Assets.tokensSearchPlaceholder",
                 )}
               />
             )}

@@ -6,13 +6,15 @@ import { INFINITY_SYMBOL, TOKEN_TICKER_MAX_LENGTH } from "../../constants";
 import formatBalanceAmount from "../formatNumber";
 import useThemeColors from "../../hooks/useThemeColors";
 import copyToClipboard from "../copyToClipboard";
-import { formatTokensNumber } from "./formatTokensBalance";
 import "./tokenHalfModalStyle.css";
 import { useOverlay } from "../../contexts/overlayContext";
+import formatTokensNumber from "./formatTokensBalance";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 
 export default function LRC20TokenInformation({ theme, darkModeType, params }) {
   const { openOverlay } = useOverlay();
   const { sparkInformation } = useSpark();
+  const { masterInfoObject } = useGlobalContextProvider();
   const selectedToken = sparkInformation.tokens?.[params?.tokenIdentifier];
   const { balance, tokenMetadata } = selectedToken;
 
@@ -54,8 +56,12 @@ export default function LRC20TokenInformation({ theme, darkModeType, params }) {
           <ThemeText
             className={"textItem"}
             textContent={formatBalanceAmount(
-              formatTokensNumber(balance, tokenMetadata?.decimals),
-              true
+              formatTokensNumber(
+                balance,
+                tokenMetadata?.decimals,
+                masterInfoObject,
+              ),
+              true,
             )}
           />
         </div>
@@ -72,7 +78,7 @@ export default function LRC20TokenInformation({ theme, darkModeType, params }) {
           <ThemeText
             textStyles={{ marginRight: 5 }}
             textContent={t(
-              "screens.inAccount.lrc20TokenDataHalfModal.maxSupply"
+              "screens.inAccount.lrc20TokenDataHalfModal.maxSupply",
             )}
           />
           <ThemeText
@@ -83,9 +89,10 @@ export default function LRC20TokenInformation({ theme, darkModeType, params }) {
                 : formatBalanceAmount(
                     formatTokensNumber(
                       tokenMetadata.maxSupply,
-                      tokenMetadata?.decimals
+                      tokenMetadata?.decimals,
                     ),
-                    true
+                    true,
+                    masterInfoObject,
                   )
             }
           />
@@ -103,7 +110,7 @@ export default function LRC20TokenInformation({ theme, darkModeType, params }) {
           <ThemeText
             textStyles={{ marginRight: 5 }}
             textContent={t(
-              "screens.inAccount.lrc20TokenDataHalfModal.tokenTicker"
+              "screens.inAccount.lrc20TokenDataHalfModal.tokenTicker",
             )}
           />
           <ThemeText
@@ -122,7 +129,7 @@ export default function LRC20TokenInformation({ theme, darkModeType, params }) {
           <ThemeText
             textStyles={{ marginRight: 5 }}
             textContent={t(
-              "screens.inAccount.lrc20TokenDataHalfModal.tokenPubKey"
+              "screens.inAccount.lrc20TokenDataHalfModal.tokenPubKey",
             )}
           />
 

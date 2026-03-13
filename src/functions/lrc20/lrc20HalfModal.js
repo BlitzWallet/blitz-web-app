@@ -9,7 +9,7 @@ import { COLORS, INSET_WINDOW_WIDTH } from "../../constants/theme";
 import GetThemeColors from "../../hooks/themeColors";
 import FormattedSatText from "../CustomElements/satTextDisplay";
 import { useTranslation } from "react-i18next";
-import { formatTokensNumber } from "./formatTokensBalance";
+import formatTokensNumber from "./formatTokensBalance";
 
 export default function LRC20AssetSelectorHalfModal({
   theme,
@@ -35,7 +35,7 @@ export default function LRC20AssetSelectorHalfModal({
       { selectedLRC20Asset: token },
       {
         merge: true,
-      }
+      },
     );
   };
 
@@ -71,7 +71,7 @@ export default function LRC20AssetSelectorHalfModal({
         />
         <CustomSearchInput
           placeholderText={t(
-            "screens.inAccount.lrc20HalfModal.searchPlaceholder"
+            "screens.inAccount.lrc20HalfModal.searchPlaceholder",
           )}
           setInputText={handleSearch}
           inputText={searchInput}
@@ -138,7 +138,7 @@ export default function LRC20AssetSelectorHalfModal({
               ? details?.balance
               : formatTokensNumber(
                   details?.balance,
-                  details?.tokenMetadata?.decimals
+                  details?.tokenMetadata?.decimals,
                 )
           }
           useCustomLabel={details?.tokenMetadata?.tokenTicker !== "Bitcoin"}
