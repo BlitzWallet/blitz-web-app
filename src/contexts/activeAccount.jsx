@@ -45,7 +45,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
         const accoutList = Storage.getItem(CUSTODY_ACCOUNTS_STORAGE_KEY) || [];
 
         const decryptedList = accoutList.map((item) =>
-          JSON.parse(decryptMnemonic(item, accountMnemoinc))
+          JSON.parse(decryptMnemonic(item, accountMnemoinc)),
         );
 
         setCustodyAccounts(decryptedList);
@@ -67,7 +67,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
     async function clearActiveAccountsOnSessionStart() {
       try {
         const hasActiveAccounts = custodyAccounts.some(
-          (account) => account.isActive
+          (account) => account.isActive,
         );
 
         if (hasActiveAccounts) {
@@ -80,7 +80,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
 
           Storage.setItem(
             CUSTODY_ACCOUNTS_STORAGE_KEY,
-            encriptAccountsList(clearedAccounts)
+            encriptAccountsList(clearedAccounts),
           );
 
           setCustodyAccounts(clearedAccounts);
@@ -98,7 +98,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
 
   const encriptAccountsList = (custodyAccounts) => {
     return custodyAccounts.map((item) =>
-      encryptMnemonic(JSON.stringify(item), accountMnemoinc)
+      encryptMnemonic(JSON.stringify(item), accountMnemoinc),
     );
   };
 
@@ -111,7 +111,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
       //   clear spark information here too. Delte txs from database, reove listeners
       Storage.setItem(
         CUSTODY_ACCOUNTS_STORAGE_KEY,
-        encriptAccountsList(newAccounts)
+        encriptAccountsList(newAccounts),
       );
 
       setCustodyAccounts(newAccounts);
@@ -130,7 +130,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
       console.log(savedAccountInformation);
       Storage.setItem(
         CUSTODY_ACCOUNTS_STORAGE_KEY,
-        encriptAccountsList(savedAccountInformation)
+        encriptAccountsList(savedAccountInformation),
       );
 
       setCustodyAccounts(savedAccountInformation);
@@ -152,7 +152,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
 
       Storage.setItem(
         CUSTODY_ACCOUNTS_STORAGE_KEY,
-        encriptAccountsList(newAccounts)
+        encriptAccountsList(newAccounts),
       );
 
       setCustodyAccounts(newAccounts);

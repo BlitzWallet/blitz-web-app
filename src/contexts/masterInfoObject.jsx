@@ -37,26 +37,22 @@ const GlobalContextProvider = ({ children }) => {
       if (!shouldSendToDb) return;
       await sendDataToDB(newData, publicKey);
     },
-    [i18n, publicKey]
+    [i18n, publicKey],
   );
 
   useEffect(() => {
-    async function preloadUserData() {
-      try {
-        if (auth.currentUser) {
-          const collectionData = await getDataFromCollection(
-            "blitzWalletUsers",
-            auth.currentUser.uid
-          );
-          if (!collectionData) throw new Error("No data returened");
-          setPreLoadedUserData({ isLoading: true, data: collectionData });
-        } else throw new Error("No user logged in");
-      } catch (err) {
-        console.log("Error preloading user data");
-        setPreLoadedUserData({ isLoading: false, data: null });
-      }
-    }
-    preloadUserData();
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const collectionData = await getDataFromCollection(
+          "blitzWalletUsers",
+          auth.currentUser.uid,
+        );
+
+        if (!collectionData) return;
+        setPreLoadedUserData({ isLoading: true, data: collectionData });
+      } else setPreLoadedUserData({ isLoading: false, data: null });
+    });
+    return () => unsubscribe();
   }, []);
 
   const contextValue = useMemo(
@@ -73,7 +69,7 @@ const GlobalContextProvider = ({ children }) => {
       setMasterInfoObject,
       preloadedUserData,
       setPreLoadedUserData,
-    ]
+    ],
   );
 
   return (
@@ -87,7 +83,7 @@ function useGlobalContextProvider() {
   const context = useContext(GlobalContextManger);
   if (!context) {
     throw new Error(
-      "useGlobalContextProvider must be used within a GlobalContextProvider"
+      "useGlobalContextProvider must be used within a GlobalContextProvider",
     );
   }
   return context;

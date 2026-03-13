@@ -12,18 +12,14 @@ import {
   getCachedSparkTransactions,
   getSingleTxDetails,
   getSparkBalance,
-  getSparkLightningPaymentStatus,
   getSparkStaticBitcoinL1AddressQuote,
-  getSparkTransactions,
   getUtxosForDepositAddress,
   queryAllStaticDepositAddresses,
   sparkWallet,
-  useSparkPaymentType,
 } from "../functions/spark";
 import {
   addSingleSparkTransaction,
   bulkUpdateSparkTransactions,
-  deleteUnpaidSparkLightningTransaction,
   getAllSparkContactInvoices,
   getAllSparkTransactions,
   getAllUnpaidSparkLightningInvoices,
@@ -32,7 +28,6 @@ import {
 } from "../functions/spark/transactions";
 import {
   fullRestoreSparkState,
-  restoreSparkTxState,
   updateSparkTxStatus,
 } from "../functions/spark/restore";
 import { useGlobalContacts } from "./globalContacts";
