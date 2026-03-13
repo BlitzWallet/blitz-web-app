@@ -24,6 +24,8 @@ const keys = [
   "enabledBTKNTokens",
   "defaultSpendToken",
   "thousandsSeperator",
+  "enabledLiquidAutoSwap",
+  "pinnedAccounts",
 ];
 
 const defaultValues = {
@@ -58,6 +60,8 @@ const defaultValues = {
   enabledBTKNTokens: null,
   defaultSpendToken: "Bitcoin",
   thousandsSeperator: "space",
+  enabledLiquidAutoSwap: true,
+  pinnedAccounts: [],
 };
 
 export const fetchLocalStorageItems = async () => {
@@ -101,6 +105,9 @@ export const fetchLocalStorageItems = async () => {
     enabledBTKNTokens: parsedResults[17] ?? defaultValues.enabledBTKNTokens,
     defaultSpendToken: parsedResults[18] ?? defaultValues.defaultSpendToken,
     thousandsSeperator: parsedResults[19] ?? defaultValues.thousandsSeperator,
+    enabledLiquidAutoSwap:
+      parsedResults[20] ?? defaultValues.enabledLiquidAutoSwap,
+    pinnedAccounts: parsedResults[21] ?? defaultValues.pinnedAccounts,
   };
 };
 
@@ -112,19 +119,20 @@ export function shouldLoadExploreData(savedExploreRawData, currentServerTime) {
       return true;
     }
 
-    const UTC_MINUS_6_OFFSET = -6;
+    // Compute today's noon in America/Chicago as a real UTC ms value.
+    // The GCF runs at 12:00 PM US Central (America/Chicago), which is
+    // 18:00 UTC in winter (CST/UTC-6) and 17:00 UTC in summer (CDT/UTC-5).
+    // getNoonChicagoUtcMs handles the DST boundary automatically.
+    const todayNoonChicagoUtcMs = getNoonChicagoUtcMs(currentServerTime);
+    console.log(todayNoonChicagoUtcMs, currentServerTime);
 
-    const targetTimezoneMs =
-      currentServerTime + UTC_MINUS_6_OFFSET * 60 * 60 * 1000;
-    const targetDate = new Date(targetTimezoneMs);
-    targetDate.setUTCHours(12, 0, 0, 0);
-
-    const current12PMUtcMinus6 = targetDate.getTime();
-
-    // Check if we've passed 12 PM UTC-6 since last update
+    // Fetch only when: the server has already updated today (current UTC time
+    // is at or past Chicago noon) AND our cache pre-dates that update window.
+    // Both currentServerTime and lastUpdated are real UTC ms, so this
+    // comparison is in the same unit and timezone (UTC).
     if (
-      currentServerTime >= current12PMUtcMinus6 &&
-      savedExploreRawData.lastUpdated < current12PMUtcMinus6
+      currentServerTime >= todayNoonChicagoUtcMs &&
+      savedExploreRawData.lastUpdated < todayNoonChicagoUtcMs
     ) {
       shouldFetchUserCount = true;
     }
