@@ -1,6 +1,4 @@
 import { SparkWallet } from "@buildonspark/spark-sdk";
-import { getAllSparkTransactions } from "./transactions";
-import { SPARK_TO_SPARK_FEE } from "../../constants/math";
 import {
   LightningSendRequestStatus,
   SparkCoopExitRequestStatus,
@@ -9,15 +7,22 @@ import {
   SparkUserRequestStatus,
   ClaimStaticDepositStatus,
 } from "@buildonspark/spark-sdk/types";
-import sha256Hash from "../hash";
+import { getAllSparkTransactions } from "./transactions";
+import { SPARK_TO_SPARK_FEE } from "../../constants/math";
 import {
+  getCachedTokens,
   mergeTokensWithCache,
   migrateCachedTokens,
   saveCachedTokens,
 } from "../lrc20/cachedTokens";
+import sha256Hash from "../hash";
 import Storage from "../localStorage";
+import { DEFAULT_PAYMENT_EXPIRY_SEC, USDB_TOKEN_ID } from "../../constants";
+import { FlashnetClient } from "@flashnet/sdk";
 
 export let sparkWallet = {};
+export let flashnetClients = {};
+let initializingWallets = {};
 
 // Hash cache to avoid recalculating hashes
 const mnemonicHashCache = new Map();
@@ -29,100 +34,184 @@ const getMnemonicHash = (mnemonic) => {
   return mnemonicHashCache.get(mnemonic);
 };
 
-// Centralizes wallet lookup and error handling, reducing code duplication
-const getWallet = (mnemonic) => {
+export const getWallet = async (mnemonic) => {
   const hash = getMnemonicHash(mnemonic);
-  const wallet = sparkWallet[hash];
+  let wallet = sparkWallet[hash];
 
   if (!wallet) {
-    throw new Error("sparkWallet not initialized");
+    if (initializingWallets[hash]) {
+      await initializingWallets[hash];
+      return sparkWallet[hash];
+    }
+    console.log("Creating native wallet because none exists");
+    initializingWallets[hash] = initializeWallet(mnemonic);
+    wallet = await initializingWallets[hash];
+    sparkWallet[hash] = wallet;
+    delete initializingWallets[hash];
   }
 
   return wallet;
 };
 
+export const getFlashnetClient = (mnemonic) => {
+  const hash = getMnemonicHash(mnemonic);
+  const client = flashnetClients[hash];
+  if (!client) {
+    throw new Error("Flashnet client not initialized");
+  }
+  return client;
+};
+
 // Clear cache when needed (call this on logout/cleanup)
 export const clearMnemonicCache = () => {
   mnemonicHashCache.clear();
+  Object.keys(sparkWallet).forEach((key) => delete sparkWallet[key]);
 };
 
-export const initializeSparkWallet = async (mnemonic) => {
-  try {
-    const hash = getMnemonicHash(mnemonic);
+export const initializeSparkWallet = async (
+  mnemonic,
+  isInitialLoad = true,
+  options = {},
+) => {
+  const { maxRetries = 8, retryDelay = 15000, enableRetry = true } = options;
 
-    // Early return if already initialized
-    if (sparkWallet[hash]) {
+  const attemptInitialization = async (attemptNumber = 0) => {
+    try {
+      const hash = getMnemonicHash(mnemonic);
+
+      if (sparkWallet[hash]) {
+        return { isConnected: true };
+      }
+      if (initializingWallets[hash]) {
+        await initializingWallets[hash];
+        return { isConnected: true };
+      }
+      initializingWallets[hash] = (async () => {
+        try {
+          const wallet = await initializeWallet(mnemonic);
+          sparkWallet[hash] = wallet;
+          return wallet;
+        } catch (err) {
+          delete initializingWallets[hash];
+          delete sparkWallet[hash];
+          throw err;
+        }
+      })();
+
+      await initializingWallets[hash];
+      delete initializingWallets[hash];
+
       return { isConnected: true };
+    } catch (err) {
+      console.log(
+        `Initialize spark wallet error (attempt ${attemptNumber + 1}/${
+          maxRetries + 1
+        }):`,
+        err,
+      );
+
+      const hash = getMnemonicHash(mnemonic);
+      delete initializingWallets[hash];
+      delete sparkWallet[hash];
+
+      if (!enableRetry || attemptNumber >= maxRetries) {
+        return { isConnected: false, error: err.message };
+      }
+
+      console.log(
+        `Wallet failed to connect. Retrying in ${
+          retryDelay / 1000
+        } seconds... (${attemptNumber + 1}/${maxRetries} retries)`,
+      );
+
+      await new Promise((res) => setTimeout(res, retryDelay));
+
+      return attemptInitialization(attemptNumber + 1);
     }
+  };
 
-    const { wallet } = await SparkWallet.initialize({
-      mnemonicOrSeed: mnemonic,
-      options: {
-        network: "MAINNET",
-        optimizationOptions: {
-          multiplicity: 2,
-        },
+  return attemptInitialization(0);
+};
+
+const initializeWallet = async (mnemonic) => {
+  const { wallet } = await SparkWallet.initialize({
+    mnemonicOrSeed: mnemonic,
+    options: {
+      network: "MAINNET",
+      optimizationOptions: {
+        multiplicity: 2,
       },
-    });
+    },
+  });
 
-    sparkWallet[hash] = wallet;
-    return { isConnected: true };
+  console.log("did initialize wallet");
+  return wallet;
+};
+
+export const initializeFlashnet = async (mnemonic) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const flashnetAPI = new FlashnetClient(wallet, {
+      autoAuthenticate: true,
+    });
+    await flashnetAPI.initialize();
+
+    flashnetClients[sha256Hash(mnemonic)] = flashnetAPI;
+    return true;
   } catch (err) {
-    console.log("Initialize spark wallet error function", err);
-    return { isConnected: false, error: err.message };
+    console.log("Error initializing flashnet", err);
+    return false;
+  }
+};
+
+export const setPrivacyEnabled = async (mnemonic) => {
+  try {
+    const didSetPrivacySetting = Storage.getItem("didSetPrivacySetting");
+
+    if (didSetPrivacySetting) return;
+
+    const wallet = await getWallet(mnemonic);
+    const walletSettings = await wallet.getWalletSettings();
+    if (!walletSettings?.privateEnabled) {
+      wallet.setPrivacyEnabled(true);
+    } else {
+      Storage.setItem("didSetPrivacySetting", true);
+    }
+    return true;
+  } catch (err) {
+    console.log("Set privacy enabled error", err);
   }
 };
 
 export const getSparkIdentityPubKey = async (mnemonic) => {
   try {
-    // Now uses optimized getWallet helper
-    return await getWallet(mnemonic).getIdentityPublicKey();
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getIdentityPublicKey();
   } catch (err) {
-    console.log("Get spark balance error", err);
+    console.log("Get spark identity pubkey error", err);
   }
 };
 
 export const getSparkBalance = async (mnemonic) => {
   try {
-    const wallet = getWallet(mnemonic);
     const hash = getMnemonicHash(mnemonic);
-
+    const wallet = await getWallet(mnemonic);
     const balance = await wallet.getBalance();
-    console.log("Spark Balance:", balance);
-    console.log("Tokens balance size:", balance.tokenBalances.size);
-    console.log(
-      "Tokens balance keys",
-      Array.from(balance.tokenBalances.keys()),
-    );
-    console.log(
-      "Tokens balance values",
-      Array.from(balance.tokenBalances.values()),
-    );
-
     const cachedTokens = await migrateCachedTokens(mnemonic);
 
     let currentTokensObj = {};
     for (const [tokensIdentifier, tokensData] of balance.tokenBalances) {
       currentTokensObj[tokensIdentifier] = {
         ...tokensData,
-        balance: BigInt(tokensData.availableToSendBalance),
-        tokenMetadata: {
-          ...tokensData.tokenMetadata,
-          maxSupply: BigInt(tokensData.tokenMetadata.maxSupply),
-        },
+        balance: tokensData.availableToSendBalance,
       };
     }
 
-    console.log("tokens in cache", cachedTokens);
-    console.log("current tokens object", currentTokensObj);
-
     const allTokens = mergeTokensWithCache(
-      balance.tokenBalances,
+      currentTokensObj,
       cachedTokens,
       mnemonic,
     );
-
-    console.log("all tokens after merge", allTokens);
 
     await saveCachedTokens(allTokens);
 
@@ -139,7 +228,8 @@ export const getSparkBalance = async (mnemonic) => {
 
 export const getSparkStaticBitcoinL1Address = async (mnemonic) => {
   try {
-    return await getWallet(mnemonic).getStaticDepositAddress();
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getStaticDepositAddress();
   } catch (err) {
     console.log("Get reusable Bitcoin mainchain address error", err);
   }
@@ -147,19 +237,21 @@ export const getSparkStaticBitcoinL1Address = async (mnemonic) => {
 
 export const queryAllStaticDepositAddresses = async (mnemonic) => {
   try {
-    return await getWallet(mnemonic).queryStaticDepositAddresses();
+    const wallet = await getWallet(mnemonic);
+    return wallet.queryStaticDepositAddresses();
   } catch (err) {
-    console.log("refund reusable Bitcoin mainchain address error", err);
+    console.log("Query all bitcoin l1 addresses error", err);
   }
 };
 
 export const getSparkStaticBitcoinL1AddressQuote = async (txid, mnemonic) => {
   try {
-    const quote = await getWallet(mnemonic).getClaimStaticDepositQuote(txid);
-    return { didwork: true, quote };
+    const wallet = await getWallet(mnemonic);
+    const quote = await wallet.getClaimStaticDepositQuote(txid);
+    return { didWork: true, quote };
   } catch (err) {
     console.log("Get reusable Bitcoin mainchain address quote error", err);
-    return { didwork: false, error: err.message };
+    return { didWork: false, error: err.message };
   }
 };
 
@@ -170,13 +262,14 @@ export const refundSparkStaticBitcoinL1AddressQuote = async ({
   mnemonic,
 }) => {
   try {
-    return await getWallet(mnemonic).refundStaticDeposit({
+    const wallet = await getWallet(mnemonic);
+    return await wallet.refundStaticDeposit({
       depositTransactionId,
       destinationAddress,
       fee,
     });
   } catch (err) {
-    console.log("refund reusable Bitcoin mainchain address error", err);
+    console.log("Refund reusable Bitcoin mainchain address error", err);
   }
 };
 
@@ -188,21 +281,23 @@ export const claimnSparkStaticDepositAddress = async ({
   mnemonic,
 }) => {
   try {
-    const response = await getWallet(mnemonic).claimStaticDeposit({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.claimStaticDeposit({
       creditAmountSats,
       sspSignature,
       transactionId,
     });
     return { didWork: true, response };
   } catch (err) {
-    console.log("claim static deposit address error", err);
+    console.log("Claim static deposit address error", err);
     return { didWork: false, error: err.message };
   }
 };
 
 export const getSparkAddress = async (mnemonic) => {
   try {
-    const response = await getWallet(mnemonic).getSparkAddress();
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.getSparkAddress();
     return { didWork: true, response };
   } catch (err) {
     console.log("Get spark address error", err);
@@ -216,11 +311,11 @@ export const sendSparkPayment = async ({
   mnemonic,
 }) => {
   try {
-    const response = await getWallet(mnemonic).transfer({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.transfer({
       receiverSparkAddress: receiverSparkAddress.toLowerCase(),
       amountSats,
     });
-    console.log("spark payment response", response);
     return { didWork: true, response };
   } catch (err) {
     console.log("Send spark payment error", err);
@@ -235,7 +330,8 @@ export const sendSparkTokens = async ({
   mnemonic,
 }) => {
   try {
-    const response = await getWallet(mnemonic).transferTokens({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.transferTokens({
       tokenIdentifier,
       tokenAmount: BigInt(tokenAmount),
       receiverSparkAddress,
@@ -253,7 +349,8 @@ export const getSparkLightningPaymentFeeEstimate = async (
   mnemonic,
 ) => {
   try {
-    const response = await getWallet(mnemonic).getLightningSendFeeEstimate({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.getLightningSendFeeEstimate({
       encodedInvoice: invoice.toLowerCase(),
       amountSats: amountSat,
     });
@@ -266,9 +363,10 @@ export const getSparkLightningPaymentFeeEstimate = async (
 
 export const getSparkBitcoinPaymentRequest = async (paymentId, mnemonic) => {
   try {
-    return await getWallet(mnemonic).getCoopExitRequest(paymentId);
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getCoopExitRequest(paymentId);
   } catch (err) {
-    console.log("Get bitcoin payment fee estimate error", err);
+    console.log("Get bitcoin payment request error", err);
   }
 };
 
@@ -278,9 +376,10 @@ export const getSparkBitcoinPaymentFeeEstimate = async ({
   mnemonic,
 }) => {
   try {
-    const response = await getWallet(mnemonic).getWithdrawalFeeQuote({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.getWithdrawalFeeQuote({
       amountSats,
-      withdrawalAddress: withdrawalAddress,
+      withdrawalAddress,
     });
     return { didWork: true, response };
   } catch (err) {
@@ -291,11 +390,11 @@ export const getSparkBitcoinPaymentFeeEstimate = async ({
 
 export const getSparkPaymentFeeEstimate = async (amountSats, mnemonic) => {
   try {
-    const feeResponse =
-      await getWallet(mnemonic).getSwapFeeEstimate(amountSats);
+    const wallet = await getWallet(mnemonic);
+    const feeResponse = await wallet.getSwapFeeEstimate(amountSats);
     return feeResponse.feeEstimate.originalValue || SPARK_TO_SPARK_FEE;
   } catch (err) {
-    console.log("Get bitcoin payment fee estimate error", err);
+    console.log("Get spark payment fee estimate error", err);
     return SPARK_TO_SPARK_FEE;
   }
 };
@@ -304,12 +403,16 @@ export const receiveSparkLightningPayment = async ({
   amountSats,
   memo,
   mnemonic,
+  includeSparkAddress = true,
+  expirySeconds = DEFAULT_PAYMENT_EXPIRY_SEC,
 }) => {
   try {
-    const response = await getWallet(mnemonic).createLightningInvoice({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.createLightningInvoice({
       amountSats,
       memo,
-      expirySeconds: 60 * 60 * 12, // 12 hour invoice expiry
+      expirySeconds,
+      includeSparkAddress,
     });
     return { didWork: true, response };
   } catch (err) {
@@ -318,9 +421,72 @@ export const receiveSparkLightningPayment = async ({
   }
 };
 
+export const claimSparkHodlLightningPayment = async ({
+  preimage,
+  mnemonic,
+}) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.claimHTLC(preimage);
+    return { didWork: true, response };
+  } catch (err) {
+    console.log("Receive HODL lightning payment error", err);
+    return { didWork: false, error: err.message };
+  }
+};
+
+export const querySparkHodlLightningPayments = async ({
+  paymentHashes = [],
+  mnemonic,
+}) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.queryHTLC({
+      paymentHashes,
+      limit: 50,
+      offset: 0,
+    });
+    const paidPreimages = response.preimageRequests.map((request) => ({
+      status: request.status,
+      createdTime: request.createdTime,
+      paymentHash: Buffer.from(request.paymentHash).toString("hex"),
+      transferId: request.transfer.id,
+      satValue: request.transfer.totalValue,
+    }));
+    return { didWork: true, paidPreimages };
+  } catch (err) {
+    console.log("Query HODL lightning payments error", err);
+    return { didWork: false, error: err.message };
+  }
+};
+
+export const receiveSparkHodlLightningPayment = async ({
+  amountSats,
+  paymentHash,
+  memo,
+  expirySeconds,
+  mnemonic,
+}) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.createLightningHodlInvoice({
+      amountSats,
+      paymentHash,
+      memo,
+      expirySeconds,
+      includeSparkAddress: false,
+    });
+    return { didWork: true, response };
+  } catch (err) {
+    console.log("Receive HODL lightning payment error", err);
+    return { didWork: false, error: err.message };
+  }
+};
+
 export const getSparkLightningSendRequest = async (id, mnemonic) => {
   try {
-    return await getWallet(mnemonic).getLightningSendRequest(id);
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getLightningSendRequest(id);
   } catch (err) {
     console.log("Get spark lightning send request error", err);
   }
@@ -331,9 +497,8 @@ export const getSparkLightningPaymentStatus = async ({
   mnemonic,
 }) => {
   try {
-    return await getWallet(mnemonic).getLightningReceiveRequest(
-      lightningInvoiceId,
-    );
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getLightningReceiveRequest(lightningInvoiceId);
   } catch (err) {
     console.log("Get lightning payment status error", err);
   }
@@ -346,10 +511,12 @@ export const sendSparkLightningPayment = async ({
   mnemonic,
 }) => {
   try {
-    const paymentResponse = await getWallet(mnemonic).payLightningInvoice({
+    const wallet = await getWallet(mnemonic);
+    const paymentResponse = await wallet.payLightningInvoice({
       invoice: invoice.toLowerCase(),
-      maxFeeSats: maxFeeSats,
+      maxFeeSats,
       amountSatsToSend: amountSats,
+      preferSpark: true,
     });
     return { didWork: true, paymentResponse };
   } catch (err) {
@@ -375,7 +542,7 @@ export const getUtxosForDepositAddress = async ({
     );
     return { didWork: true, utxos };
   } catch (err) {
-    console.log("Send Bitcoin payment error", err);
+    console.log("Get UTXOs for deposit address error", err);
     return { didWork: false, error: err.message };
   }
 };
@@ -389,8 +556,9 @@ export const sendSparkBitcoinPayment = async ({
   mnemonic,
 }) => {
   try {
-    const response = await getWallet(mnemonic).withdraw({
-      onchainAddress: onchainAddress,
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.withdraw({
+      onchainAddress,
       exitSpeed,
       amountSats,
       feeQuote,
@@ -409,9 +577,10 @@ export const getSparkTransactions = async (
   mnemonic,
 ) => {
   try {
-    return await getWallet(mnemonic).getTransfers(transferCount, offsetIndex);
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getTransfers(transferCount, offsetIndex);
   } catch (err) {
-    console.log("get spark transactions error", err);
+    console.log("Get spark transactions error", err);
     return { transfers: [] };
   }
 };
@@ -423,74 +592,80 @@ export const getSparkTokenTransactions = async ({
   tokenIdentifiers,
   outputIds,
   mnemonic,
+  lastSavedTransactionId,
 }) => {
   try {
-    return await getWallet(mnemonic).queryTokenTransactions({
+    const wallet = await getWallet(mnemonic);
+    const response = await wallet.queryTokenTransactions({
       ownerPublicKeys,
       issuerPublicKeys,
       tokenTransactionHashes,
       tokenIdentifiers,
       outputIds,
     });
+    let filteredTransactions = response.tokenTransactionsWithStatus;
+    if (lastSavedTransactionId) {
+      const lastIndex = response.tokenTransactionsWithStatus.findIndex(
+        (tx) =>
+          Buffer.from(Object.values(tx.tokenTransactionHash)).toString(
+            "hex",
+          ) === lastSavedTransactionId,
+      );
+
+      if (lastIndex !== -1) {
+        filteredTransactions = response.tokenTransactionsWithStatus.slice(
+          0,
+          lastIndex,
+        );
+      }
+    }
+    return {
+      tokenTransactionsWithStatus: filteredTransactions,
+      offset: response.offset,
+    };
   } catch (err) {
-    console.log("get spark transactions error", err);
+    console.log("Get spark token transactions error", err);
     return [];
   }
 };
 
-export const getSingleTxDetails = async (mnemonic, id) => {
+export const createSatsInvoice = async (mnemonic) => {
   try {
     const wallet = await getWallet(mnemonic);
-    return await wallet.getTransfer(id);
+    const invoice = await wallet.createSatsInvoice({});
+    console.log("Spark Invoice:", invoice);
+    return { didWork: true, invoice };
   } catch (err) {
-    console.log("get single spark transaction error", err);
-    return undefined;
+    console.log("Create sats invoice error", err);
+    return { didWork: false, error: err.message };
   }
 };
 
-export const setPrivacyEnabled = async (mnemonic) => {
+export const createTokensInvoice = async (
+  mnemonic,
+  tokenIdentifier = USDB_TOKEN_ID,
+) => {
   try {
-    const didSetPrivacySetting = Storage.getItem("didSetPrivacySetting");
-
-    if (didSetPrivacySetting) return;
-
     const wallet = await getWallet(mnemonic);
-    const walletSetings = await wallet.getWalletSettings();
-    if (!walletSetings?.privateEnabled) {
-      wallet.setPrivacyEnabled(true);
-    } else {
-      Storage.setItem("didSetPrivacySetting", true);
-    }
-    return true;
+    const invoice = await wallet.createTokensInvoice({ tokenIdentifier });
+    console.log("Token Invoice:", invoice);
+    return { didWork: true, invoice };
   } catch (err) {
-    console.log("Get spark balance error", err);
+    console.log("Create tokens invoice error", err);
+    return { didWork: false, error: err.message };
   }
 };
 
 export const getCachedSparkTransactions = async (limit, identifyPubKey) => {
   try {
-    const txResponse = await getAllSparkTransactions({ limit, identifyPubKey });
-
-    if (!txResponse) throw new Error("Unable to get cached spark transactins");
+    const txResponse = await getAllSparkTransactions({
+      limit,
+      accountId: identifyPubKey,
+    });
+    if (!txResponse) throw new Error("Unable to get cached spark transactions");
     return txResponse;
   } catch (err) {
-    console.log("get cached spark transaction error", err);
-  }
-};
-export const useSparkPaymentType = (tx) => {
-  try {
-    const isLightningPayment = tx.type === "PREIMAGE_SWAP";
-    const isBitcoinPayment =
-      tx.type == "COOPERATIVE_EXIT" || tx.type === "UTXO_SWAP";
-    const isSparkPayment = tx.type === "TRANSFER";
-
-    return isLightningPayment
-      ? "lightning"
-      : isBitcoinPayment
-        ? "bitcoin"
-        : "spark";
-  } catch (err) {
-    console.log("Error finding which payment method was used", err);
+    console.log("Get cached spark transaction error", err);
   }
 };
 
@@ -498,7 +673,7 @@ export const sparkPaymentType = (tx) => {
   try {
     const isLightningPayment = tx.type === "PREIMAGE_SWAP";
     const isBitcoinPayment =
-      tx.type == "COOPERATIVE_EXIT" || tx.type === "UTXO_SWAP";
+      tx.type === "COOPERATIVE_EXIT" || tx.type === "UTXO_SWAP";
     const isSparkPayment = tx.type === "TRANSFER";
 
     return isLightningPayment
@@ -519,12 +694,20 @@ export const getSparkPaymentStatus = (status) => {
     status === LightningSendRequestStatus.PREIMAGE_PROVIDED ||
     status === SparkLeavesSwapRequestStatus.SUCCEEDED ||
     status === SparkUserRequestStatus.SUCCEEDED ||
-    status === ClaimStaticDepositStatus.TRANSFER_COMPLETED
+    status === ClaimStaticDepositStatus.TRANSFER_COMPLETED ||
+    status === ClaimStaticDepositStatus.SPEND_TX_BROADCAST ||
+    status === LightningSendRequestStatus.LIGHTNING_PAYMENT_SUCCEEDED ||
+    status == LightningReceiveRequestStatus.LIGHTNING_PAYMENT_RECEIVED
     ? "completed"
     : status === "TRANSFER_STATUS_RETURNED" ||
         status === "TRANSFER_STATUS_EXPIRED" ||
         status === "TRANSFER_STATUS_SENDER_INITIATED" ||
+        status === LightningSendRequestStatus.USER_SWAP_RETURNED ||
         status === LightningSendRequestStatus.LIGHTNING_PAYMENT_FAILED ||
+        status === LightningSendRequestStatus.TRANSFER_FAILED ||
+        status === LightningSendRequestStatus.USER_TRANSFER_VALIDATION_FAILED ||
+        status === LightningSendRequestStatus.PREIMAGE_PROVIDING_FAILED ||
+        status === LightningSendRequestStatus.USER_SWAP_RETURN_FAILED ||
         status === SparkCoopExitRequestStatus.FAILED ||
         status === SparkCoopExitRequestStatus.EXPIRED ||
         status === LightningReceiveRequestStatus.TRANSFER_FAILED ||
@@ -533,113 +716,26 @@ export const getSparkPaymentStatus = (status) => {
         status ===
           LightningReceiveRequestStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED ||
         status === LightningReceiveRequestStatus.REFUND_SIGNING_FAILED ||
+        status === LightningReceiveRequestStatus.TRANSFER_CREATION_FAILED ||
         status === SparkLeavesSwapRequestStatus.FAILED ||
         status === SparkLeavesSwapRequestStatus.EXPIRED ||
         status === SparkUserRequestStatus.FAILED ||
+        status === SparkUserRequestStatus.CANCELED ||
         status === ClaimStaticDepositStatus.TRANSFER_CREATION_FAILED ||
         status === ClaimStaticDepositStatus.REFUND_SIGNING_FAILED ||
         status === ClaimStaticDepositStatus.UTXO_SWAPPING_FAILED ||
-        status === LightningReceiveRequestStatus.FUTURE_VALUE
+        status ===
+          ClaimStaticDepositStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED
       ? "failed"
       : "pending";
 };
 
-export const useIsSparkPaymentPending = (tx, transactionPaymentType) => {
+export const getSingleTxDetails = async (mnemonic, id) => {
   try {
-    return (
-      (transactionPaymentType === "bitcoin" &&
-        tx.status === "TRANSFER_STATUS_SENDER_KEY_TWEAK_PENDING") ||
-      (transactionPaymentType === "spark" && false) ||
-      (transactionPaymentType === "lightning" &&
-        tx.status === "LIGHTNING_PAYMENT_INITIATED")
-    );
+    const wallet = await getWallet(mnemonic);
+    return await wallet.getTransfer(id);
   } catch (err) {
-    console.log("Error finding is payment method is pending", err);
-    return "";
-  }
-};
-
-export const useIsSparkPaymentFailed = (tx, transactionPaymentType) => {
-  try {
-    return (
-      (transactionPaymentType === "bitcoin" &&
-        tx.status === "TRANSFER_STATUS_RETURNED") ||
-      (transactionPaymentType === "spark" &&
-        tx.status === "TRANSFER_STATUS_RETURNED") ||
-      (transactionPaymentType === "lightning" &&
-        tx.status === "LIGHTNING_PAYMENT_INITIATED")
-    );
-  } catch (err) {
-    console.log("Error finding is payment method is pending", err);
-    return "";
-  }
-};
-
-export const isSparkDonationPayment = (currentTx, currentTxDetails) => {
-  try {
-    return (
-      currentTxDetails.direction === "OUTGOING" &&
-      currentTx === "spark" &&
-      currentTxDetails.address === import.meta.env.VITE_BLITZ_SPARK_ADDRESS &&
-      currentTxDetails.receiverPubKey ===
-        import.meta.env.VITE_BLITZ_SPARK_PUBKEY
-    );
-  } catch (err) {
-    console.log("Error finding is payment method is pending", err);
-    return false;
-  }
-};
-
-export const findTransactionTxFromTxHistory = async (
-  sparkTxId,
-  previousOffset = 0,
-  previousTxs = [],
-  mnemonic,
-) => {
-  try {
-    // Early return with cached transaction
-    const cachedTx = previousTxs.find((tx) => tx.id === sparkTxId);
-    if (cachedTx) {
-      console.log("Using cache tx history");
-      return {
-        didWork: true,
-        offset: previousOffset,
-        foundTransfers: previousTxs,
-        bitcoinTransfer: cachedTx,
-      };
-    }
-
-    const wallet = getWallet(mnemonic);
-    let offset = previousOffset;
-    let foundTransfers = [];
-    let bitcoinTransfer = undefined;
-    const maxAttempts = 20;
-
-    while (offset < maxAttempts) {
-      const transfers = await wallet.getTransfers(100, 100 * offset);
-      foundTransfers = transfers.transfers;
-
-      if (!foundTransfers.length) {
-        break;
-      }
-
-      const includesTx = foundTransfers.find((tx) => tx.id === sparkTxId);
-      if (includesTx) {
-        bitcoinTransfer = includesTx;
-        break;
-      }
-
-      if (transfers.offset === -1) {
-        console.log("Reached end of transactions (offset: -1)");
-        break;
-      }
-
-      offset += 1;
-    }
-
-    return { didWork: true, offset, foundTransfers, bitcoinTransfer };
-  } catch (err) {
-    console.log("Error finding bitcoin tx from history", err);
-    return { didWork: false, error: err.message };
+    console.log("Get single spark transaction error", err);
+    return undefined;
   }
 };
