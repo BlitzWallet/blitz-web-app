@@ -15,7 +15,7 @@
   border-top-right-radius: 20px;
   padding: 20px;
   padding-top: 40px;
-  margin-top: 70px;
+  margin-top: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,9 +27,9 @@
 
 .paymentStatusContainer {
   position: absolute;
-  top: -70px;
-  width: 120px;
-  height: 120px;
+  top: -50px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
@@ -37,8 +37,8 @@
   justify-content: center;
 }
 .paymentStatusOuterContainer {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,15 +47,6 @@
 }
 
 .paymentStatusFirstCircle {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.paymentStatusSecondCircle {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -64,9 +55,18 @@
   justify-content: center;
 }
 
+.paymentStatusSecondCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .paymentStatusSecondCircle svg {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
 }
 
 /* =========================
@@ -115,13 +115,11 @@
   display: flex;
   justify-content: space-between;
   margin: 20px 0 10px;
-  display: flex;
   gap: 5px;
 }
 .borderElementsContainer .border-element {
-  width: calc(100% / 25);
+  flex: 1;
   height: 2px;
-  background-color: red;
 }
 
 /* =========================
@@ -168,7 +166,11 @@
   margin-top: 10px;
 }
 
-.infoGridContainer p:nth-child(2n) {
+.infoGridContainer p:nth-child(odd) {
+  margin: 0;
+}
+
+.infoGridContainer p:nth-child(even) {
   text-align: right;
   margin: 0;
 }
@@ -199,7 +201,8 @@
 
 .descriptionScrollviewContainer {
   width: 100%;
-  height: 100px;
+  min-height: 100px;
+  max-height: 120px;
   padding: 12px;
   border-radius: 8px;
   overflow-y: auto;
@@ -225,11 +228,11 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-  bottom: -7.5px;
+  bottom: -10px;
 }
 .dotElementsContainer .dot-element {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
 }
 
@@ -248,7 +251,7 @@
     text-align: center;
   }
 
-  .infoGridContainer p:nth-child(2n) {
+  .infoGridContainer p:nth-child(even) {
     text-align: center;
   }
 }
