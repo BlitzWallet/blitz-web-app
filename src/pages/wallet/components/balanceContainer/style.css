@@ -1,24 +1,70 @@
+/* ── UserBalance pager ─────────────────────────────────────────── */
+
 .userBalanceContainer {
-  text-align: center;
-  margin-top: 40px;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
 }
-.userBalanceContainer p,
-.userBalanceContainer h1 {
-  margin: 0;
-  font-size: 15px;
+
+/* Clipping window – only one page visible at a time */
+.balancePagerTrack {
+  width: 100%;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
 }
-.userBalanceContainer .balanceContianer {
-  width: max-content;
+
+.balancePagerTrack:active {
+  cursor: grabbing;
+}
+
+/* Slide strip – all pages laid out horizontally */
+.balancePagerSlides {
+  display: flex;
+  width: 100%;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Individual page */
+.balancePagerPage {
+  flex: 0 0 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px 16px;
+  box-sizing: border-box;
+  min-height: 160px;
+}
+
+/* ── Dot indicators ─────────────────────────────────────────────── */
+
+.balanceDots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.balanceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  border: none;
+  padding: 0;
   cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    width 0.25s ease;
 }
-.userBalanceContainer p:first-child {
-  text-transform: uppercase;
-  line-height: 1;
-}
-.userBalanceContainer h1 {
-  font-weight: 400;
-  font-size: 35px;
+
+.balanceDot:focus {
+  outline: none;
 }
