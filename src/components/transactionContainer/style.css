@@ -4,6 +4,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .transactionContainer .dateBannerText {
@@ -18,29 +19,26 @@
 }
 
 .transactionContainer .transaction {
-  width: 90%;
-  margin: 15px auto;
+  padding-top: 15px;
+  padding-bottom: 15px;
   display: flex;
   align-items: center;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   flex-wrap: nowrap;
+  gap: 5px;
+  min-width: 0;
 }
-.transactionContainer .transaction img {
-  width: 30px;
-  height: 30px;
-  margin-right: 10px;
-}
+
 .transactionContainer .transaction p {
   margin: 0;
 }
 .transactionContainer .transaction .textContainer {
-  width: calc(100% - 45px - 72px - 10px - 10px);
+  flex: 1 1 0; /* grow to fill, shrink freely, start from 0 */
   display: flex;
   flex-direction: column;
   margin-right: 10px;
-  flex-shrink: 1;
   min-width: 0;
 }
 
@@ -66,10 +64,10 @@
   align-self: flex-start;
 }
 .transactionContainer .transaction .formattedSatTextContainer {
-  white-space: nowrap;
   flex-shrink: 0;
   flex-grow: 0;
-  margin-left: auto;
+  white-space: nowrap;
+  margin-left: 8px;
 }
 .transactionContainer .viewAllTxText {
   text-align: center;
