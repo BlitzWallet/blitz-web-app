@@ -4,7 +4,6 @@ import "./style.css";
 import ThemeText from "../../components/themeText/themeText";
 import { useBitcoinPriceContext } from "../../contexts/bitcoinPriceContext";
 import { useAuth } from "../../contexts/authContext";
-import initializeUserSettings from "../../functions/initializeUserSettings";
 import { useKeysContext } from "../../contexts/keysContext";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useGlobalAppData } from "../../contexts/appDataContext";
@@ -24,6 +23,14 @@ import loadNewFiatData from "../../functions/saveAndUpdateFiatData.js";
 import Storage from "../../functions/localStorage.js";
 import { useTranslation } from "react-i18next";
 import { Settings } from "lucide-react";
+import initializeUserSettingsFromHistory from "../../functions/initializeUserSettings";
+import { privateKeyFromSeedWords } from "../../functions/nostrCompatability.js";
+import {
+  deriveSparkAddress,
+  deriveSparkIdentityKey,
+} from "../../functions/gift/deriveGiftWallet.js";
+import { getPublicKey } from "../../functions/seed.js";
+import { SparkReadonlyClient } from "@buildonspark/spark-sdk";
 
 export default function LoadingScreen() {
   const didInitializeMessageIntervalRef = useRef(false);
@@ -32,7 +39,7 @@ export default function LoadingScreen() {
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
   const { textColor } = useThemeColors();
-  const { connectToSparkWallet } = useSpark();
+  const { connectToSparkWallet, setSparkInformation } = useSpark();
   const {
     toggleMasterInfoObject,
     masterInfoObject,
@@ -50,7 +57,7 @@ export default function LoadingScreen() {
   const { toggleGlobalAppDataInformation } = useGlobalAppData();
 
   const [loadingMessage, setLoadingMessage] = useState(
-    "Please don't leave the tab"
+    "Please don't leave the tab",
   );
   const [hasError, setHasError] = useState("");
 
@@ -63,7 +70,7 @@ export default function LoadingScreen() {
       setLoadingMessage((prev) =>
         prev === "Please don't leave the tab"
           ? "We are setting things up"
-          : "Please don't leave the tab"
+          : "Please don't leave the tab",
       );
     }, 5000);
 
@@ -78,58 +85,108 @@ export default function LoadingScreen() {
         console.log("Process 1", new Date().getTime());
         connectToSparkWallet();
 
+        const [privateKey, identityPubKey] = await Promise.all([
+          privateKeyFromSeedWords(mnemoinc),
+          deriveSparkIdentityKey(mnemoinc),
+        ]);
+
+        const sparkAddress = deriveSparkAddress(identityPubKey.publicKey);
+        const publicKey = privateKey ? getPublicKey(privateKey) : null;
+
+        if (!privateKey || !publicKey)
+          throw new Error(
+            t("screens.inAccount.loadingScreen.userSettingsError"),
+          );
+
+        const READONLY_TIMEOUT_MS = 6000;
+        const readonlyFetchPromise = Promise.race([
+          (async () => {
+            try {
+              const client = await SparkReadonlyClient.createWithMasterKey(
+                { network: "MAINNET" },
+                mnemoinc,
+              );
+              const [balance, tokenMap] = await Promise.all([
+                client.getAvailableBalance(sparkAddress.address),
+                client.getTokenBalance(sparkAddress.address),
+              ]);
+
+              const tokens = {};
+              for (const [tokenId, info] of tokenMap) {
+                tokens[tokenId] = {
+                  balance: info.availableToSendBalance,
+                  tokenMetadata: info.tokenMetadata,
+                };
+              }
+
+              return { initialBalance: Number(balance), tokens };
+            } catch (err) {
+              console.log("Readonly balance fetch failed (non-fatal):", err);
+              return { initialBalance: 0, tokens: {} };
+            }
+          })(),
+          new Promise((resolve) =>
+            setTimeout(() => {
+              console.log(
+                "Readonly balance fetch timed out — proceeding with defaults",
+              );
+              resolve({ initialBalance: 0, tokens: {} });
+            }, READONLY_TIMEOUT_MS),
+          ),
+        ]);
+
+        const placeholderTxsPromise = getCachedSparkTransactions(
+          20,
+          identityPubKey.publicKeyHex,
+        );
+
+        const [placeholderTxs, { initialBalance, tokens }] = await Promise.all([
+          placeholderTxsPromise,
+          readonlyFetchPromise,
+        ]);
+
         const hasSavedInfo = Object.keys(masterInfoObject || {}).length > 5; //arbitrary number but filters out onboarding items
 
         if (!hasSavedInfo) {
-          // connectToLiquidNode(accountMnemoinc);
-          const [
-            didOpen,
-            giftCardTable,
-            posTransactions,
-            // sparkTxs,
-            // rootstockSwaps,
-          ] = await Promise.all([
-            initializeDatabase(),
-            initializePOSTransactionsDatabase(),
-            initializeSparkDatabase(),
-          ]);
-
-          if (!didOpen || !posTransactions || !giftCardTable)
-            throw new Error("Database initialization failed");
-
-          const didLoadUserSettings = await initializeUserSettings({
-            mnemoinc,
-            toggleContactsPrivateKey,
+          const didLoadUserSettings = await initializeUserSettingsFromHistory({
             setMasterInfoObject,
             toggleGlobalContactsInformation,
-            // toggleGLobalEcashInformation,
             toggleGlobalAppDataInformation,
             toggleMasterInfoObject,
             preloadedData: preloadedUserData.data,
             setPreLoadedUserData,
+            privateKey,
+            publicKey,
           });
 
           console.log("Process 2", new Date().getTime());
 
           if (!didLoadUserSettings)
             throw new Error(
-              t("screens.inAccount.loadingScreen.userSettingsError")
+              t("screens.inAccount.loadingScreen.userSettingsError"),
             );
         }
+
+        toggleContactsPrivateKey(privateKey);
+        setSparkInformation((prev) => ({
+          ...prev,
+          transactions: placeholderTxs,
+          balance: initialBalance,
+          tokens,
+        }));
 
         console.log("Process 3", new Date().getTime());
 
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(
           0,
-          (hasSavedInfo ? 500 : 800) - elapsedTime
+          (hasSavedInfo ? 500 : 800) - elapsedTime,
         );
 
         if (remainingTime > 0) {
-          console.log(
-            `Waiting ${remainingTime}ms to reach minimum 1s duration`
-          );
           await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 60));
         }
 
         navigate("/wallet", { replace: true });
@@ -160,10 +217,15 @@ export default function LoadingScreen() {
       <div className="mascotContainer">
         <MascotWalking />
       </div>
-      <ThemeText
-        textStyles={{ color: theme ? textColor : Colors.light.blue }}
-        textContent={hasError ? hasError : loadingMessage}
-      />
+      {hasError && (
+        <ThemeText
+          textStyles={{
+            color: theme ? textColor : Colors.light.blue,
+            textAlign: "center",
+          }}
+          textContent={hasError ? hasError : loadingMessage}
+        />
+      )}
     </div>
   );
 }
