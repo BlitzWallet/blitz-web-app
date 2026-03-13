@@ -3,7 +3,7 @@ import {
   getSparkAddress,
   getSparkBalance,
   getSparkIdentityPubKey,
-  getSparkTransactions,
+  initializeFlashnet,
   initializeSparkWallet,
   setPrivacyEnabled,
 } from "./spark";
@@ -15,31 +15,16 @@ export async function initWallet({
   // toggleGlobalContactsInformation,
   // globalContactsInformation,
   mnemonic,
-  hasRestoreCompleted,
+  hasRestoreCompleted = true,
 }) {
-  console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
-
   try {
-    const [didConnectToSpark, balance] = await Promise.all([
-      initializeSparkWallet(mnemonic),
-      handleBalanceCache({
-        isCheck: false,
-        mnemonic: mnemonic,
-        returnBalanceOnly: true,
-      }),
-    ]);
+    const didConnectToSpark = await initializeSparkWallet(mnemonic);
 
-    console.log(didConnectToSpark, balance);
-
-    if (balance) {
+    if (didConnectToSpark.isConnected) {
       setSparkInformation((prev) => ({
         ...prev,
         didConnect: true,
-        balance: balance,
       }));
-    }
-
-    if (didConnectToSpark.isConnected) {
       const didSetSpark = await initializeSparkSession({
         setSparkInformation,
         // globalContactsInformation,
@@ -50,21 +35,22 @@ export async function initWallet({
 
       if (!didSetSpark)
         throw new Error(
-          "Spark wallet information was not set properly, please try again."
+          "We were unable to connect to the spark node. Please try again.",
         );
     } else {
       throw new Error(
-        "We were unable to connect to the spark node. Please try again."
+        didConnectToSpark.error ||
+          "We were unable to connect to the spark node. Please try again.",
       );
     }
     return { didWork: true };
   } catch (err) {
-    console.log(err, "error initializing function");
+    console.log("initialize spark wallet error main", err);
     return { didWork: false, error: err.message };
   }
 }
 
-async function initializeSparkSession({
+export async function initializeSparkSession({
   setSparkInformation,
   // globalContactsInformation,
   // toggleGlobalContactsInformation,
@@ -74,14 +60,15 @@ async function initializeSparkSession({
   try {
     // Clean DB state but do not hold up process
     cleanStalePendingSparkLightningTransactions();
-    const [balance, sparkAddress, identityPubKey] = await Promise.all([
-      getSparkBalance(mnemonic),
-      getSparkAddress(mnemonic),
-      getSparkIdentityPubKey(mnemonic),
-    ]);
+    const [balance, sparkAddress, identityPubKey, flashnetResponse] =
+      await Promise.all([
+        getSparkBalance(mnemonic),
+        getSparkAddress(mnemonic),
+        getSparkIdentityPubKey(mnemonic),
+        initializeFlashnet(mnemonic),
+      ]);
 
     setPrivacyEnabled(mnemonic);
-
     const transactions = await getCachedSparkTransactions(null, identityPubKey);
 
     if (transactions === undefined)
@@ -93,73 +80,52 @@ async function initializeSparkSession({
         identityPubKey,
         sparkAddress: sparkAddress.response,
         didConnect: true,
+        didConnectToFlashnet: flashnetResponse,
       };
       await new Promise((res) => setTimeout(res, 500));
       setSparkInformation((prev) => ({ ...prev, ...storageObject }));
       return storageObject;
     }
 
-    let didLoadCorrectBalance = false;
-    let runCount = 0;
-    let maxRunCount = 2;
-    let initialBalanceResponse = balance;
-    let correctBalance = 0;
+    // if (
+    //   !globalContactsInformation.myProfile.sparkAddress ||
+    //   !globalContactsInformation.myProfile.sparkIdentityPubKey
+    // ) {
+    //   toggleGlobalContactsInformation(
+    //     {
+    //       myProfile: {
+    //         ...globalContactsInformation.myProfile,
+    //         sparkAddress: sparkAddress,
+    //         sparkIdentityPubKey: identityPubKey,
+    //       },
+    //     },
+    //     true,
+    //   );
+    // }
 
-    while (runCount < maxRunCount && !didLoadCorrectBalance) {
-      runCount += 1;
-      let currentBalance = 0;
+    // Get cached balance from last session to use as placeholder while polling confirms the real balance
+    const cachedBalance = await handleBalanceCache({
+      returnBalanceOnly: true,
+      mnemonic,
+    });
 
-      if (runCount === 1) {
-        currentBalance = Number(initialBalanceResponse.balance);
-      } else {
-        const retryResponse = await getSparkBalance(mnemonic);
-        currentBalance = Number(retryResponse.balance);
-      }
-
-      const response = await handleBalanceCache({
-        isCheck: true,
-        passedBalance: currentBalance,
-        mnemonic,
-      });
-
-      if (response.didWork) {
-        correctBalance = response.balance;
-        didLoadCorrectBalance = true;
-      } else {
-        console.log("Waiting for correct balance resposne");
-        await new Promise((res) => setTimeout(res, 2000));
-      }
-    }
-
-    const finalBalanceToUse = didLoadCorrectBalance
-      ? correctBalance
-      : Number(initialBalanceResponse.balance);
-    console.log(
-      didLoadCorrectBalance,
-      runCount,
-      initialBalanceResponse,
-      correctBalance,
-      finalBalanceToUse,
-      "balancasldfkjasdlfkjasdf"
-    );
-    if (!didLoadCorrectBalance) {
-      await handleBalanceCache({
-        isCheck: false,
-        passedBalance: finalBalanceToUse,
-        mnemonic,
-      });
-    }
+    // Use cached balance as placeholder; polling in sparkContext will confirm the real balance
+    const placeholderBalance =
+      cachedBalance != null && cachedBalance > 0
+        ? cachedBalance
+        : Number(balance.balance);
 
     const storageObject = {
-      balance: finalBalanceToUse,
+      balance: Number(balance.balance),
       tokens: balance.tokensObj,
       identityPubKey,
       sparkAddress: sparkAddress.response,
       didConnect: true,
+      didConnectToFlashnet: flashnetResponse,
+      initialBalance: Number(balance.balance),
     };
     console.log("Spark storage object", storageObject);
     await new Promise((res) => setTimeout(res, 500));
-
     setSparkInformation((prev) => {
       let txToUse;
 

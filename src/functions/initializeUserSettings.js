@@ -1,44 +1,36 @@
 import { getDataFromCollection } from "../../db";
-import fetchBackend from "../../db/handleBackend";
-import { auth, initializeFirebase } from "../../db/initializeFirebase";
-import { sendDataToDB } from "../../db/interactionManager";
-import { MIN_CHANNEL_OPEN_FEE, QUICK_PAY_STORAGE_KEY } from "../constants";
 import { generateRandomContact } from "./contacts";
-import { generateBitcoinKeyPair } from "./ecdh";
-import { fetchLocalStorageItems } from "./initializeUserSettingsHelpers";
-import Storage from "./localStorage";
 import {
   getCurrentDateFormatted,
   getDateXDaysAgo,
-  isNewDaySince,
 } from "./rotateAddressDateChecker";
-import { getPublicKey, privateKeyFromSeedWords } from "./seed";
-export default async function initializeUserSettings({
-  mnemoinc,
-  toggleContactsPrivateKey,
+import { MIN_CHANNEL_OPEN_FEE, QUICK_PAY_STORAGE_KEY } from "../constants";
+import { sendDataToDB } from "../../db/interactionManager";
+import { auth, initializeFirebase } from "../../db/initializeFirebase";
+import { fetchLocalStorageItems } from "./initializeUserSettingsHelpers";
+import Storage from "./localStorage";
+
+export default async function initializeUserSettingsFromHistory({
   setMasterInfoObject,
   toggleGlobalContactsInformation,
   toggleGlobalAppDataInformation,
+  toggleMasterInfoObject,
   preloadedData,
   setPreLoadedUserData,
+  privateKey,
+  publicKey,
 }) {
   try {
     let needsToUpdate = false;
     let tempObject = {};
 
-    const privateKey = mnemoinc ? privateKeyFromSeedWords(mnemoinc) : null;
-    const publicKey = privateKey ? getPublicKey(privateKey) : null;
-
-    if (!privateKey || !publicKey) throw Error("Failed to retrieve keys");
-
     const [
-      initResponse,
+      _,
       // pastExploreData,
-      // savedNWCData,
+      savedNWCData,
     ] = await Promise.all([
       initializeFirebase(publicKey, privateKey),
       // getLocalStorageItem('savedExploreData').then(data => JSON.parse(data)),
-      // getNWCData().then((data) => data || {}),
     ]);
 
     // const shouldLoadExporeDataResp = shouldLoadExploreData(pastExploreData);
@@ -49,7 +41,9 @@ export default async function initializeUserSettings({
       localStoredData,
       //  freshExploreData
     ] = await Promise.all([
-      preloadedData && auth.currentUser.uid === publicKey
+      preloadedData &&
+      auth.currentUser.uid === publicKey &&
+      preloadedData.uuid === publicKey
         ? Promise.resolve(preloadedData)
         : getDataFromCollection("blitzWalletUsers", publicKey),
       fetchLocalStorageItems(),
@@ -89,17 +83,16 @@ export default async function initializeUserSettings({
       enabledBTKNTokens,
       defaultSpendToken,
       thousandsSeperator,
+      enabledLiquidAutoSwap,
+      pinnedAccounts,
     } = localStoredData;
 
     if (blitzStoredData === null) throw Error("Failed to retrive");
     blitzStoredData = blitzStoredData || {};
 
-    toggleContactsPrivateKey(privateKey);
-
     const generatedUniqueName = blitzStoredData?.contacts?.uniqueName
       ? ""
       : generateRandomContact();
-
     let contacts = blitzStoredData.contacts || {
       myProfile: {
         uniqueName: generatedUniqueName.uniqueName,
@@ -129,6 +122,12 @@ export default async function initializeUserSettings({
     const selectedLanguage = userSelectedLanguage;
     const currentDerivedGiftIndex =
       blitzStoredData.currentDerivedGiftIndex || 1;
+
+    const nextAccountDerivationIndex =
+      blitzStoredData.nextAccountDerivationIndex || 3;
+
+    const currentDerivedPoolIndex =
+      blitzStoredData.currentDerivedPoolIndex || 1;
 
     let pushNotifications = blitzStoredData.pushNotifications || {
       isEnabled: false,
@@ -308,22 +307,6 @@ export default async function initializeUserSettings({
       needsToUpdate = true;
     }
 
-    // if (!lrc20Settings) {
-    //   lrc20Settings = {
-    //     isEnabled: false,
-    //   };
-    // }
-
-    // if (!nwc_identity_pub_key) {
-    //   const didInit = await initializeNWCWallet();
-
-    //   if (didInit.isConnected) {
-    //     const pubkey = await getNWCSparkIdentityPubKey();
-
-    //     toggleMasterInfoObject({ [NWC_IDENTITY_PUB_KEY]: pubkey });
-    //   }
-    // }
-
     if (!userBalanceDenomination) {
       userBalanceDenomination = dbUserBalanceDenomination;
       Storage.setItem("userBalanceDenomination", dbUserBalanceDenomination);
@@ -384,6 +367,10 @@ export default async function initializeUserSettings({
     tempObject["defaultSpendToken"] = defaultSpendToken;
     tempObject["currentDerivedGiftIndex"] = currentDerivedGiftIndex;
     tempObject["thousandsSeperator"] = thousandsSeperator;
+    tempObject["enabledLiquidAutoSwap"] = enabledLiquidAutoSwap;
+    tempObject["pinnedAccounts"] = pinnedAccounts;
+    tempObject["nextAccountDerivationIndex"] = nextAccountDerivationIndex;
+    tempObject["currentDerivedPoolIndex"] = currentDerivedPoolIndex;
 
     // store in contacts context
     tempObject["contacts"] = contacts;
@@ -406,7 +393,6 @@ export default async function initializeUserSettings({
     // delete tempObject['eCashInformation'];
     delete tempObject["appData"];
     // only add to local data, dont push to global storage
-    // tempObject["NWC"] = savedNWCData;
 
     toggleGlobalAppDataInformation(appData);
     // toggleGLobalEcashInformation(eCashInformation);

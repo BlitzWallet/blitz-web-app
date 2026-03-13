@@ -24,9 +24,9 @@ function getCurrentDateFormatted() {
   const year = today.getFullYear();
 
   // getMonth() returns the month index (0 for January, 11 for December)
-  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, "0");
 
-  const day = String(today.getDate()).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -93,9 +93,9 @@ function getDateXDaysAgo(numberAgo) {
 
   const year = date.getFullYear();
 
-  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-  const day = String(date.getDate()).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -109,31 +109,31 @@ function getTwoWeeksAgoDate() {
 
   return twoWeeksAgoTimestamp;
 }
-const formatDateToDayMonthYearTime = timestamp => {
+const formatDateToDayMonthYearTime = (timestamp) => {
   const date = new Date(timestamp);
-  const location = Intl.DateTimeFormat().resolvedOptions().locale || 'en-US';
+  const location = Intl.DateTimeFormat().resolvedOptions().locale || "en-US";
   return new Intl.DateTimeFormat(location, {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
   }).format(date);
 };
 
-const formatDateToDayMonthYear = timestamp => {
+const formatDateToDayMonthYear = (timestamp) => {
   const date = new Date(timestamp);
-  const location = Intl.DateTimeFormat().resolvedOptions().locale || 'en-US';
+  const location = Intl.DateTimeFormat().resolvedOptions().locale || "en-US";
   return new Intl.DateTimeFormat(location, {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
   }).format(date);
 };
 
-const isNewDaySince = lastDate => {
+const isNewDaySince = (lastDate) => {
   const now = new Date();
   const last = new Date(lastDate);
 
