@@ -21,6 +21,7 @@ export default function FormattedBalanceInput({
   activeOpacity = 0.2,
   maxWidth = 0.95,
   customCurrencyCode = "",
+  forceCurrency = false,
 }) {
   const containerRef = useRef(null);
   const amountRef = useRef(null);
@@ -30,18 +31,18 @@ export default function FormattedBalanceInput({
   const { textColor } = useThemeColors();
   const { fiatStats } = useNodeContext();
 
-  const currencyText = fiatStats.coin || "USD";
+  const currencyText = forceCurrency || masterInfoObject.fiatCurrency || "USD";
   const showSymbol = masterInfoObject.satDisplay !== "word";
 
   const formattedAmount = formatBalanceAmount(
     amountValue,
     false,
-    masterInfoObject
+    masterInfoObject,
   );
 
   const currencyInfo = useMemo(
     () => formatCurrency({ amount: 0, code: currencyText }),
-    [currencyText]
+    [currencyText],
   );
 
   const isSymbolInFront = currencyInfo[3];

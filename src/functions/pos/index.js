@@ -10,21 +10,28 @@ export const POS_EVENT_UPDATE = "POS_EVENT_UPDATE";
 export const DID_OPEN_TABLES_EVENT_NAME = "DID_OPEN_POS_TABLES";
 export const pointOfSaleEventEmitter = new EventEmitter();
 
-let dbPromise = openDB("pos-transactions-db", 1, {
-  upgrade(db) {
-    if (!db.objectStoreNames.contains(POS_TRANSACTION_TABLE_NAME)) {
-      const store = db.createObjectStore(POS_TRANSACTION_TABLE_NAME, {
-        keyPath: "dbDateAdded",
-      });
-      store.createIndex("timestamp", "timestamp");
-      store.createIndex("serverName", "serverName", { unique: false });
-    }
-  },
-});
+let dbPromise = null;
+
+const getDB = async () => {
+  if (!dbPromise) {
+    dbPromise = openDB("pos-transactions-db", 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains(POS_TRANSACTION_TABLE_NAME)) {
+          const store = db.createObjectStore(POS_TRANSACTION_TABLE_NAME, {
+            keyPath: "dbDateAdded",
+          });
+          store.createIndex("timestamp", "timestamp");
+          store.createIndex("serverName", "serverName", { unique: false });
+        }
+      },
+    });
+  }
+  return dbPromise;
+};
 
 export const initializePOSTransactionsDatabase = async () => {
   try {
-    await dbPromise;
+    await getDB();
     pointOfSaleEventEmitter.emit(DID_OPEN_TABLES_EVENT_NAME, "opened");
     return true;
   } catch (err) {
@@ -36,10 +43,10 @@ export const initializePOSTransactionsDatabase = async () => {
 
 export const getSavedPOSTransactions = async () => {
   try {
-    const db = await dbPromise;
+    const db = await getDB();
     const allTx = await db.getAllFromIndex(
       POS_TRANSACTION_TABLE_NAME,
-      "timestamp"
+      "timestamp",
     );
     const sortedTx = allTx.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -77,14 +84,14 @@ export const queuePOSTransactions = ({ transactionsList, privateKey }) => {
 
 export const setPOSTransactions = async ({ transactionsList, privateKey }) => {
   try {
-    const db = await dbPromise;
+    const db = await getDB();
     const tx = db.transaction(POS_TRANSACTION_TABLE_NAME, "readwrite");
 
     for (const msg of transactionsList) {
       const decrypted = await decryptMessage(
         privateKey,
         import.meta.env.VITE_BACKEND_PUB_KEY,
-        msg.tx
+        msg.tx,
       );
       if (!decrypted) continue;
 
@@ -102,7 +109,7 @@ export const setPOSTransactions = async ({ transactionsList, privateKey }) => {
     await tx.done;
 
     const latestTimestamp = transactionsList.sort(
-      (a, b) => b.dateAdded - a.dateAdded
+      (a, b) => b.dateAdded - a.dateAdded,
     )[0].dateAdded;
     Storage.setItem(POS_LAST_RECEIVED_TIME, latestTimestamp);
 
@@ -118,7 +125,7 @@ export const bulkUpdateDidPay = async (dbDateAddedArray) => {
   if (!dbDateAddedArray?.length) return;
 
   try {
-    const db = await dbPromise;
+    const db = await getDB();
     const tx = db.transaction(POS_TRANSACTION_TABLE_NAME, "readwrite");
 
     for (const id of dbDateAddedArray) {
@@ -138,7 +145,7 @@ export const bulkUpdateDidPay = async (dbDateAddedArray) => {
 
 export const updateDidPayForSingleTx = async (didPaySetting, dbDateAdded) => {
   try {
-    const db = await dbPromise;
+    const db = await getDB();
     const tx = db.transaction(POS_TRANSACTION_TABLE_NAME, "readwrite");
     const item = await tx.store.get(dbDateAdded);
     if (item) {
@@ -148,7 +155,7 @@ export const updateDidPayForSingleTx = async (didPaySetting, dbDateAdded) => {
     await tx.done;
     pointOfSaleEventEmitter.emit(
       POS_EVENT_UPDATE,
-      "updated did pay for single tx"
+      "updated did pay for single tx",
     );
   } catch (err) {
     console.error("updateDidPayForSingleTx error:", err);
@@ -157,7 +164,7 @@ export const updateDidPayForSingleTx = async (didPaySetting, dbDateAdded) => {
 
 export const deleteEmployee = async (employeeName) => {
   try {
-    const db = await dbPromise;
+    const db = await getDB();
     const tx = db.transaction(POS_TRANSACTION_TABLE_NAME, "readwrite");
     const all = await tx.store.getAll();
 
@@ -177,7 +184,7 @@ export const deleteEmployee = async (employeeName) => {
 };
 
 export const deletePOSTransactionsTable = async () => {
-  const db = await dbPromise;
+  const db = await getDB();
   await db.deleteObjectStore(POS_TRANSACTION_TABLE_NAME);
   console.log(`Table ${POS_TRANSACTION_TABLE_NAME} deleted`);
 };

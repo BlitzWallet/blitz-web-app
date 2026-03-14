@@ -10,6 +10,7 @@ export default function ThemeText({
   reversed,
   clickFunction,
   ref,
+  removeMargin = false,
 }) {
   const { theme } = useThemeContext();
 
@@ -20,11 +21,13 @@ export default function ThemeText({
           ? Colors.light.text
           : Colors.dark.text
         : reversed
-        ? Colors.dark.text
-        : Colors.light.text,
+          ? Colors.dark.text
+          : Colors.light.text,
+      marginTop: removeMargin ? 0 : undefined,
+      marginBottom: removeMargin ? 0 : undefined,
       ...textStyles,
     }),
-    [theme, textStyles]
+    [theme, textStyles],
   );
   return (
     <p

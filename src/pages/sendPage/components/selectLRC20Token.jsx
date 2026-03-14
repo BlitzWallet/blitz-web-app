@@ -8,8 +8,8 @@ import ThemeText from "../../../components/themeText/themeText";
 import CustomInput from "../../../components/customInput/customInput";
 import FormattedSatText from "../../../components/formattedSatText/formattedSatText";
 import { Colors } from "../../../constants/theme";
-import { formatTokensNumber } from "../../../functions/lrc20/formatTokensBalance";
 import CustomSettingsNavbar from "../../../components/customSettingsNavbar";
+import formatTokensNumber from "../../../functions/lrc20/formatTokensBalance";
 
 export default function SelectLRC20Token({
   navigate,
@@ -82,7 +82,7 @@ export default function SelectLRC20Token({
                 ? details?.balance
                 : formatTokensNumber(
                     details?.balance,
-                    details?.tokenMetadata?.decimals
+                    details?.tokenMetadata?.decimals,
                   )
             }
             useCustomLabel={!isBitcoin}
@@ -92,7 +92,7 @@ export default function SelectLRC20Token({
         </div>
       );
     },
-    [theme, darkModeType, selectToken]
+    [theme, darkModeType, selectToken],
   );
 
   return (
@@ -120,7 +120,7 @@ export default function SelectLRC20Token({
           <ThemeText
             styles={{ textAlign: "center", marginTop: 10 }}
             textContent={t(
-              "wallet.sendPages.selectLRC20Token.noTokensFoundText"
+              "wallet.sendPages.selectLRC20Token.noTokensFoundText",
             )}
           />
         )}

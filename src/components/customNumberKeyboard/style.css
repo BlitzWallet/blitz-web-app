@@ -10,12 +10,12 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 100%;
-  max-width: 300px;
+  max-width: 375px;
 }
 
 .keyboard-container .keyboard-key {
   padding: 15px;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   /* border: 1px solid #ccc; */
   /* border-radius: 5px; */
   background: transparent;

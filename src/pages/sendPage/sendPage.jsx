@@ -28,7 +28,6 @@ import { useTranslation } from "react-i18next";
 import { InputTypes } from "bitcoin-address-parser";
 import ThemeText from "../../components/themeText/themeText";
 import SelectLRC20Token from "./components/selectLRC20Token";
-import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 import CustomSettingsNavbar from "../../components/customSettingsNavbar";
 import AcceptButtonSendPage from "./components/acceptButton";
 import { useOverlay } from "../../contexts/overlayContext";
@@ -41,6 +40,7 @@ import { useKeysContext } from "../../contexts/keysContext";
 import SendTransactionFeeInfo from "./components/feeInfo";
 import { useThemeContext } from "../../contexts/themeContext";
 import InvoiceInfo from "./components/invoiceInfo";
+import formatTokensNumber from "../../functions/lrc20/formatTokensBalance";
 
 export default function SendPage() {
   const { openOverlay } = useOverlay();

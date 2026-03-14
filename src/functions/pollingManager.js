@@ -62,23 +62,36 @@ export const createPollingManager = ({
           // Re-check abort conditions before executing
           if (abortController?.signal?.aborted || !shouldContinue()) {
             cleanup();
-            resolve({ success: false, reason: "aborted" });
+            resolve({
+              success: false,
+              reason: "aborted",
+            });
             return;
           }
 
           // Execute the poll function
           globalResult = await pollFn(delayIndex);
 
+          // Check abort AFTER async operation
+          if (abortController?.signal?.aborted || !shouldContinue()) {
+            cleanup();
+            resolve({
+              success: false,
+              reason: "aborted",
+            });
+            return;
+          }
+
           // Validate if we should continue
           if (validateResult(globalResult, previousResult)) {
             // Call update callback
             if (onUpdate) {
-              onUpdate(globalResult, delayIndex);
+              await onUpdate(globalResult, delayIndex);
             }
 
             // Success - stop polling
             cleanup();
-            resolve({ success: true, globalResult });
+            resolve({ success: true, result: globalResult });
             return;
           }
 
@@ -90,9 +103,9 @@ export const createPollingManager = ({
         } finally {
           if (
             globalResult != null &&
-            (previousResult == null || globalResult >= previousResult)
+            (previousResult == null || globalResult !== previousResult)
           ) {
-            // Only update if same or higher
+            // Only update if balance changes
             previousResult = globalResult;
           }
         }
@@ -105,7 +118,18 @@ export const createPollingManager = ({
   };
 
   return {
-    start: () => new Promise((resolve, reject) => poll(0, resolve, reject)),
+    start: () => {
+      if (abortController?.signal?.aborted) {
+        console.log("Poller: Already aborted before start");
+        return Promise.resolve({
+          success: false,
+          reason: "aborted",
+          result: previousResult,
+        });
+      }
+
+      return new Promise((resolve, reject) => poll(0, resolve, reject));
+    },
     cleanup,
   };
 };
@@ -115,33 +139,53 @@ export const createBalancePoller = (
   currentMnemonicRef,
   abortController,
   onBalanceUpdate,
-  initialBalance
+  initialBalance,
+  customConfims = 2,
 ) => {
   let hasIncreasedAtLeastOnce = false;
   let sameValueIndex = 0;
+
+  // Wrap initialBalance in the expected format
+  const wrappedInitialBalance =
+    typeof initialBalance === "number"
+      ? { didWork: true, balance: initialBalance, tokensObj: {} }
+      : initialBalance;
+
   return createPollingManager({
     pollFn: async () => {
-      const balance = await getSparkBalance(mnemonic);
-      return balance.didWork ? Number(balance.balance) : null;
+      return await getSparkBalance(mnemonic);
     },
     shouldContinue: () => mnemonic === currentMnemonicRef.current,
-    validateResult: (newBalance, previousBalance) => {
+    validateResult: (newResult, previousResult) => {
       console.log(
-        newBalance,
-        previousBalance,
-        hasIncreasedAtLeastOnce,
-        sameValueIndex
+        "Validate:",
+        {
+          newBalance: newResult?.balance,
+          prevBalance: previousResult?.balance,
+        },
+        { hasIncreasedAtLeastOnce, sameValueIndex },
       );
 
-      if (newBalance == null || previousBalance == null) return false;
-
-      if (newBalance < previousBalance) {
-        console.log("Balance dropped — ignoring");
-        sameValueIndex = 0;
+      if (!newResult?.didWork) {
+        console.log("New result invalid");
         return false;
       }
 
-      if (newBalance > previousBalance) {
+      // previousResult might be null on first run
+      if (!previousResult?.didWork) {
+        console.log("Previous result invalid, continuing");
+        return false;
+      }
+
+      const newBalance = Number(newResult.balance);
+      const previousBalance = Number(previousResult.balance);
+
+      if (Number.isNaN(newBalance) || Number.isNaN(previousBalance)) {
+        return false;
+      }
+
+      if (newBalance !== previousBalance) {
+        console.log("Balance changed — resetting");
         hasIncreasedAtLeastOnce = true;
         sameValueIndex = 0;
         return false;
@@ -149,24 +193,28 @@ export const createBalancePoller = (
 
       sameValueIndex++;
 
-      if (
-        (hasIncreasedAtLeastOnce && sameValueIndex >= 2) ||
-        sameValueIndex >= 3
-      ) {
-        return true;
-      }
+      // if (
+      //   (hasIncreasedAtLeastOnce && sameValueIndex >= customConfims + 1) ||
+      //   (!hasIncreasedAtLeastOnce && sameValueIndex >= customConfims)
+      // ) {
+      //   return true;
+      // }
+      if (sameValueIndex >= customConfims) return true;
 
       return false;
     },
-    onUpdate: (newBalance, delayIndex) => {
+    onUpdate: async (balanceResult, delayIndex) => {
       console.log(
-        `Balance updated to ${newBalance} after ${delayIndex} attempts`
+        `Balance updated to ${balanceResult.balance} after ${delayIndex} attempts`,
       );
-      onBalanceUpdate(newBalance);
+      await onBalanceUpdate(balanceResult);
     },
     abortController,
-    delays: [1000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000],
-    initialBalance,
+    delays: [
+      1000, 1500, 1500, 1500, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000,
+      2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000,
+    ],
+    initialBalance: wrappedInitialBalance,
   });
 };
 
@@ -176,7 +224,8 @@ export const createRestorePoller = (
   currentMnemonicRef,
   abortController,
   onRestoreComplete,
-  sparkInfo
+  sparkInfo,
+  sendWebViewRequest,
 ) => {
   return createPollingManager({
     pollFn: async (delayIndex) => {
@@ -186,6 +235,7 @@ export const createRestorePoller = (
         isSendingPayment: isSendingPayment,
         mnemonic,
         identityPubKey: sparkInfo.identityPubKey,
+        sendWebViewRequest,
         isInitialRestore: false,
       });
       return result;
@@ -196,7 +246,7 @@ export const createRestorePoller = (
     },
     onUpdate: (result, delayIndex) => {
       console.log(
-        `Restore completed after ${delayIndex + 1} attempts with ${result} txs`
+        `Restore completed after ${delayIndex + 1} attempts with ${result} txs`,
       );
       onRestoreComplete(result);
     },

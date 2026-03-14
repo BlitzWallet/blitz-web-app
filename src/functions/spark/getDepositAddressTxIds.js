@@ -4,7 +4,7 @@ import Storage from "../localStorage";
 export default async function getDepositAddressTxIds(
   address,
   contactsPrivateKey,
-  publicKey
+  publicKey,
 ) {
   const savedDepositTxids = {};
   let savedTxIds = savedDepositTxids[address];
@@ -14,7 +14,7 @@ export default async function getDepositAddressTxIds(
   const ids = await fetchTxidsFromBlockstream(
     address,
     contactsPrivateKey,
-    publicKey
+    publicKey,
   );
   if (ids.length > 0) {
     savedTxIds.push(...ids);
@@ -26,7 +26,7 @@ export default async function getDepositAddressTxIds(
 async function fetchTxidsFromBlockstream(
   address,
   contactsPrivateKey,
-  publicKey
+  publicKey,
 ) {
   const apis = [
     {
@@ -50,7 +50,7 @@ async function fetchTxidsFromBlockstream(
           "enterpriseBlockstreamEsploraData",
           { address },
           contactsPrivateKey,
-          publicKey
+          publicKey,
         );
         data = response;
       } else {
@@ -76,7 +76,7 @@ async function fetchTxidsFromBlockstream(
       const exploraData = data
         .map((tx) => {
           const isIncomingTx = tx.vout.some(
-            (vout) => vout.scriptpubkey_address === address
+            (vout) => vout.scriptpubkey_address === address,
           );
           if (!isIncomingTx) {
             return null;
@@ -135,7 +135,7 @@ async function fetchTxidsFromBlockstream(
 
       if (savedTxIds.length) {
         updatedExploraData = exploraData.filter(
-          (item) => !savedTxIds.includes(item.txid)
+          (item) => !savedTxIds.includes(item.txid),
         );
       }
 

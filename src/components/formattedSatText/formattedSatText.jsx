@@ -1,24 +1,22 @@
 import { useMemo } from "react";
-import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
-import { useNodeContext } from "../../contexts/nodeContext";
-import formatBalanceAmount from "../../functions/formatNumber";
-import numberConverter from "../../functions/numberConverter";
-import { formatCurrency } from "../../functions/formatCurrency";
-import "./style.css";
-import ThemeText from "../themeText/themeText";
 import {
   BITCOIN_SAT_TEXT,
   BITCOIN_SATS_ICON,
   HIDDEN_BALANCE_TEXT,
-  TOKEN_TICKER_MAX_LENGTH,
 } from "../../constants";
+import formatBalanceAmount from "../../functions/formatNumber";
+import numberConverter from "../../functions/numberConverter";
+import { formatCurrency } from "../../functions/formatCurrency";
+import formatTokensLabel from "../../functions/lrc20/formatTokensLabel";
+import truncateToTwoDecimals from "../../functions/truncateNumber";
+import ThemeText from "../themeText/themeText";
 
 export default function FormattedSatText({
   balance = 0,
-  styles,
+  styles = {},
   reversed,
   frontText,
-  containerStyles,
+  containerStyles = {},
   neverHideBalance,
   globalBalanceDenomination,
   backText,
@@ -26,14 +24,30 @@ export default function FormattedSatText({
   useCustomLabel = false,
   customLabel = "",
   useMillionDenomination = false,
+  useSpaces = true,
   useSizing = false,
+  forceCurrency = null,
+  forceFiatStats = null,
+  autoAdjustFontSize = false,
+  masterInfoObject = {},
+  fiatStats: propFiatStats,
+  CUSTOM_TOKEN_CURRENCY_OPTIONS = [],
 }) {
-  const { masterInfoObject } = useGlobalContextProvider();
-  const { fiatStats } = useNodeContext();
-
+  const fiatStats = forceFiatStats || propFiatStats || {};
   const localBalanceDenomination =
-    globalBalanceDenomination || masterInfoObject.userBalanceDenomination;
-  const currencyText = (fiatStats.coin || "USD").toUpperCase();
+    globalBalanceDenomination ||
+    masterInfoObject.userBalanceDenomination ||
+    "sats";
+
+  const showCustomCurrencyLabel = CUSTOM_TOKEN_CURRENCY_OPTIONS.find(
+    (item) => item.token === customLabel,
+  );
+
+  const currencyText = forceCurrency
+    ? forceCurrency
+    : showCustomCurrencyLabel
+      ? showCustomCurrencyLabel.currency
+      : masterInfoObject.fiatCurrency || "USD";
 
   const formattedBalance = useMemo(
     () =>
@@ -44,9 +58,10 @@ export default function FormattedSatText({
               balance,
               localBalanceDenomination,
               localBalanceDenomination === "fiat" ? 2 : 0,
-              fiatStats
+              fiatStats,
             ),
-            useMillionDenomination
+            useMillionDenomination,
+            masterInfoObject,
           ),
     [
       balance,
@@ -54,16 +69,14 @@ export default function FormattedSatText({
       localBalanceDenomination,
       fiatStats,
       useMillionDenomination,
-    ]
+      masterInfoObject.thousandsSeperator,
+      masterInfoObject.userSelectedLanguage,
+    ],
   );
 
   const currencyOptions = useMemo(
-    () =>
-      formatCurrency({
-        amount: formattedBalance,
-        code: currencyText,
-      }),
-    [formattedBalance, currencyText]
+    () => formatCurrency({ amount: formattedBalance, code: currencyText }),
+    [formattedBalance, currencyText],
   );
 
   const isSymbolInFront = currencyOptions[3];
@@ -100,8 +113,8 @@ export default function FormattedSatText({
 
   let children = [];
 
-  // Hidden balance format
   if (!shouldShowAmount) {
+    const base = styles?.fontSize || 20;
     children = [
       frontText && renderText(frontText),
       hiddenText(HIDDEN_BALANCE_TEXT, 1, {
@@ -136,43 +149,72 @@ export default function FormattedSatText({
       }),
       backText && renderText(backText, { marginLeft: 5 }),
     ];
-  }
-  // Custom label format
-  else if (useCustomLabel) {
+  } else if (useCustomLabel) {
+    if (showCustomCurrencyLabel) {
+      children = [
+        frontText && renderText(frontText),
+        renderText(
+          `${isSymbolInFront && showSymbol ? currencySymbol : ""}${formatBalanceAmount(
+            truncateToTwoDecimals(balance),
+            true,
+            masterInfoObject,
+          )}${!isSymbolInFront && showSymbol ? currencySymbol : ""}${
+            !showSymbol ? " " + currencyText : ""
+          }`,
+        ),
+        backText && renderText(backText, { marginLeft: 5 }),
+      ];
+    } else {
+      children = [
+        frontText && renderText(frontText, { marginLeft: "auto" }),
+        renderText(
+          formatBalanceAmount(
+            balance,
+            useMillionDenomination,
+            masterInfoObject,
+          ),
+          { marginLeft: frontText ? 0 : "auto" },
+        ),
+        renderText(` ${formatTokensLabel(customLabel)}`, { flexShrink: 1 }),
+        backText && renderText(backText, { marginLeft: 5 }),
+      ];
+    }
+  } else if (showSats) {
     children = [
       frontText && renderText(frontText),
-      renderText(formatBalanceAmount(balance, useMillionDenomination)),
       renderText(
-        ` ${customLabel?.toUpperCase()?.slice(0, TOKEN_TICKER_MAX_LENGTH)}`,
-        { marginLeft: 5 }
+        `${showSymbol ? BITCOIN_SATS_ICON : ""}${formattedBalance}${
+          !showSymbol ? " " + BITCOIN_SAT_TEXT : ""
+        }`,
       ),
       backText && renderText(backText, { marginLeft: 5 }),
     ];
-  }
-  // Bitcoin sats format
-  else if (showSats) {
+    // Custom label format
+  } else {
     children = [
       frontText && renderText(frontText),
-      showSymbol && renderText(BITCOIN_SATS_ICON),
-      renderText(formattedBalance),
-      !showSymbol && renderText(BITCOIN_SAT_TEXT, { marginLeft: 5 }),
-      backText && renderText(backText, { marginLeft: 5 }),
-    ];
-  }
-  // Fiat format
-  else {
-    children = [
-      frontText && renderText(frontText),
-      isSymbolInFront && showSymbol && renderText(currencySymbol),
-      renderText(currencyOptions[1]),
-      !isSymbolInFront && showSymbol && renderText(currencySymbol),
-      !showSymbol && renderText(currencyText, { marginLeft: 5 }),
+      renderText(
+        `${isSymbolInFront && showSymbol ? currencySymbol : ""}${currencyOptions[1]}${
+          !isSymbolInFront && showSymbol ? currencySymbol : ""
+        }${!showSymbol ? " " + currencyText : ""}`,
+      ),
       backText && renderText(backText, { marginLeft: 5 }),
     ];
   }
 
   return (
-    <div className="formattedSatTextContainer" style={{ ...containerStyles }}>
+    <div
+      style={{
+        alignItems: "center",
+        justifyContent: "center",
+        display: "flex",
+        flexDirection: "row",
+        flexShrink: 1,
+        paddingLeft: 5,
+        paddingRight: 5,
+        ...containerStyles,
+      }}
+    >
       {children.filter(Boolean)}
     </div>
   );

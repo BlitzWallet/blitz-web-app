@@ -22,9 +22,9 @@ import displayCorrectDenomination from "../../functions/displayCorrectDenominati
 
 import { Check, Clock, X, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatTokensNumber } from "../../functions/lrc20/formatTokensBalance";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useNodeContext } from "../../contexts/nodeContext";
+import formatTokensNumber from "../../functions/lrc20/formatTokensBalance";
 
 export default function ExpandedTxPage() {
   const location = useLocation();
@@ -57,14 +57,14 @@ export default function ExpandedTxPage() {
 
   const formattedTokensBalance = formatTokensNumber(
     transaction.details.amount,
-    selectedToken?.tokenMetadata?.decimals
+    selectedToken?.tokenMetadata?.decimals,
   );
   console.log(transaction, sendingContactUUID);
   const paymentType = sendingContactUUID
     ? t("screens.inAccount.expandedTxPage.contactPaymentType")
     : transaction.details.isGift
-    ? t("constants.gift")
-    : transaction.paymentType;
+      ? t("constants.gift")
+      : transaction.paymentType;
 
   const paymentDate = new Date(transaction.details.time);
 
@@ -80,7 +80,7 @@ export default function ExpandedTxPage() {
       undefined,
       undefined,
       undefined,
-      true
+      true,
     );
     setTransaction(newTx);
   };
@@ -369,7 +369,7 @@ function ReceiptDots({ backgroundColor }) {
 
 function formatTime(date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes()
+    date.getMinutes(),
   ).padStart(2, "0")}`;
 }
 

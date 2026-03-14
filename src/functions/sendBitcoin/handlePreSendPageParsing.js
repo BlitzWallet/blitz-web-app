@@ -1,12 +1,15 @@
-import { WEBSITE_REGEX } from "../../constants";
+import i18next from "i18next";
+import { IS_BLITZ_URL_REGEX, WEBSITE_REGEX } from "../../constants";
 import testURLForInvoice from "../testURLForInvoice";
 import { convertMerchantQRToLightningAddress } from "./getMerchantAddress";
 
 export default function handlePreSendPageParsing(data) {
   try {
-    if (!data) throw new Error("No data provided for parsing");
+    if (!data) throw new Error(i18next.t("errormessages.invalidData"));
 
     if (WEBSITE_REGEX.test(data)) {
+      if (IS_BLITZ_URL_REGEX.test(data))
+        throw new Error(i18next.t("errormessages.invalidData"));
       const invoice = testURLForInvoice(data);
 
       if (!invoice) {
@@ -22,7 +25,7 @@ export default function handlePreSendPageParsing(data) {
 
     const merchantLNAddress = convertMerchantQRToLightningAddress({
       qrContent: data,
-      network: import.meta.env.BOLTZ_ENVIRONMENT,
+      network: process.env.BOLTZ_ENVIRONMENT,
     });
 
     return {
@@ -31,7 +34,6 @@ export default function handlePreSendPageParsing(data) {
       btcAdress: merchantLNAddress || data,
     };
   } catch (error) {
-    console.log(error, "error in pre parsing");
     return { didWork: false, error: error.message };
   }
 }
