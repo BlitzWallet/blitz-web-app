@@ -2,40 +2,34 @@ import { useEffect, useRef, useState } from "react";
 import MascotWalking from "../../components/mascotWalking";
 import "./style.css";
 import ThemeText from "../../components/themeText/themeText";
-import { useBitcoinPriceContext } from "../../contexts/bitcoinPriceContext";
 import { useAuth } from "../../contexts/authContext";
 import { useKeysContext } from "../../contexts/keysContext";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useGlobalAppData } from "../../contexts/appDataContext";
 import { useGlobalContacts } from "../../contexts/globalContacts";
-import { initializeDatabase } from "../../functions/messaging/cachedMessages";
-import { initializePOSTransactionsDatabase } from "../../functions/pos";
-import { initializeSparkDatabase } from "../../functions/spark/transactions";
 import { getCachedSparkTransactions } from "../../functions/spark";
-import { useLiquidEvent } from "../../contexts/liquidEventContext";
 import { useSpark } from "../../contexts/sparkContext";
 import { useNavigate } from "react-router-dom";
-import { useNodeContext } from "../../contexts/nodeContext.jsx";
 import { Colors } from "../../constants/theme.js";
 import { useThemeContext } from "../../contexts/themeContext.jsx";
 import useThemeColors from "../../hooks/useThemeColors.js";
-import loadNewFiatData from "../../functions/saveAndUpdateFiatData.js";
 import Storage from "../../functions/localStorage.js";
 import { useTranslation } from "react-i18next";
 import { Settings } from "lucide-react";
 import initializeUserSettingsFromHistory from "../../functions/initializeUserSettings";
 import { privateKeyFromSeedWords } from "../../functions/nostrCompatability.js";
-import {
-  deriveSparkAddress,
-  deriveSparkIdentityKey,
-} from "../../functions/gift/deriveGiftWallet.js";
+import { deriveSparkIdentityKey } from "../../functions/gift/deriveGiftWallet.js";
 import { getPublicKey } from "../../functions/seed.js";
 import { SparkReadonlyClient } from "@buildonspark/spark-sdk";
+import { deriveSparkAddress } from "../../functions/gift/deriveGiftWallet.js";
+import {
+  BALANCE_SNAPSHOT_KEY,
+  PERSISTED_LOGIN_COUNT_KEY,
+} from "../../constants";
 
 export default function LoadingScreen() {
   const didInitializeMessageIntervalRef = useRef(false);
-  const didInitializeWalletRef = useRef(false);
-  const didLoadInformation = useRef(false);
+  const didRunConnectionRef = useRef(false);
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
   const { textColor } = useThemeColors();
@@ -49,12 +43,9 @@ export default function LoadingScreen() {
   } = useGlobalContextProvider();
   const { mnemoinc } = useAuth();
   const { toggleContactsPrivateKey } = useKeysContext();
-  const { toggleGlobalContactsInformation, globalContactsInformation } =
-    useGlobalContacts();
-  const didRunConnectionRef = useRef(false);
-  const { t } = useTranslation();
-
+  const { toggleGlobalContactsInformation } = useGlobalContacts();
   const { toggleGlobalAppDataInformation } = useGlobalAppData();
+  const { t } = useTranslation();
 
   const [loadingMessage, setLoadingMessage] = useState(
     "Please don't leave the tab",
@@ -66,7 +57,6 @@ export default function LoadingScreen() {
     didInitializeMessageIntervalRef.current = true;
 
     const intervalRef = setInterval(() => {
-      console.log("runngin in the interval");
       setLoadingMessage((prev) =>
         prev === "Please don't leave the tab"
           ? "We are setting things up"
@@ -82,7 +72,9 @@ export default function LoadingScreen() {
       const startTime = Date.now();
 
       try {
-        console.log("Process 1", new Date().getTime());
+        Storage.removeItem(PERSISTED_LOGIN_COUNT_KEY);
+
+        // ── Phase 1: Start wallet connection + derive keys in parallel ────
         connectToSparkWallet();
 
         const [privateKey, identityPubKey] = await Promise.all([
@@ -98,7 +90,11 @@ export default function LoadingScreen() {
             t("screens.inAccount.loadingScreen.userSettingsError"),
           );
 
+        const hasSavedInfo = Object.keys(masterInfoObject || {}).length > 5;
+
+        // ── Phase 2: Cache reads + readonly balance + settings init all in parallel ──
         const READONLY_TIMEOUT_MS = 6000;
+
         const readonlyFetchPromise = Promise.race([
           (async () => {
             try {
@@ -135,32 +131,30 @@ export default function LoadingScreen() {
           ),
         ]);
 
-        const placeholderTxsPromise = getCachedSparkTransactions(
-          20,
-          identityPubKey.publicKeyHex,
-        );
-
-        const [placeholderTxs, { initialBalance, tokens }] = await Promise.all([
-          placeholderTxsPromise,
+        const [
+          placeholderTxs,
+          balanceSnapshot,
+          readonlyResult,
+          didLoadUserSettings,
+        ] = await Promise.all([
+          getCachedSparkTransactions(20, identityPubKey.publicKeyHex),
+          Promise.resolve(Storage.getItem(BALANCE_SNAPSHOT_KEY)),
           readonlyFetchPromise,
+          hasSavedInfo
+            ? Promise.resolve(true)
+            : initializeUserSettingsFromHistory({
+                setMasterInfoObject,
+                toggleGlobalContactsInformation,
+                toggleGlobalAppDataInformation,
+                toggleMasterInfoObject,
+                preloadedData: preloadedUserData.data,
+                setPreLoadedUserData,
+                privateKey,
+                publicKey,
+              }),
         ]);
 
-        const hasSavedInfo = Object.keys(masterInfoObject || {}).length > 5; //arbitrary number but filters out onboarding items
-
         if (!hasSavedInfo) {
-          const didLoadUserSettings = await initializeUserSettingsFromHistory({
-            setMasterInfoObject,
-            toggleGlobalContactsInformation,
-            toggleGlobalAppDataInformation,
-            toggleMasterInfoObject,
-            preloadedData: preloadedUserData.data,
-            setPreLoadedUserData,
-            privateKey,
-            publicKey,
-          });
-
-          console.log("Process 2", new Date().getTime());
-
           if (!didLoadUserSettings)
             throw new Error(
               t("screens.inAccount.loadingScreen.userSettingsError"),
@@ -168,33 +162,57 @@ export default function LoadingScreen() {
         }
 
         toggleContactsPrivateKey(privateKey);
-        setSparkInformation((prev) => ({
-          ...prev,
-          transactions: placeholderTxs,
-          balance: initialBalance,
-          tokens,
-        }));
 
-        console.log("Process 3", new Date().getTime());
+        console.log(balanceSnapshot, placeholderTxs);
 
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(
-          0,
-          (hasSavedInfo ? 500 : 800) - elapsedTime,
-        );
-
-        if (remainingTime > 0) {
-          await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        // ── Phase 3: Apply cached balance snapshot, topped up by readonly fetch ──
+        if (balanceSnapshot) {
+          try {
+            const cached = JSON.parse(balanceSnapshot);
+            setSparkInformation((prev) => ({
+              ...prev,
+              transactions: placeholderTxs,
+              ...cached,
+              // Readonly fetch wins over the snapshot if it returned a real balance
+              ...(readonlyResult.initialBalance > 0
+                ? {
+                    balance: readonlyResult.initialBalance,
+                    tokens: readonlyResult.tokens,
+                  }
+                : {}),
+            }));
+          } catch (err) {
+            console.log("Error parsing cached balance", err);
+            setSparkInformation((prev) => ({
+              ...prev,
+              transactions: placeholderTxs,
+              balance: readonlyResult.initialBalance,
+              tokens: readonlyResult.tokens,
+            }));
+          }
         } else {
-          await new Promise((resolve) => setTimeout(resolve, 60));
+          setSparkInformation((prev) => ({
+            ...prev,
+            transactions: placeholderTxs,
+            balance: readonlyResult.initialBalance,
+            tokens: readonlyResult.tokens,
+          }));
         }
+
+        // ── Phase 4: Minimum perceived loading time then navigate ─────────
+        const elapsed = Date.now() - startTime;
+        const minDuration = hasSavedInfo ? 500 : 1500;
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.max(60, minDuration - elapsed)),
+        );
 
         navigate("/wallet", { replace: true });
       } catch (err) {
-        console.log("intializatiion error", err);
+        console.log("initialization error", err);
         setHasError(err.message);
       }
     }
+
     if (preloadedUserData.isLoading && !preloadedUserData.data) return;
     if (didRunConnectionRef.current) return;
     didRunConnectionRef.current = true;
