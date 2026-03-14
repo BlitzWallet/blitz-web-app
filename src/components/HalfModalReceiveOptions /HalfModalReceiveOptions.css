@@ -1,0 +1,182 @@
+.hmr-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  flex: 1;
+}
+
+.hmr-main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.hmr-inner {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.hmr-section-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding-bottom: 4px;
+  width: 100%;
+}
+
+.hmr-scan-btn {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hmr-scan-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.hmr-divider {
+  width: 100%;
+  height: 0;
+  border: none;
+  border-top: 1px solid;
+  margin: 20px 0;
+}
+
+.contact-wrapper {
+  width: 100%;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.contact-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 15px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-name-container {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.contact-chevron {
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.contact-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.contact-expanded {
+  overflow: hidden;
+  transition:
+    height 200ms ease,
+    opacity 200ms ease;
+}
+
+.payment-options-row-r {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.payment-option-r {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  gap: 12px;
+  text-align: left;
+}
+
+.payment-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.empty-contacts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 30px;
+  width: 100%;
+}
+
+.hmr-content-fade {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition:
+    opacity 250ms ease,
+    transform 250ms ease;
+}
+
+.hmr-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: opacity 250ms ease;
+}
+
+.hmr-overlay-balance {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.hmr-overlay-keyboard {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 16px;
+}
