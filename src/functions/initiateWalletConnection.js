@@ -7,7 +7,6 @@ import {
   initializeSparkWallet,
   setPrivacyEnabled,
 } from "./spark";
-import handleBalanceCache from "./spark/handleBalanceCache";
 import { cleanStalePendingSparkLightningTransactions } from "./spark/transactions";
 
 export async function initWallet({
@@ -60,13 +59,17 @@ export async function initializeSparkSession({
   try {
     // Clean DB state but do not hold up process
     cleanStalePendingSparkLightningTransactions();
-    const [balance, sparkAddress, identityPubKey, flashnetResponse] =
-      await Promise.all([
-        getSparkBalance(mnemonic),
-        getSparkAddress(mnemonic),
-        getSparkIdentityPubKey(mnemonic),
-        initializeFlashnet(mnemonic),
-      ]);
+    const [
+      balance,
+      sparkAddress,
+      identityPubKey,
+      // flashnetResponse
+    ] = await Promise.all([
+      getSparkBalance(mnemonic),
+      getSparkAddress(mnemonic),
+      getSparkIdentityPubKey(mnemonic),
+      // initializeFlashnet(mnemonic),
+    ]);
 
     setPrivacyEnabled(mnemonic);
     const transactions = await getCachedSparkTransactions(null, identityPubKey);
@@ -80,9 +83,9 @@ export async function initializeSparkSession({
         identityPubKey,
         sparkAddress: sparkAddress.response,
         didConnect: true,
-        didConnectToFlashnet: flashnetResponse,
+        // didConnectToFlashnet: flashnetResponse,
       };
-      await new Promise((res) => setTimeout(res, 500));
+      // await new Promise((res) => setTimeout(res, 500));
       setSparkInformation((prev) => ({ ...prev, ...storageObject }));
       return storageObject;
     }
@@ -103,29 +106,17 @@ export async function initializeSparkSession({
     //   );
     // }
 
-    // Get cached balance from last session to use as placeholder while polling confirms the real balance
-    const cachedBalance = await handleBalanceCache({
-      returnBalanceOnly: true,
-      mnemonic,
-    });
-
-    // Use cached balance as placeholder; polling in sparkContext will confirm the real balance
-    const placeholderBalance =
-      cachedBalance != null && cachedBalance > 0
-        ? cachedBalance
-        : Number(balance.balance);
-
     const storageObject = {
       balance: Number(balance.balance),
       tokens: balance.tokensObj,
       identityPubKey,
       sparkAddress: sparkAddress.response,
       didConnect: true,
-      didConnectToFlashnet: flashnetResponse,
+      // didConnectToFlashnet: flashnetResponse,
       initialBalance: Number(balance.balance),
     };
     console.log("Spark storage object", storageObject);
-    await new Promise((res) => setTimeout(res, 500));
+    // await new Promise((res) => setTimeout(res, 500));
     setSparkInformation((prev) => {
       let txToUse;
 

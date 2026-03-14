@@ -194,9 +194,8 @@ export function FlashnetProvider({ children }) {
         lastSwapAttempt: Date.now(),
       });
 
-      const lightningRequest = await getSingleSparkLightningRequest(
-        sparkRequestID,
-      );
+      const lightningRequest =
+        await getSingleSparkLightningRequest(sparkRequestID);
 
       console.log(
         "found saved lightning request invoice for",
@@ -649,7 +648,7 @@ export function FlashnetProvider({ children }) {
       try {
         if (
           sparkInformation.didConnect === true &&
-          sparkInformation.didConnectToFlashnet === false &&
+          !sparkInformation.didConnectToFlashnet &&
           appState === "active" &&
           currentWalletMnemoincRef.current
         ) {
@@ -729,7 +728,7 @@ export function FlashnetProvider({ children }) {
 
     if (
       sparkInformation.didConnect === true &&
-      sparkInformation.didConnectToFlashnet === false &&
+      !sparkInformation.didConnectToFlashnet &&
       appState === "active"
     ) {
       flashnetRetryDelayRef.current = INITIAL_RETRY_DELAY;
