@@ -53,7 +53,7 @@ export default function SwitchReceiveOption({ params }) {
   useEffect(() => {
     if (!didWarnSpark && !didWarnLiquid && !didWarnRootstock) return;
     handleGoBack(
-      didWarnLiquid ? "Liquid" : didWarnSpark ? "Spark" : "Rootstock"
+      didWarnLiquid ? "Liquid" : didWarnSpark ? "Spark" : "Rootstock",
     );
   }, [didWarnSpark, didWarnLiquid, didWarnRootstock]);
 
@@ -63,7 +63,7 @@ export default function SwitchReceiveOption({ params }) {
       navigate("/receive", {
         state: {
           receiveOption: selectedOption,
-          amount: 0,
+          receiveAmount: 0,
           description: "",
         },
         replace: true,
@@ -80,7 +80,7 @@ export default function SwitchReceiveOption({ params }) {
       openOverlay({
         for: "informationPopup",
         textContent: t(
-          "wallet.receivePages.switchReceiveOptionPage.sparkWarningMessage"
+          "wallet.receivePages.switchReceiveOptionPage.sparkWarningMessage",
         ),
         buttonText: t("constants.understandText"),
         customNavigation: () => {
@@ -113,7 +113,7 @@ export default function SwitchReceiveOption({ params }) {
                   "wallet.receivePages.switchReceiveOptionPage.notUsingMainAccountWarning",
                   {
                     swapType: "Liquid",
-                  }
+                  },
                 )
               : ""
           }`,
@@ -182,12 +182,12 @@ export default function SwitchReceiveOption({ params }) {
               name === "Lightning"
                 ? lightningReceiveIcon
                 : name === "Bitcoin"
-                ? bitcoinReceiveIcon
-                : name === "Spark"
-                ? sparkAsteriskWhite
-                : name === "Liquid"
-                ? blockstreamLiquid
-                : rootstockLogo
+                  ? bitcoinReceiveIcon
+                  : name === "Spark"
+                    ? sparkAsteriskWhite
+                    : name === "Liquid"
+                      ? blockstreamLiquid
+                      : rootstockLogo
             }
             alt={name}
           />
@@ -198,12 +198,12 @@ export default function SwitchReceiveOption({ params }) {
               name === "Lightning"
                 ? "Lightning Network"
                 : name === "Bitcoin"
-                ? "On-Chain"
-                : name === "Liquid"
-                ? "Liquid Network"
-                : name === "Spark"
-                ? "Spark"
-                : "Rootstock"
+                  ? "On-Chain"
+                  : name === "Liquid"
+                    ? "Liquid Network"
+                    : name === "Spark"
+                      ? "Spark"
+                      : "Rootstock"
             }
           />
           <ThemeText
@@ -212,18 +212,27 @@ export default function SwitchReceiveOption({ params }) {
               name === "Lightning"
                 ? t("constants.instant")
                 : name === "Bitcoin"
-                ? t("wallet.receivePages.switchReceiveOptionPage.tenMinutes", {
-                    numMins: 10,
-                  })
-                : name === "Liquid"
-                ? t("wallet.receivePages.switchReceiveOptionPage.oneMinute", {
-                    numMins: 1,
-                  })
-                : name === "Spark"
-                ? t("constants.instant")
-                : t("wallet.receivePages.switchReceiveOptionPage.tenMinutes", {
-                    numMins: 3,
-                  })
+                  ? t(
+                      "wallet.receivePages.switchReceiveOptionPage.tenMinutes",
+                      {
+                        numMins: 10,
+                      },
+                    )
+                  : name === "Liquid"
+                    ? t(
+                        "wallet.receivePages.switchReceiveOptionPage.oneMinute",
+                        {
+                          numMins: 1,
+                        },
+                      )
+                    : name === "Spark"
+                      ? t("constants.instant")
+                      : t(
+                          "wallet.receivePages.switchReceiveOptionPage.tenMinutes",
+                          {
+                            numMins: 3,
+                          },
+                        )
             }
           />
         </div>
@@ -248,7 +257,7 @@ export default function SwitchReceiveOption({ params }) {
               action: isExpanded
                 ? t("constants.lessLower")
                 : t("constants.moreLower"),
-            }
+            },
           )}
         />
         <ArrowDown
@@ -267,9 +276,9 @@ export default function SwitchReceiveOption({ params }) {
       <div
         style={{
           width: "100%",
-          maxHeight: isExpanded ? `${contentHeight}px` : "0px",
-          overflow: "hidden",
-          transition: "max-height 0.3s ease",
+          maxHeight: isExpanded ? `100%` : "0%",
+          overflow: isExpanded ? "unset" : "hidden",
+          // transition: "max-height 0.3s ease",
         }}
       >
         <div

@@ -8,6 +8,7 @@ import { useThemeContext } from "../../../contexts/themeContext";
 import { Colors } from "../../../constants/theme";
 import useThemeColors from "../../../hooks/useThemeColors";
 import { useOverlay } from "../../../contexts/overlayContext";
+import { useTranslation } from "react-i18next";
 
 export default function ReceiveButtonsContainer({
   generatingInvoiceQRCode,
@@ -21,10 +22,11 @@ export default function ReceiveButtonsContainer({
   const location = useLocation();
   const { theme, darkModeType } = useThemeContext();
   const { textColor } = useThemeColors();
+  const { t } = useTranslation();
 
   return (
     <div className="receiveButtonContainer">
-      <CustomButton
+      {/* <CustomButton
         actionFunction={() =>
           navigate(`/receiveAmount`, {
             state: {
@@ -42,7 +44,7 @@ export default function ReceiveButtonsContainer({
           copyToClipboard(generatedAddress, openOverlay, location);
         }}
         textContent={"Copy"}
-      />
+      /> */}
 
       <CustomButton
         actionFunction={() => {
@@ -60,10 +62,10 @@ export default function ReceiveButtonsContainer({
         }}
         buttonStyles={{
           backgroundColor: "transparent",
-          borderColor: theme ? Colors.dark.text : Colors.light.text,
+          // borderColor: theme ? Colors.dark.text : Colors.light.text,
         }}
-        textStyles={{ color: textColor }}
-        textContent={"Choose Network"}
+        textStyles={{ color: textColor, textDecoration: "underline" }}
+        textContent={t("wallet.receivePages.buttonContainer.format")}
       />
     </div>
   );
