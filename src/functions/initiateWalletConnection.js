@@ -14,6 +14,7 @@ export async function initWallet({
   setSparkInformation,
   // toggleGlobalContactsInformation,
   // globalContactsInformation,
+  network,
   mnemonic,
   hasRestoreCompleted,
 }) {
@@ -21,7 +22,7 @@ export async function initWallet({
 
   try {
     const [didConnectToSpark, balance] = await Promise.all([
-      initializeSparkWallet(mnemonic),
+      initializeSparkWallet(mnemonic, network),
       handleBalanceCache({
         isCheck: false,
         mnemonic: mnemonic,
@@ -50,11 +51,11 @@ export async function initWallet({
 
       if (!didSetSpark)
         throw new Error(
-          "Spark wallet information was not set properly, please try again."
+          "Spark wallet information was not set properly, please try again.",
         );
     } else {
       throw new Error(
-        "We were unable to connect to the spark node. Please try again."
+        "We were unable to connect to the spark node. Please try again.",
       );
     }
     return { didWork: true };
@@ -140,7 +141,7 @@ async function initializeSparkSession({
       initialBalanceResponse,
       correctBalance,
       finalBalanceToUse,
-      "balancasldfkjasdlfkjasdf"
+      "balancasldfkjasdlfkjasdf",
     );
     if (!didLoadCorrectBalance) {
       await handleBalanceCache({

@@ -46,7 +46,7 @@ export const clearMnemonicCache = () => {
   mnemonicHashCache.clear();
 };
 
-export const initializeSparkWallet = async (mnemonic) => {
+export const initializeSparkWallet = async (mnemonic, network) => {
   try {
     const hash = getMnemonicHash(mnemonic);
 
@@ -58,7 +58,7 @@ export const initializeSparkWallet = async (mnemonic) => {
     const { wallet } = await SparkWallet.initialize({
       mnemonicOrSeed: mnemonic,
       options: {
-        network: "MAINNET",
+        network: network,
         optimizationOptions: {
           multiplicity: 2,
         },

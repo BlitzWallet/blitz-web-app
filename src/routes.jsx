@@ -89,6 +89,12 @@ const pages = {
   ShowProfileQr: lazy(
     () => import("./pages/settings/pages/showProfileQr/showProfileQr.jsx"),
   ),
+  CreateGift: lazy(() => import("./pages/createGift/createGift.jsx")),
+  GiftConfirmation: lazy(
+    () => import("./pages/giftConfirmation/giftConfirmation.jsx"),
+  ),
+  ClaimGift: lazy(() => import("./pages/claimGift/claimGift.jsx")),
+  ReclaimGift: lazy(() => import("./pages/reclaimGift/reclaimGift.jsx")),
 };
 
 // Route configuration grouped by animation type
@@ -98,7 +104,7 @@ export const routeGroups = {
     { path: "/", component: pages.Home, useSafeArea: true },
     { path: "/wallet", component: pages.WalletHome, useSafeArea: false },
     { path: "/contacts", component: pages.Contacts, useSafeArea: true },
-    { path: "/store", component: pages.Store, useSafeArea: true },
+    { path: "/gift", component: pages.Store, useSafeArea: true },
     {
       path: "/chooseContactListPage",
       component: pages.ChooseContactListPage,
@@ -158,6 +164,16 @@ export const routeGroups = {
       component: pages.EditMyProfilePage,
       useSafeArea: true,
     },
+    {
+      path: "/create-gift",
+      component: pages.CreateGift,
+      useSafeArea: true,
+    },
+    {
+      path: "/reclaim-gift",
+      component: pages.ReclaimGift,
+      useSafeArea: true,
+    },
   ],
 
   // Slide up animation - typically for modals/overlays
@@ -183,6 +199,11 @@ export const routeGroups = {
       component: pages.ViewAllTxsPage,
       useSafeArea: true,
     },
+    {
+      path: "/claim-gift",
+      component: pages.ClaimGift,
+      useSafeArea: true,
+    },
   ],
 
   // Fade animation - typically for transitions
@@ -195,8 +216,13 @@ export const routeGroups = {
     },
     { path: "/login", component: pages.Login, useSafeArea: true },
     { path: "/connecting", component: pages.LoadingScreen, useSafeArea: true },
+    {
+      path: "/gift-confirmation",
+      component: pages.GiftConfirmation,
+      useSafeArea: true,
+    },
   ],
 };
 
 // Routes that should show bottom tabs
-export const bottomTabRoutes = ["/wallet", "/contacts", "/store"];
+export const bottomTabRoutes = ["/wallet", "/contacts", "/gift"];

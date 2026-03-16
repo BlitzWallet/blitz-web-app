@@ -1,0 +1,79 @@
+.claimGiftModal-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.claimGiftModal-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 5px;
+}
+
+.claimGiftModal-desc {
+  font-size: 13px;
+  opacity: 0.6;
+  margin: 0 0 4px;
+  line-height: 20px;
+  max-width: 384px;
+}
+
+.claimGiftModal-inputRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.claimGiftModal-input {
+  width: 100%;
+  padding: 12px 44px 12px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+.claimGiftModal-input:focus {
+  border-color: #0375f6;
+}
+
+.claimGiftModal-iconBtn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  z-index: 1;
+}
+
+.claimGiftModal-btn {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: auto;
+  transition: opacity 0.15s ease;
+}
+.claimGiftModal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.claimGiftModal-btn:active:not(:disabled) {
+  opacity: 0.8;
+}
+
+.claimGiftModal-error {
+  color: #e74c3c;
+  font-size: 13px;
+  margin: 0;
+}
