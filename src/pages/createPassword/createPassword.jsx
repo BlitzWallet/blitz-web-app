@@ -9,6 +9,7 @@ import { getPublicKey, privateKeyFromSeedWords } from "../../functions/seed";
 import { initializeFirebase } from "../../../db/initializeFirebase";
 import { useLocation } from "react-router-dom";
 import Storage from "../../functions/localStorage";
+
 function CreatePassword() {
   const { login, setMnemoinc, mnemoinc } = useAuth();
   const location = useLocation();
@@ -34,7 +35,7 @@ function CreatePassword() {
       !password.initialPass ||
         !password.checkPass ||
         password.initialPass !== password.checkPass,
-      password
+      password,
     );
     if (
       !password.initialPass ||

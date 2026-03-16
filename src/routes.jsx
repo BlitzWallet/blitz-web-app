@@ -30,53 +30,51 @@ export const animationConfigs = {
 const pages = {
   CreateSeed: lazy(() => import("./pages/createSeed/createSeed.jsx")),
   DisclaimerPage: lazy(() => import("./pages/disclaimer/disclaimer.jsx")),
-  CreatePassword: lazy(() =>
-    import("./pages/createPassword/createPassword.jsx")
+  CreatePassword: lazy(
+    () => import("./pages/createPassword/createPassword.jsx"),
   ),
   Home: lazy(() => import("./pages/home/home.jsx")),
   Login: lazy(() => import("./pages/login/login.jsx")),
   WalletHome: lazy(() => import("./pages/wallet/wallet.jsx")),
-  EditReceivePaymentInformation: lazy(() =>
-    import("./pages/receiveAmount/receiveAmount.jsx")
+  EditReceivePaymentInformation: lazy(
+    () => import("./pages/receiveAmount/receiveAmount.jsx"),
   ),
   ReceiveQRPage: lazy(() => import("./pages/receiveQRPage/receiveQRPage.jsx")),
-  TechnicalDetailsPage: lazy(() =>
-    import("./pages/technicalDetails/technicalDetails.jsx")
+  TechnicalDetailsPage: lazy(
+    () => import("./pages/technicalDetails/technicalDetails.jsx"),
   ),
   Camera: lazy(() => import("./pages/camera/camera.jsx")),
-  SwitchReceiveOption: lazy(() =>
-    import("./pages/switchReceiveOption/switchReceiveOption.jsx")
+  SwitchReceiveOption: lazy(
+    () => import("./pages/switchReceiveOption/switchReceiveOption.jsx"),
   ),
-  ExpandedTxPage: lazy(() =>
-    import("./pages/expandedTxPage/expandedTxPage.jsx")
+  ExpandedTxPage: lazy(
+    () => import("./pages/expandedTxPage/expandedTxPage.jsx"),
   ),
   SendPage: lazy(() => import("./pages/sendPage/sendPage.jsx")),
-  SparkSettingsPage: lazy(() =>
-    import("./pages/settings/pages/sparkSettingsPage/index.jsx")
+  SparkSettingsPage: lazy(
+    () => import("./pages/settings/pages/sparkSettingsPage/index.jsx"),
   ),
-  ExpandedAddContactsPage: lazy(() =>
-    import(
-      "./pages/contacts/components/expandedAddContactPage/expandedAddContactPage.jsx"
-    )
+  ExpandedAddContactsPage: lazy(
+    () =>
+      import("./pages/contacts/components/expandedAddContactPage/expandedAddContactPage.jsx"),
   ),
-  ExpandedContactsPage: lazy(() =>
-    import(
-      "./pages/contacts/components/ExpandedContactsPage/ExpandedContactsPage.jsx"
-    )
+  ExpandedContactsPage: lazy(
+    () =>
+      import("./pages/contacts/components/ExpandedContactsPage/expandedContactsPage.jsx"),
   ),
-  SendAndRequestPage: lazy(() =>
-    import(
-      "./pages/contacts/components/sendAndRequestPage/sendAndRequsetPage.jsx"
-    )
+  SendAndRequestPage: lazy(
+    () =>
+      import("./pages/contacts/components/sendAndRequestPage/sendAndRequsetPage.jsx"),
   ),
-  ChooseContactListPage: lazy(() =>
-    import("./pages/contacts/components/contactsList/contactsList.jsx")
+  ChooseContactListPage: lazy(
+    () => import("./pages/contacts/components/contactsList/contactsList.jsx"),
   ),
-  EditMyProfilePage: lazy(() =>
-    import("./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx")
+  EditMyProfilePage: lazy(
+    () =>
+      import("./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx"),
   ),
-  SettingsContentIndex: lazy(() =>
-    import("./pages/settings/settingsItem/settingsItem.jsx")
+  SettingsContentIndex: lazy(
+    () => import("./pages/settings/settingsItem/settingsItem.jsx"),
   ),
   SettingsHome: lazy(() => import("./pages/settings/settings.jsx")),
   ViewMnemoinc: lazy(() => import("./pages/viewkey/viewKey.jsx")),
@@ -84,13 +82,19 @@ const pages = {
   ViewAllTxsPage: lazy(() => import("./pages/viewAllTx/viewAllTxPage.jsx")),
   Contacts: lazy(() => import("./pages/contacts/contacts.jsx")),
   Store: lazy(() => import("./pages/store/store.jsx")),
-  ConfirmPayment: lazy(() =>
-    import("./pages/confirmPayment/confirmPaymentScreen.jsx")
+  ConfirmPayment: lazy(
+    () => import("./pages/confirmPayment/confirmPaymentScreen.jsx"),
   ),
   LoadingScreen: lazy(() => import("./pages/loadingScreen/index.jsx")),
-  ShowProfileQr: lazy(() =>
-    import("./pages/settings/pages/showProfileQr/showProfileQr.jsx")
+  ShowProfileQr: lazy(
+    () => import("./pages/settings/pages/showProfileQr/showProfileQr.jsx"),
   ),
+  CreateGift: lazy(() => import("./pages/createGift/createGift.jsx")),
+  GiftConfirmation: lazy(
+    () => import("./pages/giftConfirmation/giftConfirmation.jsx"),
+  ),
+  ClaimGift: lazy(() => import("./pages/claimGift/claimGift.jsx")),
+  ReclaimGift: lazy(() => import("./pages/reclaimGift/reclaimGift.jsx")),
 };
 
 // Route configuration grouped by animation type
@@ -100,7 +104,7 @@ export const routeGroups = {
     { path: "/", component: pages.Home, useSafeArea: true },
     { path: "/wallet", component: pages.WalletHome, useSafeArea: false },
     { path: "/contacts", component: pages.Contacts, useSafeArea: true },
-    { path: "/store", component: pages.Store, useSafeArea: true },
+    { path: "/gift", component: pages.Store, useSafeArea: true },
     {
       path: "/chooseContactListPage",
       component: pages.ChooseContactListPage,
@@ -160,6 +164,16 @@ export const routeGroups = {
       component: pages.EditMyProfilePage,
       useSafeArea: true,
     },
+    {
+      path: "/create-gift",
+      component: pages.CreateGift,
+      useSafeArea: true,
+    },
+    {
+      path: "/reclaim-gift",
+      component: pages.ReclaimGift,
+      useSafeArea: true,
+    },
   ],
 
   // Slide up animation - typically for modals/overlays
@@ -185,6 +199,11 @@ export const routeGroups = {
       component: pages.ViewAllTxsPage,
       useSafeArea: true,
     },
+    {
+      path: "/claim-gift",
+      component: pages.ClaimGift,
+      useSafeArea: true,
+    },
   ],
 
   // Fade animation - typically for transitions
@@ -197,8 +216,13 @@ export const routeGroups = {
     },
     { path: "/login", component: pages.Login, useSafeArea: true },
     { path: "/connecting", component: pages.LoadingScreen, useSafeArea: true },
+    {
+      path: "/gift-confirmation",
+      component: pages.GiftConfirmation,
+      useSafeArea: true,
+    },
   ],
 };
 
 // Routes that should show bottom tabs
-export const bottomTabRoutes = ["/wallet", "/contacts", "/store"];
+export const bottomTabRoutes = ["/wallet", "/contacts", "/gift"];

@@ -1,0 +1,118 @@
+.giftsOverviewContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.giftsOverview-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 10px;
+}
+
+.giftsOverview-section {
+  margin-bottom: 8px;
+}
+
+.giftsOverview-sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.giftsOverview-sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.5;
+  margin: 8px 4px;
+}
+
+.giftsOverview-reclaimLink {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.giftsOverview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+}
+
+.giftsOverview-emptyIcon {
+  font-size: 56px;
+  margin-bottom: 16px;
+}
+
+.giftsOverview-emptyTitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.giftsOverview-emptyDesc {
+  font-size: 13px;
+  opacity: 0.6;
+  margin: 0;
+  line-height: 20px;
+  max-width: 300px;
+}
+
+.giftsOverview-expiredEmpty {
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.giftsOverview-expiredEmptyText {
+  font-size: 14px;
+  opacity: 0.5;
+  margin: 0;
+}
+
+.giftsOverview-advancedLink {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.giftsOverview-buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 16px;
+}
+
+.giftsOverview-btn {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.giftsOverview-btn:active {
+  opacity: 0.8;
+}

@@ -43,6 +43,7 @@ import { ToastContainer, ToastProvider } from "./contexts/toastManager.jsx";
 import { SparkNavigationListener } from "./contexts/SDKNavigation.jsx";
 import { SparkWalletProvider } from "./contexts/sparkContext.jsx";
 import { AuthProvider } from "./contexts/authContext.jsx";
+import { GiftsContextProvider } from "./contexts/giftsContext.jsx";
 import { NavigationStackProvider } from "./contexts/navigationLogger.jsx";
 import FullLoadingScreen from "./components/fullLoadingScreen/fullLoadingScreen.jsx";
 
@@ -95,6 +96,7 @@ function Root() {
                         <GLobalNodeContextProider>
                           <BitcoinPriceProvider>
                             <GlobalAppDataProvider>
+                              <GiftsContextProvider>
                               <LiquidEventProvider>
                                 <ImageCacheProvider>
                                   <GlobalServerTimeProvider>
@@ -170,6 +172,7 @@ function Root() {
                                   </GlobalServerTimeProvider>
                                 </ImageCacheProvider>
                               </LiquidEventProvider>
+                              </GiftsContextProvider>
                             </GlobalAppDataProvider>
                           </BitcoinPriceProvider>
                         </GLobalNodeContextProider>

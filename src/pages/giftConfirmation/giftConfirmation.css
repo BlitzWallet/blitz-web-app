@@ -1,0 +1,209 @@
+.giftConfirm-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0 20px 16px;
+  box-sizing: border-box;
+}
+
+.giftConfirm-topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+
+.giftConfirm-shareBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.giftConfirm-scrollContent {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.giftConfirm-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.giftConfirm-successIcon {
+  font-size: 64px;
+  margin-bottom: 4px;
+}
+
+.giftConfirm-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.giftConfirm-subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+  margin: 0;
+  text-align: center;
+  max-width: 320px;
+  line-height: 22px;
+}
+
+.giftConfirm-qrCard {
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Shared card style */
+.giftConfirm-card {
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.giftConfirm-cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid;
+}
+
+.giftConfirm-cardHeaderText {
+  font-weight: 500;
+  margin: 0;
+}
+
+.giftConfirm-detailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.giftConfirm-detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.giftConfirm-detailLabel {
+  font-size: 14px;
+  margin: 0;
+}
+
+.giftConfirm-detailValue {
+  font-size: 14px;
+  margin: 0;
+}
+
+.giftConfirm-detailValueDesc {
+  font-size: 14px;
+  margin: 0;
+  text-align: right;
+  max-width: 60%;
+  overflow-wrap: break-word;
+}
+
+.giftConfirm-inputLabel {
+  font-weight: 500;
+  margin: 0 0 12px;
+}
+
+.giftConfirm-linkRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.giftConfirm-linkBox {
+  flex: 1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid;
+  overflow: hidden;
+}
+
+.giftConfirm-linkText {
+  font-size: 13px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.giftConfirm-copyBtn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.giftConfirm-copied {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 8px 0 0;
+  text-align: center;
+  animation: giftConfirm-fadeIn 0.2s ease;
+}
+
+@keyframes giftConfirm-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Bottom buttons */
+.giftConfirm-bottomButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 12px;
+}
+
+.giftConfirm-btn {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.giftConfirm-btn:active {
+  opacity: 0.8;
+}
+
+.giftConfirm-btnPrimary {
+  margin-bottom: 0;
+}
+
+.giftConfirm-btnSecondary {
+  background: transparent;
+  text-decoration: underline;
+}

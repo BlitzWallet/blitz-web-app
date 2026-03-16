@@ -50,7 +50,7 @@ export default function LoadingScreen() {
   const { toggleGlobalAppDataInformation } = useGlobalAppData();
 
   const [loadingMessage, setLoadingMessage] = useState(
-    "Please don't leave the tab"
+    "Please don't leave the tab",
   );
   const [hasError, setHasError] = useState("");
 
@@ -63,7 +63,7 @@ export default function LoadingScreen() {
       setLoadingMessage((prev) =>
         prev === "Please don't leave the tab"
           ? "We are setting things up"
-          : "Please don't leave the tab"
+          : "Please don't leave the tab",
       );
     }, 5000);
 
@@ -113,7 +113,7 @@ export default function LoadingScreen() {
 
           if (!didLoadUserSettings)
             throw new Error(
-              t("screens.inAccount.loadingScreen.userSettingsError")
+              t("screens.inAccount.loadingScreen.userSettingsError"),
             );
         }
 
@@ -122,12 +122,12 @@ export default function LoadingScreen() {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(
           0,
-          (hasSavedInfo ? 500 : 800) - elapsedTime
+          (hasSavedInfo ? 500 : 800) - elapsedTime,
         );
 
         if (remainingTime > 0) {
           console.log(
-            `Waiting ${remainingTime}ms to reach minimum 1s duration`
+            `Waiting ${remainingTime}ms to reach minimum 1s duration`,
           );
           await new Promise((resolve) => setTimeout(resolve, remainingTime));
         }

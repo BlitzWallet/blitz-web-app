@@ -1,0 +1,75 @@
+.giftCardItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.giftCardItem:active {
+  opacity: 0.8;
+}
+
+.giftCardItem-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.giftCardItem-iconText {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.giftCardItem-middle {
+  flex: 1;
+  min-width: 0;
+}
+
+.giftCardItem-desc {
+  font-size: 15px;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.giftCardItem-statusRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.giftCardItem-statusText {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.giftCardItem-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.giftCardItem-actionIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.giftCardItem-actionIcon:active {
+  opacity: 0.6;
+}

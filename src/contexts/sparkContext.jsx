@@ -1124,15 +1124,19 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
   const connectToSparkWallet = useCallback(async () => {
     console.log(accountMnemoinc, "acc me");
+
+    const network =
+      import.meta.env.MODE === "development" ? "REGTEST" : "MAINNET";
+
     const { didWork, error } = await initWallet({
       setSparkInformation,
-      // toggleGlobalContactsInformation,
-      // globalContactsInformation,
       mnemonic: accountMnemoinc,
       hasRestoreCompleted: hasRestoreCompleted.current,
+      network, // Pass network to initWallet
     });
 
     console.log(didWork, "did Connect to spark");
+    console.log(network, "network");
     if (!didWork) {
       setSparkInformation((prev) => ({ ...prev, didConnect: false }));
       setSparkConnectionError(error);
