@@ -36,6 +36,7 @@
     "ecpair": "^3.0.0",
     "events": "^3.3.0",
     "firebase": "^11.9.0",
+    "flag-icons": "^7.5.0",
     "framer-motion": "^12.10.0",
     "i18next": "^25.7.3",
     "idb": "^8.0.3",

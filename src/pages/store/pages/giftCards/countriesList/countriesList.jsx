@@ -87,7 +87,10 @@ export default function CountriesList({ onlyReturn, returnTo }) {
 
   return (
     <div className="giftCardsContainer">
-      <CustomSettingsNavBar customBackFunction={() => navigate(-1)} />
+      <CustomSettingsNavBar
+        containerStyles={{ marginBottom: 20 }}
+        customBackFunction={() => navigate(-1)}
+      />
 
       <CustomInput
         onchange={setSearchInput}
