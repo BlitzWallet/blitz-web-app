@@ -18,12 +18,12 @@ const APPLIST = [
     pageName: "chatgpt",
     Icon: Bot,
   },
-  {
-    nameKey: "apps.appList.SMS",
-    descriptionKey: "apps.appList.SMSDescription",
-    pageName: "sms4sats",
-    Icon: MessageSquareText,
-  },
+  // {
+  //   nameKey: "apps.appList.SMS",
+  //   descriptionKey: "apps.appList.SMSDescription",
+  //   pageName: "sms4sats",
+  //   Icon: MessageSquareText,
+  // },
   {
     nameKey: "apps.appList.onlineListings",
     descriptionKey: "apps.appList.onlineListingsDescription",

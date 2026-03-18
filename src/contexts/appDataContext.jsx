@@ -32,7 +32,7 @@ export const GlobalAppDataProvider = ({ children }) => {
         addDataToCollection(
           { appData: newAppData },
           "blitzWalletUsers",
-          publicKey
+          publicKey,
         );
       }
       return newAppData;
@@ -51,7 +51,7 @@ export const GlobalAppDataProvider = ({ children }) => {
     }
     if (!publicKey || typeof data !== "string") return defaultValue;
     return JSON.parse(
-      await decryptMessage(contactsPrivateKey, publicKey, data)
+      await decryptMessage(contactsPrivateKey, publicKey, data),
     );
   };
 
@@ -84,7 +84,7 @@ export const GlobalAppDataProvider = ({ children }) => {
 
   useEffect(() => {
     async function handleMessages() {
-      const decodedMessages = await decryptData("giftCards", {
+      const decodedMessages = await decryptData("messagesApp", {
         received: [],
         sent: [],
       });

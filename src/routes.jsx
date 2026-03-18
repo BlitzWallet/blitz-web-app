@@ -30,53 +30,51 @@ export const animationConfigs = {
 const pages = {
   CreateSeed: lazy(() => import("./pages/createSeed/createSeed.jsx")),
   DisclaimerPage: lazy(() => import("./pages/disclaimer/disclaimer.jsx")),
-  CreatePassword: lazy(() =>
-    import("./pages/createPassword/createPassword.jsx")
+  CreatePassword: lazy(
+    () => import("./pages/createPassword/createPassword.jsx"),
   ),
   Home: lazy(() => import("./pages/home/home.jsx")),
   Login: lazy(() => import("./pages/login/login.jsx")),
   WalletHome: lazy(() => import("./pages/wallet/wallet.jsx")),
-  EditReceivePaymentInformation: lazy(() =>
-    import("./pages/receiveAmount/receiveAmount.jsx")
+  EditReceivePaymentInformation: lazy(
+    () => import("./pages/receiveAmount/receiveAmount.jsx"),
   ),
   ReceiveQRPage: lazy(() => import("./pages/receiveQRPage/receiveQRPage.jsx")),
-  TechnicalDetailsPage: lazy(() =>
-    import("./pages/technicalDetails/technicalDetails.jsx")
+  TechnicalDetailsPage: lazy(
+    () => import("./pages/technicalDetails/technicalDetails.jsx"),
   ),
   Camera: lazy(() => import("./pages/camera/camera.jsx")),
-  SwitchReceiveOption: lazy(() =>
-    import("./pages/switchReceiveOption/switchReceiveOption.jsx")
+  SwitchReceiveOption: lazy(
+    () => import("./pages/switchReceiveOption/switchReceiveOption.jsx"),
   ),
-  ExpandedTxPage: lazy(() =>
-    import("./pages/expandedTxPage/expandedTxPage.jsx")
+  ExpandedTxPage: lazy(
+    () => import("./pages/expandedTxPage/expandedTxPage.jsx"),
   ),
   SendPage: lazy(() => import("./pages/sendPage/sendPage.jsx")),
-  SparkSettingsPage: lazy(() =>
-    import("./pages/settings/pages/sparkSettingsPage/index.jsx")
+  SparkSettingsPage: lazy(
+    () => import("./pages/settings/pages/sparkSettingsPage/index.jsx"),
   ),
-  ExpandedAddContactsPage: lazy(() =>
-    import(
-      "./pages/contacts/components/expandedAddContactPage/expandedAddContactPage.jsx"
-    )
+  ExpandedAddContactsPage: lazy(
+    () =>
+      import("./pages/contacts/components/expandedAddContactPage/expandedAddContactPage.jsx"),
   ),
-  ExpandedContactsPage: lazy(() =>
-    import(
-      "./pages/contacts/components/ExpandedContactsPage/ExpandedContactsPage.jsx"
-    )
+  ExpandedContactsPage: lazy(
+    () =>
+      import("./pages/contacts/components/ExpandedContactsPage/ExpandedContactsPage.jsx"),
   ),
-  SendAndRequestPage: lazy(() =>
-    import(
-      "./pages/contacts/components/sendAndRequestPage/sendAndRequsetPage.jsx"
-    )
+  SendAndRequestPage: lazy(
+    () =>
+      import("./pages/contacts/components/sendAndRequestPage/sendAndRequsetPage.jsx"),
   ),
-  ChooseContactListPage: lazy(() =>
-    import("./pages/contacts/components/contactsList/contactsList.jsx")
+  ChooseContactListPage: lazy(
+    () => import("./pages/contacts/components/contactsList/contactsList.jsx"),
   ),
-  EditMyProfilePage: lazy(() =>
-    import("./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx")
+  EditMyProfilePage: lazy(
+    () =>
+      import("./pages/contacts/screens/editMyProfilePage/editMyProfilePage.jsx"),
   ),
-  SettingsContentIndex: lazy(() =>
-    import("./pages/settings/settingsItem/settingsItem.jsx")
+  SettingsContentIndex: lazy(
+    () => import("./pages/settings/settingsItem/settingsItem.jsx"),
   ),
   SettingsHome: lazy(() => import("./pages/settings/settings.jsx")),
   ViewMnemoinc: lazy(() => import("./pages/viewkey/viewKey.jsx")),
@@ -84,12 +82,13 @@ const pages = {
   ViewAllTxsPage: lazy(() => import("./pages/viewAllTx/viewAllTxPage.jsx")),
   Contacts: lazy(() => import("./pages/contacts/contacts.jsx")),
   Store: lazy(() => import("./pages/store/store.jsx")),
-  ConfirmPayment: lazy(() =>
-    import("./pages/confirmPayment/confirmPaymentScreen.jsx")
+  StoreItem: lazy(() => import("./pages/store/storeItem/storeItem.jsx")),
+  ConfirmPayment: lazy(
+    () => import("./pages/confirmPayment/confirmPaymentScreen.jsx"),
   ),
   LoadingScreen: lazy(() => import("./pages/loadingScreen/index.jsx")),
-  ShowProfileQr: lazy(() =>
-    import("./pages/settings/pages/showProfileQr/showProfileQr.jsx")
+  ShowProfileQr: lazy(
+    () => import("./pages/settings/pages/showProfileQr/showProfileQr.jsx"),
   ),
 };
 
@@ -131,6 +130,11 @@ export const routeGroups = {
       path: "/settings-item",
       component: pages.SettingsContentIndex,
       useSafeArea: false,
+    },
+    {
+      path: "/store-item",
+      component: pages.StoreItem,
+      useSafeArea: true,
     },
     {
       path: "/settings-item/SparkSettingsPage",
