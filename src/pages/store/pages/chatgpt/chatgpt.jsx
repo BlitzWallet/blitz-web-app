@@ -149,7 +149,8 @@ export default function ChatGPTHome() {
   });
   const [newChats, setNewChats] = useState([]);
   const [model, setSearchModel] = useState(
-    () => AI_MODEL_COST.find((m) => m.shortName === "gpt-4o") || AI_MODEL_COST[0],
+    () =>
+      AI_MODEL_COST.find((m) => m.shortName === "gpt-4o") || AI_MODEL_COST[0],
   );
   const [userChatText, setUserChatText] = useState("");
   const [showScrollBottomIndicator, setShowScrollBottomIndicator] =
@@ -174,7 +175,7 @@ export default function ChatGPTHome() {
     getModels().then((freshModels) => {
       setSearchModel((current) => {
         const updated = freshModels.find((m) => m.id === current.id);
-        return updated || current;
+        return updated || freshModels[0];
       });
     });
   }, []);
