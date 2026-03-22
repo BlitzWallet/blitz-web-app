@@ -799,7 +799,8 @@
         "refundedOrder": "Order has been refunded, funds will automatically return to your wallet after 21 minutes",
         "reclaimComplete": "Retry complete. If no code is generated, you will be auto-refunded after 21 minutes.",
         "noCode": "No code",
-        "rateLimitError": "Too many requests. You can only make 5 requests every 30 seconds. Please wait before trying again."
+        "rateLimitError": "Too many requests. You can only make 5 requests every 30 seconds. Please wait before trying again.",
+        "noPurchasesTitle": "You haven't sent or received any SMS messages yet. Once you do, they'll show up here."
       },
       "receivePage": {
         "paymentMemo": "Store - SMS Receive",
@@ -847,7 +848,8 @@
       "noBuisMessage": "We couldn’t find anything matching your search.",
       "visitWebsite": "Visit Website",
       "addListing": "Add Shop"
-    }
+    },
+    "noPurchaseTitle": "No Purchases"
   },
   "wallet": {
     "halfModal": {

@@ -109,13 +109,11 @@
     "onLower": "en",
     "offLower": "de"
   },
-
   "languages": {
     "english": "English",
     "spanish": "Español",
     "italian": "Italiano"
   },
-
   "weekdays": {
     "Mon": "Lunes",
     "Tue": "Martes",
@@ -530,7 +528,6 @@
         "errorMessage": "Lo sentimos, no pudimos guardar tu conversación."
       }
     },
-
     "giftCards": {
       "giftCardsPage": {
         "searchPlaceholder": "Buscar una tarjeta de regalo",
@@ -544,7 +541,6 @@
         "price": "Precio: ",
         "fee": "Tarifa: "
       },
-
       "createAccount": {
         "title": "Con tecnología de",
         "saveEmail": "No tienes un correo electrónico guardado. Acelera el proceso de pago guardando un correo.",
@@ -624,7 +620,8 @@
         "refundedOrder": "El pedido ha sido reembolsado, los fondos se devolverán automáticamente a tu billetera después de 21 minutos.",
         "reclaimComplete": "Rety completo. Si no se genera un código, se te reembolsará automáticamente después de 21 minutos.",
         "noCode": "No hay código",
-        "rateLimitError": "Demasiadas solicitudes. Solo puedes hacer 5 solicitudes cada 30 segundos. Por favor, espera antes de intentar nuevamente."
+        "rateLimitError": "Demasiadas solicitudes. Solo puedes hacer 5 solicitudes cada 30 segundos. Por favor, espera antes de intentar nuevamente.",
+        "noPurchasesTitle": "Aún no has enviado ni recibido ningún SMS. Una vez que lo hagas, aparecerán aquí."
       },
       "receivePage": {
         "paymentMemo": "Tienda - Recepción de SMS",
@@ -672,7 +669,8 @@
       "noBuisMessage": "No encontramos resultados que coincidan con tu búsqueda.",
       "visitWebsite": "Visitar sitio web",
       "addListing": "Agregar tienda"
-    }
+    },
+    "noPurchaseTitle": "Sin Compras"
   },
   "wallet": {
     "halfModal": {
@@ -736,7 +734,6 @@
         "usernameInputDesc": "Editar nombre de usuario"
       }
     },
-
     "sendPages": {
       "sendPaymentScreen": {
         "initialLoadingMessage": "Preparación de detalles de facturas",
@@ -1034,12 +1031,10 @@
       "rootstock": "Rootstock",
       "pageTitle": "Intercambios de {{type}}"
     },
-
     "viewRoostockSwaps": {
       "loadingMessage": "Cargando intercambios guardados de Rootstock",
       "noSwapsMessage": "No tienes intercambios guardados de Rootstock"
     },
-
     "rootstockSwapInfo": {
       "title": "Intercambio Submarino",
       "id": "ID",
@@ -1418,11 +1413,9 @@
     "loadingText": "Estamos configurando todo. ¡Espera un momento! Esto podría tardar hasta un minuto.",
     "errorText1": "Error al conectar con tu nodo. Intenta recargar la app."
   },
-
   "swapMessages": {
     "liquid": "Intercambio de Liquid a Spark"
   },
-
   "tabs": {
     "home": "Billetera",
     "appStore": "Tienda",

@@ -1,0 +1,506 @@
+/* SMS4Sats shared styles */
+
+.sms4sats-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Home */
+.sms4sats-home-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sms4sats-home-description {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+  max-width: 320px;
+}
+
+/* Send Page */
+.sms4sats-send-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.sms4sats-input-label {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.sms4sats-display-value {
+  font-size: 1.4rem;
+  text-align: center;
+  cursor: pointer;
+  padding: 8px 16px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.sms4sats-display-value.placeholder {
+  opacity: 0.4;
+}
+
+.sms4sats-country-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+  overflow-y: auto;
+  padding: 10px 0 20px;
+  margin-top: 10px;
+}
+
+.sms4sats-country-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.sms4sats-country-item:hover {
+  opacity: 0.7;
+}
+
+.sms4sats-country-flag {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.sms4sats-country-name {
+  font-size: 0.75rem;
+  text-align: center;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.sms4sats-message-input {
+  width: 100%;
+  max-width: 600px;
+  min-height: 80px;
+  max-height: 120px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  resize: none;
+  margin-top: 10px;
+  font-family: inherit;
+}
+
+.sms4sats-phone-input {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 1.1rem;
+  margin-top: 10px;
+  font-family: inherit;
+  text-align: center;
+}
+
+/* Receive Page */
+.sms4sats-receive-topbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  position: relative;
+}
+
+.sms4sats-receive-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.sms4sats-receive-topbar-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.sms4sats-search-container {
+  width: 90%;
+  max-width: 600px;
+  margin: 0 auto 10px;
+}
+
+.sms4sats-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.sms4sats-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.sms4sats-service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 4px;
+  border-radius: 8px;
+}
+
+.sms4sats-service-item:hover {
+  opacity: 0.7;
+}
+
+.sms4sats-service-image {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  object-fit: contain;
+  margin-bottom: 6px;
+}
+
+.sms4sats-service-name {
+  font-size: 0.75rem;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.sms4sats-no-services {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+/* Sent Payments */
+.sms4sats-history-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sms4sats-history-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 20px;
+}
+
+.sms4sats-order-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  gap: 12px;
+}
+
+.sms4sats-order-text-container {
+  flex: 1;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.sms4sats-order-title {
+  font-size: 1rem;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sms4sats-order-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sms4sats-order-id {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sms4sats-support-container {
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.sms4sats-support-email {
+  font-weight: 600;
+}
+
+/* Confirmation Slide-Up / Modal overlay */
+.sms4sats-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sms4sats-modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 16px 16px 0 0;
+  padding: 24px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-height: 60vh;
+}
+
+.sms4sats-modal-title {
+  font-size: 1.4rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.sms4sats-modal-subtitle {
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.sms4sats-confirm-btn {
+  width: 95%;
+  margin-top: 16px;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sms4sats-confirm-btn:hover {
+  opacity: 0.85;
+}
+
+/* View SMS Code overlay */
+.sms4sats-code-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sms4sats-code-card {
+  width: 80%;
+  max-width: 600px;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.sms4sats-code-topbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.sms4sats-code-header {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.sms4sats-code-close {
+  position: absolute;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.sms4sats-code-value {
+  font-size: 2.2rem;
+  text-align: center;
+  cursor: pointer;
+  margin: 10px 0 8px;
+  font-weight: 700;
+}
+
+.sms4sats-code-number {
+  text-align: center;
+  opacity: 0.7;
+  margin-bottom: 20px;
+}
+
+/* Confirm Receive Payment overlay */
+.sms4sats-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sms4sats-confirm-card {
+  width: 90%;
+  max-width: 380px;
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.sms4sats-confirm-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.sms4sats-confirm-animation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.sms4sats-confirm-animation-icon {
+  font-size: 5rem;
+  text-align: center;
+}
+
+.sms4sats-intro-text {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.sms4sats-phone-label {
+  text-align: center;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.sms4sats-phone-number-display {
+  font-size: 1.6rem;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.sms4sats-instruction-step {
+  margin-bottom: 14px;
+  padding: 0 12px;
+}
+
+/* Loading spinner */
+.sms4sats-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.sms4sats-spinner-circle {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(128, 128, 128, 0.3);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: sms4sats-spin 0.8s linear infinite;
+}
+
+@keyframes sms4sats-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sms4sats-loading-text {
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* Icon button */
+.sms4sats-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.sms4sats-globe-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
