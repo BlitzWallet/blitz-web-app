@@ -8,6 +8,7 @@
   padding: 20px;
   box-sizing: border-box;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .claimGift-header {
@@ -28,14 +29,14 @@
 }
 
 .claimGift-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
 }
 
 .claimGift-headerText {
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
   margin: 0;
 }
@@ -43,25 +44,28 @@
 .claimGift-divider {
   height: 3px;
   width: 100%;
+  max-width: 448px;
   margin: 20px 0;
   border-radius: 2px;
 }
 
 .claimGift-messageCard {
   width: 100%;
-  border-radius: 8px;
+  max-width: 448px;
+  border-radius: 12px;
   padding: 16px 20px;
   box-sizing: border-box;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
 .claimGift-messageLabel {
-  font-size: 13px;
+  font-size: 12px;
   opacity: 0.5;
   margin: 0 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 .claimGift-messageText {
@@ -74,13 +78,14 @@
 
 .claimGift-amountCard {
   width: 100%;
-  border-radius: 8px;
+  max-width: 448px;
+  border-radius: 12px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   box-sizing: border-box;
 }
 
@@ -88,6 +93,7 @@
   font-size: 14px;
   text-align: center;
   margin: 0;
+  opacity: 0.6;
 }
 
 .claimGift-amountValue {
@@ -97,27 +103,9 @@
 .claimGift-amountDescription {
   font-size: 13px;
   text-align: center;
-  opacity: 0.6;
-  margin: 0;
-}
-
-.claimGift-btn {
-  width: 100%;
-  padding: 14px 0;
-  border-radius: 12px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: auto;
-  transition: opacity 0.15s ease;
-}
-.claimGift-btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
-}
-.claimGift-btn:active:not(:disabled) {
-  opacity: 0.8;
+  margin: 0;
+  line-height: 20px;
 }
 
 .claimGift-loading {
@@ -134,7 +122,7 @@
 .claimGift-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(128, 128, 128, 0.2);
   border-top-color: #0375f6;
   border-radius: 50%;
   animation: claimGift-spin 0.8s linear infinite;
@@ -151,6 +139,7 @@
   min-height: 60px;
   font-size: 15px;
   margin: 0;
+  line-height: 1.5;
 }
 
 .claimGift-success {
@@ -161,6 +150,7 @@
   flex: 1;
   gap: 16px;
   text-align: center;
+  max-width: 448px;
 }
 
 .claimGift-successIcon {
@@ -176,7 +166,7 @@
 .claimGift-successMessage {
   font-size: 16px;
   font-style: italic;
-  opacity: 0.8;
+  opacity: 0.7;
   margin: 0;
   line-height: 1.4;
   word-break: break-word;
@@ -185,12 +175,12 @@
 
 .claimGift-successSub {
   font-size: 14px;
-  opacity: 0.6;
+  opacity: 0.5;
   margin: 0 0 auto;
 }
 
 .claimGift-error {
-  color: #e74c3c;
+  color: #e20000;
   font-size: 14px;
   text-align: center;
   margin: 8px 0 0;
@@ -204,4 +194,5 @@
   flex: 1;
   gap: 12px;
   text-align: center;
+  max-width: 448px;
 }

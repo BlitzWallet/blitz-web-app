@@ -7,13 +7,15 @@
   padding: 0 20px 20px;
   box-sizing: border-box;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .createGift-header {
   display: flex;
   align-items: center;
-  padding: 16px 0 24px;
-  gap: 12px;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 16px 0;
 }
 
 .createGift-backBtn {
@@ -23,12 +25,14 @@
   cursor: pointer;
   padding: 4px 8px;
   line-height: 1;
+  width: 32px;
 }
 
 .createGift-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
+  text-align: center;
 }
 
 .createGift-form {
@@ -37,6 +41,9 @@
   gap: 16px;
   flex: 1;
   align-items: center;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
 }
 
 .createGift-heroIcon {
@@ -47,9 +54,9 @@
 .createGift-field {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px;
   box-sizing: border-box;
 }
@@ -65,8 +72,9 @@
   border-radius: 8px;
   border: 1px solid transparent;
   font-size: 16px;
+  font-family: inherit;
   outline: none;
-  height: 56px;
+  height: 50px;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
 }
@@ -79,10 +87,10 @@
   border-radius: 8px;
   border: 1px solid transparent;
   font-size: 16px;
+  font-family: inherit;
   outline: none;
   resize: vertical;
-  min-height: 96px;
-  font-family: inherit;
+  min-height: 80px;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
 }
@@ -95,10 +103,11 @@
   border-radius: 8px;
   border: 1px solid transparent;
   font-size: 16px;
+  font-family: inherit;
   outline: none;
   cursor: pointer;
   appearance: auto;
-  height: 56px;
+  height: 50px;
   box-sizing: border-box;
 }
 
@@ -108,12 +117,18 @@
   overflow: hidden;
 }
 
-.createGift-denomBtn {
+/* Segmented control: overrides default CustomButton sizing inside denom toggle */
+.createGift-denomToggle .createGift-denomBtn {
   flex: 1;
-  padding: 12px 0;
+  min-width: 0;
+  width: auto !important;
+  min-height: 44px;
+  padding: 12px 8px;
   border: none;
+  border-radius: 0;
   font-size: 14px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -125,24 +140,7 @@
   opacity: 0.6;
   font-size: 13px;
   margin: 0;
-}
-
-.createGift-submitBtn {
-  padding: 16px 0;
-  border-radius: 12px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: auto;
-  width: 100%;
-  transition: opacity 0.15s ease;
-}
-.createGift-submitBtn:disabled {
-  cursor: not-allowed;
-}
-.createGift-submitBtn:active:not(:disabled) {
-  opacity: 0.8;
+  line-height: 20px;
 }
 
 .createGift-loading {
@@ -159,7 +157,7 @@
 .createGift-loadingSpinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(128, 128, 128, 0.2);
   border-top-color: #0375f6;
   border-radius: 50%;
   animation: createGift-spin 0.8s linear infinite;
@@ -172,7 +170,7 @@
 }
 
 .createGift-error {
-  color: #e74c3c;
+  color: #e20000;
   font-size: 14px;
   text-align: center;
   margin: 0;

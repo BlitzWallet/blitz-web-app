@@ -12,6 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 40px;
   padding: 16px 0;
 }
 
@@ -35,6 +36,7 @@
 .reclaimGift-scrollContent {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .reclaimGift-centerContent {
@@ -50,16 +52,16 @@
 .reclaimGift-iconCircle {
   width: 80px;
   height: 80px;
-  border-radius: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .reclaimGift-mainTitle {
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0 0 12px;
   text-align: center;
 }
@@ -67,20 +69,20 @@
 .reclaimGift-mainDesc {
   font-size: 13px;
   text-align: center;
-  margin: 0 0 40px;
+  margin: 0 0 32px;
   max-width: 384px;
   line-height: 20px;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .reclaimGift-formCard {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .reclaimGift-input {
@@ -89,6 +91,7 @@
   border-radius: 8px;
   border: 1px solid transparent;
   font-size: 16px;
+  font-family: inherit;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
@@ -103,6 +106,7 @@
   border-radius: 8px;
   border: 1px solid transparent;
   font-size: 14px;
+  font-family: inherit;
   outline: none;
   box-sizing: border-box;
   cursor: pointer;
@@ -113,20 +117,29 @@
   background: none;
   border: none;
   font-size: 14px;
+  font-family: inherit;
   text-decoration: underline;
   cursor: pointer;
   margin-top: 20px;
-  opacity: 0.7;
+  opacity: 0.6;
   margin-bottom: 20px;
+  transition: opacity 0.15s ease;
+}
+.reclaimGift-advancedLink:hover {
+  opacity: 0.9;
 }
 
 /* Advanced mode */
 .reclaimGift-indexCard {
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  box-sizing: border-box;
 }
 
 .reclaimGift-indexLabel {
@@ -138,16 +151,16 @@
 
 .reclaimGift-indexNumber {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0;
   color: #fff;
 }
 
 .reclaimGift-indexIconCircle {
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
-  background: #fff;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,8 +172,12 @@
 
 .reclaimGift-infoCard {
   margin-top: 16px;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 20px;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  box-sizing: border-box;
 }
 
 .reclaimGift-infoTitle {
@@ -182,13 +199,17 @@
 
 .reclaimGift-inputCard {
   margin-top: 16px;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 20px;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  box-sizing: border-box;
 }
 
 .reclaimGift-inputLabel {
   font-weight: 500;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 15px;
 }
 
@@ -211,21 +232,5 @@
   color: #fff;
   margin: 0;
   flex-shrink: 1;
-}
-
-.reclaimGift-btn {
-  width: 100%;
-  padding: 14px 0;
-  border-radius: 12px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-.reclaimGift-btn:disabled {
-  cursor: not-allowed;
-}
-.reclaimGift-btn:active:not(:disabled) {
-  opacity: 0.8;
+  line-height: 18px;
 }

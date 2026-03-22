@@ -5,6 +5,7 @@ import { WEBSITE_REGEX } from "../../../../constants";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { parseGiftUrl } from "../../../../functions/gift/encodeDecodeSecret";
+import CustomButton from "../../../../components/customButton/customButton";
 import "./claimGiftHalfModal.css";
 
 export default function ClaimGiftHalfModal({ onClose }) {
@@ -106,13 +107,14 @@ export default function ClaimGiftHalfModal({ onClose }) {
 
       {error && <p className="claimGiftModal-error">{error}</p>}
 
-      <button
-        className="claimGiftModal-btn"
-        style={{ backgroundColor: colors.giftCardBlue, color: "#fff" }}
-        onClick={handleClaimGift}
-      >
-        {!link.trim() ? "Paste" : "Claim"}
-      </button>
+      <CustomButton
+        actionFunction={handleClaimGift}
+        textContent={!link.trim() ? "Paste" : "Claim"}
+        buttonStyles={{
+          // ...CENTER,
+          width: "auto",
+        }}
+      />
     </div>
   );
 }

@@ -1,18 +1,25 @@
 .giftsOverviewContainer {
+  --gifts-tab-bar-clearance: max(
+    16px,
+    calc(env(safe-area-inset-bottom, 0px) + 96px)
+  );
   display: flex;
   flex-direction: column;
   flex: 1;
   width: 100%;
+  min-height: 0;
   height: 100%;
   overflow: hidden;
-  padding: 0 20px;
+  padding: 0 20px var(--gifts-tab-bar-clearance);
   box-sizing: border-box;
 }
 
 .giftsOverview-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding-top: 10px;
+  padding-top: 12px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .giftsOverview-section {
@@ -27,18 +34,15 @@
 }
 
 .giftsOverview-sectionTitle {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.5;
-  margin: 8px 4px;
+  text-transform: capitalize;
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
 .giftsOverview-reclaimLink {
   background: none;
   border: none;
-  font-size: 13px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   padding: 4px 0;
@@ -65,54 +69,42 @@
 }
 
 .giftsOverview-emptyDesc {
-  font-size: 13px;
-  opacity: 0.6;
+  font-size: 0.85rem;
   margin: 0;
   line-height: 20px;
   max-width: 300px;
 }
 
 .giftsOverview-expiredEmpty {
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .giftsOverview-expiredEmptyText {
-  font-size: 14px;
-  opacity: 0.5;
+  font-size: 0.85rem;
   margin: 0;
 }
 
 .giftsOverview-advancedLink {
   background: none;
   border: none;
-  font-size: 13px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   padding: 4px 0;
 }
 
-.giftsOverview-buttonGroup {
+.giftsOverview-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 0 16px;
-}
-
-.giftsOverview-btn {
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: 12px;
   width: 100%;
-  padding: 14px 0;
-  border-radius: 12px;
-  border: none;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-.giftsOverview-btn:active {
-  opacity: 0.8;
 }

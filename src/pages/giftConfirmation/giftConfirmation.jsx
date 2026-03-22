@@ -6,13 +6,15 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
 import { Share, Gift, Copy } from "lucide-react";
+import CustomButton from "../../components/customButton/customButton";
 import "./giftConfirmation.css";
 
 export default function GiftConfirmation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset, textInputBackground } = useThemeColors();
+  const { textColor, backgroundColor, backgroundOffset, textInputBackground } =
+    useThemeColors();
 
   const { amount, description, expireTime, giftId, giftLink } =
     location.state || {};
@@ -65,16 +67,22 @@ export default function GiftConfirmation() {
     }
   }, [giftLink, handleCopy]);
 
+  const cardBorder = theme
+    ? darkModeType
+      ? "1px solid rgba(255, 255, 255, 0.08)"
+      : "1px solid rgba(255, 255, 255, 0.1)"
+    : "1px solid rgba(0, 0, 0, 0.06)";
+
   if (!giftLink) {
     return (
-      <div className="giftConfirm-container">
+      <div className="giftConfirm-container" style={{ backgroundColor }}>
         <p style={{ color: textColor }}>No gift data found.</p>
       </div>
     );
   }
 
   return (
-    <div className="giftConfirm-container">
+    <div className="giftConfirm-container" style={{ backgroundColor }}>
       <div className="giftConfirm-topBar">
         <div style={{ width: 32 }} />
         <div style={{ flex: 1 }} />
@@ -100,7 +108,7 @@ export default function GiftConfirmation() {
 
         <div
           className="giftConfirm-qrCard"
-          style={{ backgroundColor: backgroundOffset }}
+          style={{ backgroundColor: backgroundOffset, border: cardBorder }}
           onClick={() => handleCopy()}
         >
           <QRCodeSVG value={giftLink} size={250} level="M" />
@@ -108,7 +116,7 @@ export default function GiftConfirmation() {
 
         <div
           className="giftConfirm-card"
-          style={{ backgroundColor: backgroundOffset }}
+          style={{ backgroundColor: backgroundOffset, border: cardBorder }}
         >
           <div
             className="giftConfirm-cardHeader"
@@ -170,7 +178,7 @@ export default function GiftConfirmation() {
 
         <div
           className="giftConfirm-card"
-          style={{ backgroundColor: backgroundOffset }}
+          style={{ backgroundColor: backgroundOffset, border: cardBorder }}
         >
           <p className="giftConfirm-inputLabel" style={{ color: textColor }}>
             Gift Link
@@ -210,23 +218,23 @@ export default function GiftConfirmation() {
       </div>
 
       <div className="giftConfirm-bottomButtons">
-        <button
-          className="giftConfirm-btn giftConfirm-btnPrimary"
-          style={{
-            backgroundColor: colors.giftCardBlue,
-            color: "#fff",
+        <CustomButton
+          actionFunction={() => navigate("/gift", { replace: true })}
+          textContent="Done"
+          buttonStyles={{
+            // ...CENTER,
+            width: "auto",
           }}
-          onClick={() => navigate("/gift", { replace: true })}
-        >
-          Done
-        </button>
-        <button
-          className="giftConfirm-btn giftConfirm-btnSecondary"
-          style={{ color: textColor }}
-          onClick={() => navigate("/create-gift", { replace: true })}
-        >
-          Create Another
-        </button>
+          // buttonStyles={primaryBtn}
+        />
+        <CustomButton
+          actionFunction={() => navigate("/create-gift", { replace: true })}
+          textContent="Create Another"
+          buttonStyles={{
+            // ...CENTER,
+            width: "auto",
+          }}
+        />
       </div>
     </div>
   );

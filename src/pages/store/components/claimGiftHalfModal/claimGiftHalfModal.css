@@ -9,8 +9,8 @@
 
 .claimGiftModal-title {
   font-size: 20px;
-  font-weight: 500;
-  margin: 0 0 5px;
+  font-weight: 600;
+  margin: 0 0 2px;
 }
 
 .claimGiftModal-desc {
@@ -30,9 +30,10 @@
 .claimGiftModal-input {
   width: 100%;
   padding: 12px 44px 12px 14px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid transparent;
   font-size: 15px;
+  font-family: inherit;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
@@ -53,27 +54,8 @@
   z-index: 1;
 }
 
-.claimGiftModal-btn {
-  width: 100%;
-  padding: 14px 0;
-  border-radius: 12px;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: auto;
-  transition: opacity 0.15s ease;
-}
-.claimGiftModal-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.claimGiftModal-btn:active:not(:disabled) {
-  opacity: 0.8;
-}
-
 .claimGiftModal-error {
-  color: #e74c3c;
+  color: #e20000;
   font-size: 13px;
   margin: 0;
 }

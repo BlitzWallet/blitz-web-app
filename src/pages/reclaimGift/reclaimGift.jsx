@@ -5,15 +5,20 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useGifts } from "../../contexts/giftsContext";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
-import { STARTING_INDEX_FOR_GIFTS_DERIVE } from "../../constants";
 import { RotateCcw } from "lucide-react";
+import CustomButton from "../../components/customButton/customButton";
 import "./reclaimGift.css";
 
 export default function ReclaimGift() {
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset, textInputBackground, textInputColor } =
-    useThemeColors();
+  const {
+    textColor,
+    backgroundColor,
+    backgroundOffset,
+    textInputBackground,
+    textInputColor,
+  } = useThemeColors();
   const { expiredGiftsArray, currentDerivedGiftIndex } = useGifts();
   const { masterInfoObject } = useGlobalContextProvider();
 
@@ -81,9 +86,15 @@ export default function ReclaimGift() {
     });
   }
 
+  const cardBorder = theme
+    ? darkModeType
+      ? "1px solid rgba(255, 255, 255, 0.08)"
+      : "1px solid rgba(255, 255, 255, 0.1)"
+    : "1px solid rgba(0, 0, 0, 0.06)";
+
   if (showAdvanced) {
     return (
-      <div className="reclaimGift-container">
+      <div className="reclaimGift-container" style={{ backgroundColor }}>
         <div className="reclaimGift-topBar">
           <button
             className="reclaimGift-backBtn"
@@ -117,7 +128,7 @@ export default function ReclaimGift() {
 
           <div
             className="reclaimGift-infoCard"
-            style={{ backgroundColor: backgroundOffset }}
+            style={{ backgroundColor: backgroundOffset, border: cardBorder }}
           >
             <p className="reclaimGift-infoTitle" style={{ color: textColor }}>
               How does this work?
@@ -138,7 +149,7 @@ export default function ReclaimGift() {
 
           <div
             className="reclaimGift-inputCard"
-            style={{ backgroundColor: backgroundOffset }}
+            style={{ backgroundColor: backgroundOffset, border: cardBorder }}
           >
             <p className="reclaimGift-inputLabel" style={{ color: textColor }}>
               Gift Number
@@ -176,24 +187,21 @@ export default function ReclaimGift() {
           </div>
         </div>
 
-        <button
-          className="reclaimGift-btn"
-          style={{
-            backgroundColor: colors.giftCardBlue,
-            color: "#fff",
-            opacity: !advancedIsValid ? 0.5 : 1,
+        <CustomButton
+          actionFunction={handleAdvancedClaim}
+          textContent="Restore Gift"
+          buttonStyles={{
+            // ...CENTER,
+            width: "auto",
           }}
           disabled={!advancedIsValid}
-          onClick={handleAdvancedClaim}
-        >
-          Restore Gift
-        </button>
+        />
       </div>
     );
   }
 
   return (
-    <div className="reclaimGift-container">
+    <div className="reclaimGift-container" style={{ backgroundColor }}>
       <div className="reclaimGift-topBar">
         <button
           className="reclaimGift-backBtn"
@@ -230,7 +238,10 @@ export default function ReclaimGift() {
 
               <div
                 className="reclaimGift-formCard"
-                style={{ backgroundColor: backgroundOffset }}
+                style={{
+                  backgroundColor: backgroundOffset,
+                  border: cardBorder,
+                }}
               >
                 <input
                   className="reclaimGift-input"
@@ -283,18 +294,15 @@ export default function ReclaimGift() {
       </div>
 
       {hasExpiredGifts && (
-        <button
-          className="reclaimGift-btn"
-          style={{
-            backgroundColor: colors.giftCardBlue,
-            color: "#fff",
-            opacity: !enteredLink ? 0.5 : 1,
+        <CustomButton
+          actionFunction={handleReclaim}
+          textContent="Reclaim"
+          buttonStyles={{
+            // ...CENTER,
+            width: "auto",
           }}
           disabled={!enteredLink}
-          onClick={handleReclaim}
-        >
-          Reclaim
-        </button>
+        />
       )}
     </div>
   );

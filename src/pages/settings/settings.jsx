@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ThemeText from "../../components/themeText/themeText";
 import SocialOptionsBottomBar from "./socialOptions/socialOptions";
 import ContactProfileImage from "../contacts/components/profileImage/profileImage";
+import "../../components/profileActionButton/profileActionButton.css";
 import "./settings.css";
 import {
   ArrowLeft,

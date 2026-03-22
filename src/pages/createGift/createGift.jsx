@@ -20,6 +20,7 @@ import {
   initializeSparkWallet,
   getSparkAddress,
 } from "../../functions/spark/index";
+import CustomButton from "../../components/customButton/customButton";
 import "./createGift.css";
 
 const DURATION_OPTIONS = [
@@ -34,8 +35,13 @@ const DURATION_OPTIONS = [
 export default function CreateGift() {
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset, textInputBackground, textInputColor } =
-    useThemeColors();
+  const {
+    textColor,
+    backgroundColor,
+    backgroundOffset,
+    textInputBackground,
+    textInputColor,
+  } = useThemeColors();
   const { accountMnemoinc } = useKeysContext();
   const { masterInfoObject } = useGlobalContextProvider();
   const { sparkInformation } = useSpark();
@@ -133,7 +139,8 @@ export default function CreateGift() {
         encryptedText: encryptedMnemonic,
         amount: amountSats,
         description: description.trim(),
-        createdBy: masterInfoObject?.uuid || sparkInformation.identityPubKey || "",
+        createdBy:
+          masterInfoObject?.uuid || sparkInformation.identityPubKey || "",
         state: "Unclaimed",
         giftNum: currentDeriveIndex,
         claimURL: urls.webUrl,
@@ -211,7 +218,7 @@ export default function CreateGift() {
 
   if (isLoading) {
     return (
-      <div className="createGift-container">
+      <div className="createGift-container" style={{ backgroundColor }}>
         <div className="createGift-loading">
           <div className="createGift-loadingSpinner" />
           <p style={{ color: textColor, fontSize: 16, margin: 0 }}>
@@ -222,10 +229,16 @@ export default function CreateGift() {
     );
   }
 
+  /** Matches primary actions on `giftCardBlue` (lights-out uses dark text on blue). */
+  const onGiftCardBlueText = {
+    color: theme && darkModeType ? "#0d0d0d" : "#ffffff",
+  };
+
   return (
-    <div className="createGift-container">
+    <div className="createGift-container" style={{ backgroundColor }}>
       <div className="createGift-header">
         <button
+          type="button"
           className="createGift-backBtn"
           style={{ color: textColor }}
           onClick={() => navigate(-1)}
@@ -235,6 +248,7 @@ export default function CreateGift() {
         <p className="createGift-title" style={{ color: textColor }}>
           Create Gift
         </p>
+        <div style={{ width: 32 }} />
       </div>
 
       <div className="createGift-form">
@@ -274,20 +288,26 @@ export default function CreateGift() {
             className="createGift-denomToggle"
             style={{ backgroundColor: textInputBackground }}
           >
-            {["BTC", "USD"].map((d) => (
-              <button
-                key={d}
-                className="createGift-denomBtn"
-                style={{
-                  backgroundColor:
-                    denomination === d ? colors.giftCardBlue : "transparent",
-                  color: denomination === d ? "#fff" : textColor,
-                }}
-                onClick={() => setDenomination(d)}
-              >
-                {d}
-              </button>
-            ))}
+            {["BTC", "USD"].map((d) => {
+              const selected = denomination === d;
+              return (
+                <CustomButton
+                  key={d}
+                  actionFunction={() => setDenomination(d)}
+                  textContent={d}
+                  buttonStyles={{
+                    flex: 1,
+                    minWidth: 0,
+                    width: "auto",
+                    backgroundColor: selected
+                      ? colors.giftCardBlue
+                      : "transparent",
+                    borderRadius: 0,
+                    padding: "12px 8px",
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -344,18 +364,13 @@ export default function CreateGift() {
 
         {error && <p className="createGift-error">{error}</p>}
 
-        <button
-          className="createGift-submitBtn"
-          style={{
-            backgroundColor: colors.giftCardBlue,
-            color: "#fff",
-            opacity: !amount || amountSats <= 0 ? 0.5 : 1,
-          }}
+        <CustomButton
+          actionFunction={handleCreate}
+          textContent="Create Gift"
+          buttonStyles={{ width: "auto" }}
+          // textStyles={primaryText}
           disabled={!amount || amountSats <= 0}
-          onClick={handleCreate}
-        >
-          Create Gift
-        </button>
+        />
       </div>
     </div>
   );

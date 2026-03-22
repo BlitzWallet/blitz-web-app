@@ -6,20 +6,14 @@ import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import { formatTimeRemaining } from "../../../../functions/gift/formatTimeRemaining";
 import FormattedSatText from "../../../../components/formattedSatText/formattedSatText";
+import ThemeText from "../../../../components/themeText/themeText";
 import { Share, RotateCcw } from "lucide-react";
 import "./giftCardItem.css";
 
 export default function GiftCardItem({ item, from }) {
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset, textInputBackground } =
-    useThemeColors();
+  const { textColor, backgroundOffset, textInputBackground } = useThemeColors();
   const navigate = useNavigate();
-
-  const colors = theme
-    ? darkModeType
-      ? Colors.lightsout
-      : Colors.dark
-    : Colors.light;
 
   const {
     amount,
@@ -52,25 +46,32 @@ export default function GiftCardItem({ item, from }) {
   const shouldShowActions =
     state !== "Claimed" && state !== "Reclaimed" && from !== "preview";
 
-  const iconBg = useMemo(() => {
-    if (theme && darkModeType) {
-      return from === "preview" || from === "overview"
-        ? textInputBackground
-        : backgroundOffset;
-    }
-    return denomination === "USD" ? "#27ae60" : "#f7931a";
-  }, [theme, darkModeType, from, denomination, textInputBackground, backgroundOffset]);
+  const iconBg = useMemo(
+    () => (denomination === "USD" ? "#27ae60" : "#f7931a"),
+    [denomination],
+  );
+
+  const cardSurface = useMemo(() => {
+    const border = theme
+      ? darkModeType
+        ? "1px solid rgba(255, 255, 255, 0.1)"
+        : "1px solid rgba(255, 255, 255, 0.12)"
+      : "1px solid rgba(0, 0, 0, 0.06)";
+    return { backgroundColor: backgroundOffset, border };
+  }, [theme, darkModeType, backgroundOffset]);
+
+  const actionButtonBg = useMemo(() => {
+    if (!theme) return "#ffffff";
+    if (darkModeType) return Colors.lightsout.lightsOutModeOpacityInput;
+    return textInputBackground;
+  }, [theme, darkModeType, textInputBackground]);
 
   const handleAction = async (e) => {
     if (e) e.stopPropagation();
 
     if (isExpired) {
       navigate("/claim-gift", {
-        state: {
-          claimType: "reclaim",
-          url: uuid,
-          giftUuid: uuid,
-        },
+        state: { claimType: "reclaim", url: uuid, giftUuid: uuid },
       });
       return;
     }
@@ -95,8 +96,9 @@ export default function GiftCardItem({ item, from }) {
   return (
     <div
       className="giftCardItem"
-      style={{ backgroundColor: backgroundOffset }}
+      style={cardSurface}
       onClick={shouldShowActions ? handleAction : undefined}
+      data-expired={isExpired ? "true" : undefined}
     >
       <div className="giftCardItem-icon" style={{ backgroundColor: iconBg }}>
         <span className="giftCardItem-iconText">
@@ -105,21 +107,25 @@ export default function GiftCardItem({ item, from }) {
       </div>
 
       <div className="giftCardItem-middle">
-        <p className="giftCardItem-desc" style={{ color: textColor }}>
-          {description || `Gift ${formattedNumber}`}
-        </p>
-        <div className="giftCardItem-statusRow">
+        <ThemeText
+          textContent={description || `Gift ${formattedNumber}`}
+          className="giftCardItem-desc"
+        />
+        <div className="giftCardItem-statusRow" style={{ color: textColor }}>
           {description ? (
             <>
-              <span className="giftCardItem-statusText" style={{ color: textColor }}>
+              <span className="giftCardItem-statusText giftCardItem-muted">
                 {formattedNumber}
               </span>
               {statusText && (
                 <>
-                  <span className="giftCardItem-statusText" style={{ color: textColor }}>
+                  <span
+                    className="giftCardItem-statusText giftCardItem-muted giftCardItem-dot"
+                    aria-hidden
+                  >
                     •
                   </span>
-                  <span className="giftCardItem-statusText" style={{ color: textColor }}>
+                  <span className="giftCardItem-statusText giftCardItem-muted">
                     {statusText}
                   </span>
                 </>
@@ -127,7 +133,7 @@ export default function GiftCardItem({ item, from }) {
             </>
           ) : (
             statusText && (
-              <span className="giftCardItem-statusText" style={{ color: textColor }}>
+              <span className="giftCardItem-statusText giftCardItem-muted">
                 {statusText}
               </span>
             )
@@ -138,22 +144,20 @@ export default function GiftCardItem({ item, from }) {
       <div className="giftCardItem-right">
         <FormattedSatText
           balance={amount || 0}
-          styles={{ color: textColor, fontWeight: 500, fontSize: "15px" }}
+          styles={{ color: textColor, fontWeight: 600, fontSize: "0.85rem" }}
         />
         {shouldShowActions && (
           <button
+            type="button"
             className="giftCardItem-actionIcon"
-            style={{
-              backgroundColor: theme
-                ? textInputBackground
-                : "#fff",
-            }}
+            style={{ backgroundColor: actionButtonBg }}
             onClick={handleAction}
+            aria-label={isExpired ? "Reclaim gift" : "Share gift link"}
           >
             {isExpired ? (
-              <RotateCcw size={16} color={textColor} />
+              <RotateCcw size={18} strokeWidth={2} color={textColor} />
             ) : (
-              <Share size={16} color={textColor} />
+              <Share size={18} strokeWidth={2} color={textColor} />
             )}
           </button>
         )}

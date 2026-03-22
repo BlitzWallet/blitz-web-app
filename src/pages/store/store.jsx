@@ -6,12 +6,14 @@ import useThemeColors from "../../hooks/useThemeColors";
 import { useGifts } from "../../contexts/giftsContext";
 import { useOverlay } from "../../contexts/overlayContext";
 import GiftCardItem from "./components/giftCardItem/giftCardItem";
+import ThemeText from "../../components/themeText/themeText";
+import CustomButton from "../../components/customButton/customButton";
 import "./store.css";
 
 export default function Store() {
   const navigate = useNavigate();
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset, textInputBackground } = useThemeColors();
+  const { textColor, backgroundOffset, backgroundColor } = useThemeColors();
   const { openOverlay } = useOverlay();
   const { giftsArray, expiredGiftsArray, checkForRefunds } = useGifts();
 
@@ -28,10 +30,8 @@ export default function Store() {
   const activeGifts = useMemo(() => {
     const now = Date.now();
     return giftsArray.filter((g) => {
-      const isTerminal =
-        g.state === "Claimed" || g.state === "Reclaimed";
-      const isExpired =
-        !isTerminal && g.expireTime && now >= g.expireTime;
+      const isTerminal = g.state === "Claimed" || g.state === "Reclaimed";
+      const isExpired = !isTerminal && g.expireTime && now >= g.expireTime;
       return !isTerminal && !isExpired;
     });
   }, [giftsArray]);
@@ -41,16 +41,15 @@ export default function Store() {
   const hasExpiredGifts = expiredGiftsArray.length > 0;
 
   return (
-    <div className="giftsOverviewContainer">
+    <div className="giftsOverviewContainer" style={{ backgroundColor }}>
       <div className="giftsOverview-list">
         {hasActiveGifts && (
           <div className="giftsOverview-section">
-            <p
+            <ThemeText
+              textContent="Active"
               className="giftsOverview-sectionTitle"
-              style={{ color: textColor }}
-            >
-              Active
-            </p>
+              textStyles={{ opacity: 0.8 }}
+            />
             {activeGifts.map((gift) => (
               <GiftCardItem key={gift.uuid} item={gift} from="overview" />
             ))}
@@ -59,14 +58,14 @@ export default function Store() {
 
         <div className="giftsOverview-section">
           <div className="giftsOverview-sectionHeader">
-            <p
+            <ThemeText
+              textContent="Expired"
               className="giftsOverview-sectionTitle"
-              style={{ color: textColor }}
-            >
-              Expired
-            </p>
+              textStyles={{ opacity: 0.8 }}
+            />
             {hasExpiredGifts && (
               <button
+                type="button"
                 className="giftsOverview-reclaimLink"
                 style={{ color: colors.giftCardBlue }}
                 onClick={() => navigate("/reclaim-gift")}
@@ -83,15 +82,22 @@ export default function Store() {
           ) : (
             <div
               className="giftsOverview-expiredEmpty"
-              style={{ backgroundColor: backgroundOffset }}
+              style={{
+                backgroundColor: backgroundOffset,
+                border: theme
+                  ? darkModeType
+                    ? "1px solid rgba(255, 255, 255, 0.1)"
+                    : "1px solid rgba(255, 255, 255, 0.12)"
+                  : "1px solid rgba(0, 0, 0, 0.06)",
+              }}
             >
-              <p
+              <ThemeText
+                textContent="No expired gifts to reclaim"
                 className="giftsOverview-expiredEmptyText"
-                style={{ color: textColor }}
-              >
-                No expired gifts to reclaim
-              </p>
+                textStyles={{ opacity: 0.55 }}
+              />
               <button
+                type="button"
                 className="giftsOverview-advancedLink"
                 style={{ color: colors.giftCardBlue }}
                 onClick={() => navigate("/reclaim-gift")}
@@ -105,50 +111,42 @@ export default function Store() {
         {!hasAnyGifts && (
           <div className="giftsOverview-empty">
             <div className="giftsOverview-emptyIcon">🎁</div>
-            <p
+            <ThemeText
+              textContent="No gifts yet"
               className="giftsOverview-emptyTitle"
-              style={{ color: textColor }}
-            >
-              No gifts yet
-            </p>
-            <p
+            />
+            <ThemeText
+              textContent="Create a gift to send Bitcoin to anyone with a simple link."
               className="giftsOverview-emptyDesc"
-              style={{ color: textColor }}
-            >
-              Create a gift to send Bitcoin to anyone with a simple link.
-            </p>
+              textStyles={{ opacity: 0.6 }}
+            />
           </div>
         )}
       </div>
 
-      <div className="giftsOverview-buttonGroup">
-        <button
-          className="giftsOverview-btn"
-          style={{
-            backgroundColor: colors.giftCardBlue,
-            color: "#fff",
+      <div className="giftsOverview-actions ">
+        <CustomButton
+          actionFunction={() => navigate("/create-gift")}
+          textContent="Create Gift"
+          buttonStyles={{
+            // ...CENTER,
+            width: "auto",
           }}
-          onClick={() => navigate("/create-gift")}
-        >
-          Create Gift
-        </button>
-        <button
-          className="giftsOverview-btn"
-          style={{
-            backgroundColor:
-              theme && darkModeType ? backgroundOffset : colors.giftCardBlue,
-            color: "#fff",
-          }}
-          onClick={() =>
+        />
+        <CustomButton
+          actionFunction={() =>
             openOverlay({
               for: "halfModal",
               contentType: "claimGiftHalfModal",
               params: { sliderHeight: "40dvh" },
             })
           }
-        >
-          Claim Gift
-        </button>
+          textContent="Claim Gift"
+          buttonStyles={{
+            // ...CENTER,
+            width: "auto",
+          }}
+        />
       </div>
     </div>
   );

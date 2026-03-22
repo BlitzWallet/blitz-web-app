@@ -28,13 +28,14 @@ import {
   updateGiftLocal,
 } from "../../functions/gift/giftsStorage";
 import FormattedSatText from "../../components/formattedSatText/formattedSatText";
+import CustomButton from "../../components/customButton/customButton";
 import "./claimGift.css";
 
 export default function ClaimGiftScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundOffset } = useThemeColors();
+  const { textColor, backgroundColor, backgroundOffset } = useThemeColors();
   const { accountMnemoinc } = useKeysContext();
   const { sparkInformation } = useSpark();
   const { updateGiftState, refreshGifts } = useGifts();
@@ -341,13 +342,13 @@ export default function ClaimGiftScreen() {
     };
   }, []);
 
-  const containerBg = useMemo(() => {
-    return theme && darkModeType ? undefined : backgroundOffset;
-  }, [theme, darkModeType, backgroundOffset]);
+  const cardBg = useMemo(() => {
+    return backgroundOffset;
+  }, [backgroundOffset]);
 
   if (!sparkInformation.identityPubKey || !sparkInformation.didConnect) {
     return (
-      <div className="claimGift-container">
+      <div className="claimGift-container" style={{ backgroundColor }}>
         <div className="claimGift-loading">
           <div className="claimGift-spinner" />
           <p style={{ color: textColor }}>Connecting to Spark...</p>
@@ -358,7 +359,7 @@ export default function ClaimGiftScreen() {
 
   if (!giftDetails && !error) {
     return (
-      <div className="claimGift-container">
+      <div className="claimGift-container" style={{ backgroundColor }}>
         <div className="claimGift-loading">
           <div className="claimGift-spinner" />
           <p style={{ color: textColor }}>Loading gift details...</p>
@@ -369,27 +370,31 @@ export default function ClaimGiftScreen() {
 
   if (didClaim) {
     return (
-      <div className="claimGift-container">
+      <div className="claimGift-container" style={{ backgroundColor }}>
         <div className="claimGift-success">
           <div className="claimGift-successIcon">🎉</div>
           <p className="claimGift-successTitle" style={{ color: textColor }}>
             {claimType === "claim" ? "Gift Claimed!" : "Gift Reclaimed!"}
           </p>
           {giftDetails?.description && claimType === "claim" && (
-            <p className="claimGift-successMessage" style={{ color: textColor }}>
+            <p
+              className="claimGift-successMessage"
+              style={{ color: textColor }}
+            >
               "{giftDetails.description}"
             </p>
           )}
           <p className="claimGift-successSub" style={{ color: textColor }}>
             The funds have been added to your wallet.
           </p>
-          <button
-            className="claimGift-btn"
-            style={{ backgroundColor: colors.giftCardBlue, color: "#fff" }}
-            onClick={() => navigate("/wallet", { replace: true })}
-          >
-            Done
-          </button>
+          <CustomButton
+            actionFunction={() => navigate("/wallet", { replace: true })}
+            textContent="Done"
+            buttonStyles={{
+              // ...CENTER,
+              width: "auto",
+            }}
+          />
         </div>
       </div>
     );
@@ -397,7 +402,7 @@ export default function ClaimGiftScreen() {
 
   if (error && !giftDetails) {
     return (
-      <div className="claimGift-container">
+      <div className="claimGift-container" style={{ backgroundColor }}>
         <div className="claimGift-header">
           <button
             className="claimGift-backBtn"
@@ -413,13 +418,14 @@ export default function ClaimGiftScreen() {
         <div className="claimGift-notFound">
           <p style={{ color: textColor, fontSize: 48 }}>😕</p>
           <p style={{ color: textColor, fontWeight: 600 }}>{error}</p>
-          <button
-            className="claimGift-btn"
-            style={{ backgroundColor: backgroundOffset, color: textColor }}
-            onClick={() => navigate(-1)}
-          >
-            Go Back
-          </button>
+          <CustomButton
+            actionFunction={() => navigate(-1)}
+            textContent="Go Back"
+            buttonStyles={{
+              // ...CENTER,
+              width: "auto",
+            }}
+          />
         </div>
       </div>
     );
@@ -442,14 +448,11 @@ export default function ClaimGiftScreen() {
       : "Claim Gift";
 
   return (
-    <div className="claimGift-container">
+    <div className="claimGift-container" style={{ backgroundColor }}>
       <p className="claimGift-headerText" style={{ color: textColor }}>
         {headerText}
       </p>
-      <div
-        className="claimGift-divider"
-        style={{ backgroundColor: containerBg }}
-      />
+      <div className="claimGift-divider" style={{ backgroundColor: cardBg }} />
 
       {isClaiming ? (
         <div className="claimGift-loading">
@@ -463,9 +466,12 @@ export default function ClaimGiftScreen() {
           {giftDetails?.description && claimType === "claim" && (
             <div
               className="claimGift-messageCard"
-              style={{ backgroundColor: containerBg }}
+              style={{ backgroundColor: cardBg }}
             >
-              <p className="claimGift-messageLabel" style={{ color: textColor }}>
+              <p
+                className="claimGift-messageLabel"
+                style={{ color: textColor }}
+              >
                 Message
               </p>
               <p className="claimGift-messageText" style={{ color: textColor }}>
@@ -476,7 +482,7 @@ export default function ClaimGiftScreen() {
 
           <div
             className="claimGift-amountCard"
-            style={{ backgroundColor: containerBg }}
+            style={{ backgroundColor: cardBg }}
           >
             <p className="claimGift-amountHeader" style={{ color: textColor }}>
               {amountHeaderText}
@@ -514,14 +520,15 @@ export default function ClaimGiftScreen() {
 
           {error && <p className="claimGift-error">{error}</p>}
 
-          <button
-            className="claimGift-btn"
-            style={{ backgroundColor: colors.giftCardBlue, color: "#fff" }}
+          <CustomButton
+            actionFunction={handleClaim}
+            textContent={buttonText}
+            buttonStyles={{
+              // ...CENTER,
+              width: "auto",
+            }}
             disabled={isClaiming}
-            onClick={handleClaim}
-          >
-            {buttonText}
-          </button>
+          />
         </>
       )}
     </div>
