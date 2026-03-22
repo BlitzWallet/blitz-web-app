@@ -106,7 +106,6 @@ export default function HistoricalPurchases() {
                     textContent={item.name}
                     textStyles={{
                       fontWeight: "500",
-                      marginBottom: 4,
                       margin: 0,
                       marginBottom: 4,
                       whiteSpace: "nowrap",
