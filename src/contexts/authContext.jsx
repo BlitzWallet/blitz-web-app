@@ -8,6 +8,9 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+/** Alias for RN / shared hooks that expect this name (e.g. flashnetContext). */
+export const useAuthContext = useAuth;
+
 export const AuthProvider = ({ children, navigate }) => {
   // const navigate = useNavigate();
   const [authState, setAuthState] = useState({
@@ -16,6 +19,8 @@ export const AuthProvider = ({ children, navigate }) => {
     walletKey: null,
   });
   const [mnemoinc, setMnemoinc] = useState("");
+  /** Bumps when auth/session identity changes so consumers can reset intervals/effects. */
+  const [authResetkey, setAuthResetkey] = useState(0);
 
   const login = (walletKey) => {
     Storage.setItem("walletKey", walletKey);
@@ -26,6 +31,7 @@ export const AuthProvider = ({ children, navigate }) => {
       walletKey,
       lastSession: Date.now().toString(),
     });
+    setAuthResetkey((k) => k + 1);
     navigate("/connecting");
   };
 
@@ -40,6 +46,7 @@ export const AuthProvider = ({ children, navigate }) => {
       walletKey: null,
       lastSession: null,
     });
+    setAuthResetkey((k) => k + 1);
     // navigate("/");
   };
 
@@ -50,6 +57,7 @@ export const AuthProvider = ({ children, navigate }) => {
       walletKey: null,
       lastSession: null,
     });
+    setAuthResetkey((k) => k + 1);
     navigate("/login");
   };
 
@@ -67,6 +75,7 @@ export const AuthProvider = ({ children, navigate }) => {
     <AuthContext.Provider
       value={{
         authState,
+        authResetkey,
         login,
         logout,
         updateSession,

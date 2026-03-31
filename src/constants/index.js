@@ -28,6 +28,10 @@ const GIFT_DEEPLINK_REGEX =
 const CONTACT_UNIVERSAL_LINK_REGEX =
   /^https?:\/\/(blitzwalletapp\.com|blitzwallet\.app|blitz-wallet\.com)\/u\/[A-Za-z0-9_-]+\/?$/;
 
+const FLASHNET_ERROR_CODE_REGEX = /\bFSAG-\d{4}(?:T\d+)?\b/;
+
+const FLASHNET_REFUND_REGEX = /via transfer ([\da-fA-F\-]+)/;
+
 const NOSTR_NAME_REGEX = /^[a-zA-Z0-9]+$/;
 const NOSTR_RELAY_URL = "wss://relay.getalbypro.com/blitz";
 
@@ -106,6 +110,9 @@ const TOKEN_TICKER_MAX_LENGTH = 10;
 
 const BACKGROUND_THRESHOLD_MS = 2 * 60 * 1000;
 const FORCE_RESET_SPAARK_STATE_MS = 6 * 60 * 1000;
+
+const USDB_TOKEN_ID =
+  "btkn1xgrvjwey5ngcagvap2dzzvsy4uk8ua9x69k82dwvt5e7ef9drm9qztux87";
 
 const DEFAULT_PAYMENT_EXPIRY_SEC = 60 * 60 * 12;
 
@@ -190,4 +197,7 @@ export {
   WINDOWWIDTH,
   HIDDEN_OPACITY,
   INSET_WINDOW_WIDTH,
+  USDB_TOKEN_ID,
+  FLASHNET_ERROR_CODE_REGEX,
+  FLASHNET_REFUND_REGEX,
 };

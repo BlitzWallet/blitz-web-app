@@ -18,6 +18,7 @@ import {
 import Storage from "../localStorage";
 
 export let sparkWallet = {};
+export const flashnetClients = {};
 
 // Hash cache to avoid recalculating hashes
 const mnemonicHashCache = new Map();
@@ -135,6 +136,17 @@ export const getSparkBalance = async (mnemonic) => {
     console.log("Get spark balance error", err);
     return { didWork: false };
   }
+};
+
+export const getFlashnetClient = async (mnemonic) => {
+  const hash = await getMnemonicHash(mnemonic);
+  const client = flashnetClients[hash];
+
+  if (!client) {
+    throw new Error("Flashnet client not initialized");
+  }
+
+  return client;
 };
 
 export const getSparkStaticBitcoinL1Address = async (mnemonic) => {
@@ -269,6 +281,29 @@ export const getSparkBitcoinPaymentRequest = async (paymentId, mnemonic) => {
     return await getWallet(mnemonic).getCoopExitRequest(paymentId);
   } catch (err) {
     console.log("Get bitcoin payment fee estimate error", err);
+  }
+};
+
+export const initializeFlashnet = async (mnemonic) => {
+  try {
+    const key = sha256Hash(mnemonic);
+
+    // Optional: if already initialized, don't re-init
+    if (flashnetClients[key]) return true;
+
+    const wallet = await getWallet(mnemonic);
+
+    const flashnetAPI = new FlashnetClient(wallet, {
+      autoAuthenticate: true,
+    });
+
+    await flashnetAPI.initialize();
+
+    flashnetClients[key] = flashnetAPI;
+    return true;
+  } catch (err) {
+    console.log("Error initializing flashnet (web)", err);
+    return false;
   }
 };
 

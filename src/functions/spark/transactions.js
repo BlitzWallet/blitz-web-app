@@ -7,6 +7,8 @@ export const LIGHTNING_REQUEST_IDS_TABLE_NAME = "LIGHTNING_REQUEST_IDS";
 export const SPARK_REQUEST_IDS_TABLE_NAME = "SPARK_REQUEST_IDS";
 export const sparkTransactionsEventEmitter = new EventEmitter();
 export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
+export const HANDLE_FLASHNET_AUTO_SWAP = "HANDLE_FLASHNET_AUTO_SWAP";
+export const flashnetAutoSwapsEventListener = new EventEmitter();
 let bulkUpdateTransactionQueue = [];
 let isProcessingBulkUpdate = false;
 
@@ -104,13 +106,13 @@ export const getAllPendingSparkPayments = async (accountId) => {
 
     // Filter by paymentStatus = 'pending'
     let filtered = all.filter(
-      (transaction) => transaction.paymentStatus === "pending"
+      (transaction) => transaction.paymentStatus === "pending",
     );
 
     // Further filter by accountId if provided and valid
     if (accountId !== undefined && accountId !== null && accountId !== "") {
       filtered = filtered.filter(
-        (transaction) => transaction.accountId === String(accountId)
+        (transaction) => transaction.accountId === String(accountId),
       );
     }
 
@@ -189,7 +191,7 @@ export const addBulkUnpaidSparkContactTransactions = async (transactions) => {
     await tx.done;
 
     console.log(
-      `Successfully added ${validTransactions.length} unpaid contact invoices`
+      `Successfully added ${validTransactions.length} unpaid contact invoices`,
     );
 
     return {
@@ -245,6 +247,91 @@ export const addSingleUnpaidSparkLightningTransaction = async (tx) => {
     return true;
   } catch (err) {
     console.error("addSingleUnpaidSparkLightningTransaction error:", err);
+    return false;
+  }
+};
+
+/** Parse `details` from a lightning request row (string JSON or object). */
+function parseLightningRowDetails(row) {
+  const d = row?.details;
+  if (d == null || d === "") return {};
+  if (typeof d === "object") return { ...d };
+  try {
+    return JSON.parse(d);
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * IndexedDB equivalent of RN SQLite pending auto-swaps query.
+ * Rows need finalSparkID, optional performSwaptoUSD (null/1 = eligible; 0/false = skip),
+ * and incomplete completedSwaptoUSD (null/0/false = still pending).
+ */
+export const getPendingAutoSwaps = async () => {
+  try {
+    await dbPromise;
+    const db = await dbPromise;
+    const all = await db.getAll(LIGHTNING_REQUEST_IDS_TABLE_NAME);
+
+    const filtered = all.filter((row) => {
+      const details = parseLightningRowDetails(row);
+      if (!details.finalSparkID) return false;
+      if (details.performSwaptoUSD === 0 || details.performSwaptoUSD === false) {
+        return false;
+      }
+      if (
+        details.completedSwaptoUSD === 1 ||
+        details.completedSwaptoUSD === true
+      ) {
+        return false;
+      }
+      return true;
+    });
+
+    return filtered.map((row) => ({
+      ...row,
+      details: parseLightningRowDetails(row),
+    }));
+  } catch (error) {
+    console.error("Error fetching pending auto swaps:", error);
+    return [];
+  }
+};
+
+export const getSingleSparkLightningRequest = async (sparkID) => {
+  try {
+    const db = await dbPromise;
+    const row = await db.get(LIGHTNING_REQUEST_IDS_TABLE_NAME, sparkID);
+    if (!row) return null;
+    return {
+      ...row,
+      details: parseLightningRowDetails(row),
+    };
+  } catch (err) {
+    console.error("getSingleSparkLightningRequest error:", err);
+    return null;
+  }
+};
+
+/** Merge fields into the lightning request `details` JSON (RN parity). */
+export const updateSparkTransactionDetails = async (sparkID, partialDetails) => {
+  try {
+    if (!sparkID || !partialDetails || typeof partialDetails !== "object") {
+      return false;
+    }
+    const db = await dbPromise;
+    const row = await db.get(LIGHTNING_REQUEST_IDS_TABLE_NAME, sparkID);
+    if (!row) return false;
+    const parsed = parseLightningRowDetails(row);
+    const merged = { ...parsed, ...partialDetails };
+    await db.put(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
+      ...row,
+      details: JSON.stringify(merged),
+    });
+    return true;
+  } catch (err) {
+    console.error("updateSparkTransactionDetails error:", err);
     return false;
   }
 };
@@ -348,7 +435,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
         // Check if transaction exists by final sparkID
         const allTransactions = await store.getAll();
         const existingTx = allTransactions.find(
-          (tx) => tx.sparkID === finalSparkId && tx.accountId === accountId
+          (tx) => tx.sparkID === finalSparkId && tx.accountId === accountId,
         );
 
         // Also check if temp ID exists (if different from final ID)
@@ -360,7 +447,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
           existingTempTx = allTransactions.find(
             (tx) =>
               tx.sparkID === processedTx.tempSparkId &&
-              tx.accountId === accountId
+              tx.accountId === accountId,
           );
         }
 
@@ -487,7 +574,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
         SPARK_TX_UPDATE_ENVENT_NAME,
         includedFailed ? "fullUpdate" : updateType,
         fee,
-        passedBalance
+        passedBalance,
       );
 
       return true;
@@ -516,7 +603,7 @@ export const addSingleSparkTransaction = async (tx) => {
     handleEventEmitterPost(
       sparkTransactionsEventEmitter,
       SPARK_TX_UPDATE_ENVENT_NAME,
-      "fullUpdate"
+      "fullUpdate",
     );
 
     return true;
@@ -534,7 +621,7 @@ export const deleteSparkTransaction = async (sparkID) => {
     handleEventEmitterPost(
       sparkTransactionsEventEmitter,
       SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
+      "transactions",
     );
 
     return true;

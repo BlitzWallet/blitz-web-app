@@ -236,7 +236,7 @@ export function GiftsContextProvider({ children }) {
             const secretHex = Array.from(secretBytes)
               .map((b) => b.toString(16).padStart(2, "0"))
               .join("");
-            const secretPubKey = getPublicKey(secretHex);
+            const secretPubKey = getPublicKey(secretBytes);
             const encryptedMnemonic = await encryptMessage(
               secretHex,
               secretPubKey,

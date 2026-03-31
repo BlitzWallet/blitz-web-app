@@ -1,0 +1,34 @@
+import { getLocalStorageItem, setLocalStorageItem } from "../localStorage";
+
+let flashnetInternalTransferIds = new Set();
+
+export function getFlashnetTransfers() {
+  return flashnetInternalTransferIds;
+}
+
+export function isFlashnetTransfer(txid) {
+  return flashnetInternalTransferIds.has(txid);
+}
+
+export function setFlashnetTransfer(txid) {
+  flashnetInternalTransferIds.add(txid);
+  const current = Array.from(flashnetInternalTransferIds);
+  setLocalStorageItem("savedFlashnetTransferIds", JSON.stringify(current));
+}
+
+export async function loadSavedTransferIds() {
+  const raw = await getLocalStorageItem("savedFlashnetTransferIds");
+  if (raw == null || raw === "") {
+    flashnetInternalTransferIds = new Set();
+    return flashnetInternalTransferIds;
+  }
+  let savedIds;
+  try {
+    savedIds = JSON.parse(raw);
+  } catch {
+    flashnetInternalTransferIds = new Set();
+    return flashnetInternalTransferIds;
+  }
+  flashnetInternalTransferIds = new Set(Array.isArray(savedIds) ? savedIds : []);
+  return flashnetInternalTransferIds;
+}
