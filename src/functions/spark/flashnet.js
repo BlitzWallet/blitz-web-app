@@ -1107,6 +1107,9 @@ export function dollarsToSats(dollars, currentPriceAinB) {
       typeof currentPriceAinB === "bigint"
         ? Number(currentPriceAinB)
         : Number(currentPriceAinB || 0);
+    console.log(currentPriceAinB);
+    console.log(numDollars);
+    console.log(numPrice);
 
     if (isNaN(numDollars) || isNaN(numPrice) || numPrice === 0) {
       return 0;

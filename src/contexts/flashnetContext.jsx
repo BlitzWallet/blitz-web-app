@@ -26,7 +26,7 @@ import {
   SEND_AMOUNT_INCREASE_BUFFER,
 } from "../functions/spark/flashnet";
 import { useAppStatus } from "./appStatus";
-import { useSparkWallet } from "./sparkContext";
+import { useSpark } from "./sparkContext";
 import { useActiveCustodyAccount } from "./activeAccount";
 import {
   getSingleTxDetails,
@@ -50,7 +50,7 @@ import {
 } from "../functions/spark/handleFlashnetTransferIds";
 import { useToast } from "./toastManager";
 import { decode } from "bolt11";
-import { useAuthContext } from "./authContext";
+import { useAuth } from "./authContext";
 import { listClawbackableTransfers } from "../functions/spark/flashnet";
 import { getLocalStorageItem, setLocalStorageItem } from "../functions";
 
@@ -61,8 +61,7 @@ export function FlashnetProvider({ children }) {
   const { showToast } = useToast();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { appState } = useAppStatus();
-  const { sparkInformation, sparkInfoRef, setSparkInformation } =
-    useSparkWallet();
+  const { sparkInformation, sparkInfoRef, setSparkInformation } = useSpark();
   const [poolInfo, setPoolInfo] = useState({});
   const [swapLimits, setSwapLimits] = useState({ usd: 1.03, bitcoin: 1030 });
   const swapLimitsRef = useRef(swapLimits);
@@ -78,7 +77,7 @@ export function FlashnetProvider({ children }) {
 
   const flashnetRetryIntervalRef = useRef(null);
   const flashnetRetryDelayRef = useRef(5_000);
-  const { authResetkey } = useAuthContext();
+  const { authResetkey } = useAuth();
   const authResetKeyRef = useRef(authResetkey);
 
   const REFUND_MONITOR_INTERVAL = 25_000;

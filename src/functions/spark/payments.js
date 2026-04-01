@@ -58,7 +58,7 @@ export const sparkPaymenWrapper = async ({
         const routingFee = await getSparkLightningPaymentFeeEstimate(
           address,
           amountSats,
-          mnemonic
+          mnemonic,
         );
         if (!routingFee.didWork)
           throw new Error(routingFee.error || "Unable to get routing fee");
@@ -71,7 +71,7 @@ export const sparkPaymenWrapper = async ({
         });
         if (!feeResponse.didWork)
           throw new Error(
-            feeResponse.error || "Unable to get Bitcoin fee estimation"
+            feeResponse.error || "Unable to get Bitcoin fee estimation",
           );
         const data = feeResponse.response;
         calculatedFee =
@@ -84,7 +84,7 @@ export const sparkPaymenWrapper = async ({
         // Spark payments
         const feeResponse = await getSparkPaymentFeeEstimate(
           amountSats,
-          mnemonic
+          mnemonic,
         );
         calculatedFee = feeResponse;
       }
@@ -115,7 +115,7 @@ export const sparkPaymenWrapper = async ({
 
       if (!lightningPayResponse.didWork)
         throw new Error(
-          lightningPayResponse.error || "Error when sending lightning payment"
+          lightningPayResponse.error || "Error when sending lightning payment",
         );
 
       const data = lightningPayResponse.paymentResponse;
@@ -184,7 +184,7 @@ export const sparkPaymenWrapper = async ({
 
       if (!onChainPayResponse.didWork)
         throw new Error(
-          onChainPayResponse.error || "Error when sending bitcoin payment"
+          onChainPayResponse.error || "Error when sending bitcoin payment",
         );
 
       console.log(onChainPayResponse, "on-chain pay response");
@@ -228,7 +228,7 @@ export const sparkPaymenWrapper = async ({
 
       if (!sparkPayResponse.didWork)
         throw new Error(
-          sparkPayResponse.error || "Error when sending spark payment"
+          sparkPayResponse.error || "Error when sending spark payment",
         );
 
       const data = sparkPayResponse.response;

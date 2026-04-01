@@ -71,7 +71,13 @@ export function deriveSparkAddress(identityPublicKey) {
       );
     }
 
-    const hrp = "spark";
+    let hrp;
+    if (import.meta.env.MODE === "development") {
+      hrp = "sparkrt";
+    } else {
+      hrp = "spark";
+    }
+    // const hrp = "spark";
     const pubKeyLength = identityPublicKey.length;
 
     const dataPayload = new Uint8Array(2 + pubKeyLength);

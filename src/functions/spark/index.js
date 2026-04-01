@@ -1,4 +1,5 @@
 import { SparkWallet } from "@buildonspark/spark-sdk";
+import { FlashnetClient } from "@flashnet/sdk";
 import { getAllSparkTransactions } from "./transactions";
 import { SPARK_TO_SPARK_FEE } from "../../constants/math";
 import {
@@ -138,8 +139,8 @@ export const getSparkBalance = async (mnemonic) => {
   }
 };
 
-export const getFlashnetClient = async (mnemonic) => {
-  const hash = await getMnemonicHash(mnemonic);
+export const getFlashnetClient = (mnemonic) => {
+  const hash = getMnemonicHash(mnemonic);
   const client = flashnetClients[hash];
 
   if (!client) {
@@ -293,7 +294,10 @@ export const initializeFlashnet = async (mnemonic) => {
 
     const wallet = await getWallet(mnemonic);
 
+    const isDev = import.meta.env.MODE === "development";
     const flashnetAPI = new FlashnetClient(wallet, {
+      sparkNetworkType: isDev ? "REGTEST" : "MAINNET",
+      clientEnvironment: isDev ? "regtest" : "mainnet",
       autoAuthenticate: true,
     });
 

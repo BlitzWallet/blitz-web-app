@@ -4,16 +4,16 @@
 
 import React, { createContext, useMemo } from "react";
 
-import { useSparkWallet } from "./sparkContext";
+import { useSpark } from "./sparkContext";
 import { useFlashnet } from "./flashnetContext";
 import { USDB_TOKEN_ID } from "../constants";
-import formatTokensNumber from "../functions/lrc20/formatTokensBalance";
+import { formatTokensNumber } from "../functions/lrc20/formatTokensBalance";
 import { dollarsToSats } from "../functions/spark/flashnet";
 
 const UserBalanceContext = createContext(null);
 
 export const UserBalanceProvider = ({ children }) => {
-  const { sparkInformation } = useSparkWallet();
+  const { sparkInformation } = useSpark();
   const { poolInfo } = useFlashnet();
 
   const usdbTokenInfo = sparkInformation?.tokens?.[USDB_TOKEN_ID];

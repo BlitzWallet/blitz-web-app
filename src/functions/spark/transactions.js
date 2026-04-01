@@ -277,7 +277,10 @@ export const getPendingAutoSwaps = async () => {
     const filtered = all.filter((row) => {
       const details = parseLightningRowDetails(row);
       if (!details.finalSparkID) return false;
-      if (details.performSwaptoUSD === 0 || details.performSwaptoUSD === false) {
+      if (
+        details.performSwaptoUSD === 0 ||
+        details.performSwaptoUSD === false
+      ) {
         return false;
       }
       if (
@@ -315,7 +318,10 @@ export const getSingleSparkLightningRequest = async (sparkID) => {
 };
 
 /** Merge fields into the lightning request `details` JSON (RN parity). */
-export const updateSparkTransactionDetails = async (sparkID, partialDetails) => {
+export const updateSparkTransactionDetails = async (
+  sparkID,
+  partialDetails,
+) => {
   try {
     if (!sparkID || !partialDetails || typeof partialDetails !== "object") {
       return false;

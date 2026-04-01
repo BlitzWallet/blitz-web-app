@@ -18,8 +18,8 @@ import { AnimatePresence } from "framer-motion";
 
 import { routeGroups, animationConfigs, bottomTabRoutes } from "./routes.jsx";
 const BottomTabs = lazy(() => import("./tabs/tabs.jsx"));
-const AnimatedRouteWrapper = lazy(() =>
-  import("./components/animatedRouteWrapper.jsx")
+const AnimatedRouteWrapper = lazy(
+  () => import("./components/animatedRouteWrapper.jsx"),
 );
 const OverlayHost = lazy(() => import("./components/overlayHost.jsx"));
 const AuthGate = lazy(() => import("./components/authGate.jsx"));
@@ -42,6 +42,8 @@ import { OverlayProvider } from "./contexts/overlayContext.jsx";
 import { ToastContainer, ToastProvider } from "./contexts/toastManager.jsx";
 import { SparkNavigationListener } from "./contexts/SDKNavigation.jsx";
 import { SparkWalletProvider } from "./contexts/sparkContext.jsx";
+import { FlashnetProvider } from "./contexts/flashnetContext.jsx";
+import { UserBalanceProvider } from "./contexts/userBalanceContext.jsx";
 import { AuthProvider } from "./contexts/authContext.jsx";
 import { GiftsContextProvider } from "./contexts/giftsContext.jsx";
 import { NavigationStackProvider } from "./contexts/navigationLogger.jsx";
@@ -97,81 +99,97 @@ function Root() {
                           <BitcoinPriceProvider>
                             <GlobalAppDataProvider>
                               <GiftsContextProvider>
-                              <LiquidEventProvider>
-                                <ImageCacheProvider>
-                                  <GlobalServerTimeProvider>
-                                    <OverlayProvider>
-                                      <ToastProvider>
-                                        <HandleLNURLPayments />
-                                        <Suspense
-                                          fallback={
-                                            <div style={{ display: "none" }} />
-                                          }
-                                        >
-                                          <AuthGate />
-                                        </Suspense>
-                                        <ToastContainer />
-                                        <SparkNavigationListener />
-                                        <AnimatePresence mode="wait">
-                                          <Suspense
-                                            fallback={
-                                              <SafeAreaComponent>
-                                                <div
-                                                  style={{
-                                                    flex: 1,
-                                                    display: "flex",
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                  }}
+                                <LiquidEventProvider>
+                                  <ImageCacheProvider>
+                                    <GlobalServerTimeProvider>
+                                      <OverlayProvider>
+                                        <ToastProvider>
+                                          <FlashnetProvider>
+                                            <UserBalanceProvider>
+                                              <HandleLNURLPayments />
+                                              <Suspense
+                                                fallback={
+                                                  <div
+                                                    style={{ display: "none" }}
+                                                  />
+                                                }
+                                              >
+                                                <AuthGate />
+                                              </Suspense>
+                                              <ToastContainer />
+                                              <SparkNavigationListener />
+                                              <AnimatePresence mode="wait">
+                                                <Suspense
+                                                  fallback={
+                                                    <SafeAreaComponent>
+                                                      <div
+                                                        style={{
+                                                          flex: 1,
+                                                          display: "flex",
+                                                          width: "100%",
+                                                          height: "100%",
+                                                          alignItems: "center",
+                                                          justifyContent:
+                                                            "center",
+                                                        }}
+                                                      >
+                                                        <FullLoadingScreen />
+                                                      </div>
+                                                    </SafeAreaComponent>
+                                                  }
                                                 >
-                                                  <FullLoadingScreen />
-                                                </div>
-                                              </SafeAreaComponent>
-                                            }
-                                          >
-                                            <Routes
-                                              location={background || location}
-                                            >
-                                              {Object.entries(routeGroups).map(
-                                                ([animationType, routes]) =>
-                                                  routes.map((route) => (
-                                                    <Route
-                                                      key={route.path}
-                                                      path={route.path}
-                                                      element={
-                                                        <RouteRenderer
-                                                          route={route}
-                                                          animationType={
-                                                            animationType
-                                                          }
-                                                          setValue={setValue}
-                                                        />
-                                                      }
-                                                    />
-                                                  ))
+                                                  <Routes
+                                                    location={
+                                                      background || location
+                                                    }
+                                                  >
+                                                    {Object.entries(
+                                                      routeGroups,
+                                                    ).map(
+                                                      ([
+                                                        animationType,
+                                                        routes,
+                                                      ]) =>
+                                                        routes.map((route) => (
+                                                          <Route
+                                                            key={route.path}
+                                                            path={route.path}
+                                                            element={
+                                                              <RouteRenderer
+                                                                route={route}
+                                                                animationType={
+                                                                  animationType
+                                                                }
+                                                                setValue={
+                                                                  setValue
+                                                                }
+                                                              />
+                                                            }
+                                                          />
+                                                        )),
+                                                    )}
+                                                  </Routes>
+                                                  <Suspense fallback={null}>
+                                                    <OverlayHost />
+                                                  </Suspense>
+                                                </Suspense>
+                                              </AnimatePresence>
+                                              {shouldShowBottomTabs && (
+                                                <Suspense fallback={null}>
+                                                  <BottomTabs
+                                                    value={value}
+                                                    setValue={setValue}
+                                                    Link={Link}
+                                                  />
+                                                </Suspense>
                                               )}
-                                            </Routes>
-                                            <Suspense fallback={null}>
-                                              <OverlayHost />
-                                            </Suspense>
-                                          </Suspense>
-                                        </AnimatePresence>
-                                        {shouldShowBottomTabs && (
-                                          <Suspense fallback={null}>
-                                            <BottomTabs
-                                              value={value}
-                                              setValue={setValue}
-                                              Link={Link}
-                                            />
-                                          </Suspense>
-                                        )}
-                                      </ToastProvider>
-                                    </OverlayProvider>
-                                  </GlobalServerTimeProvider>
-                                </ImageCacheProvider>
-                              </LiquidEventProvider>
+                                            </UserBalanceProvider>
+                                          </FlashnetProvider>
+                                        </ToastProvider>
+                                      </OverlayProvider>
+                                    </GlobalServerTimeProvider>
+                                  </ImageCacheProvider>
+                                </LiquidEventProvider>
                               </GiftsContextProvider>
                             </GlobalAppDataProvider>
                           </BitcoinPriceProvider>
@@ -194,5 +212,5 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <Root />
     </BrowserRouter>
-  </StrictMode>
+  </StrictMode>,
 );

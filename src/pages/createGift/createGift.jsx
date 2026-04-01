@@ -40,7 +40,9 @@ import {
 } from "../../functions/spark/flashnet";
 
 import CustomButton from "../../components/customButton/customButton";
+import GiftConfirmation from "../giftConfirmation/giftConfirmation";
 import "./createGift.css";
+import { useNodeContext } from "../../contexts/nodeContext";
 
 /**
  * Keep duration shape aligned with mobile: { label, value: "7" }
@@ -48,6 +50,12 @@ import "./createGift.css";
 const DEFAULT_DURATION = { label: "7 Days", value: "7" };
 
 export default function CreateGift() {
+  const { bitcoinBalance, dollarBalanceSat, dollarBalanceToken } =
+    useUserBalanceContext();
+
+  const { poolInfoRef, swapLimits } = useFlashnet();
+  const { saveGiftToCloud, deleteGiftFromCloudAndLocal } = useGifts();
+
   const navigate = useNavigate();
 
   const {
@@ -63,12 +71,9 @@ export default function CreateGift() {
     useGlobalContextProvider();
   const { sparkInformation } = useSpark();
 
-  const { saveGiftToCloud, deleteGiftFromCloudAndLocal } = useGifts();
+  // const { currentWalletMnemoinc } = useActiveCustodyAccount();
 
-  const { bitcoinBalance, dollarBalanceSat, dollarBalanceToken } =
-    useUserBalanceContext();
-
-  const { poolInfoRef, swapLimits } = useFlashnet();
+  const { fiatStats } = useNodeContext();
 
   // ---- Local state (aligned with mobile names) ----
   const [duration, setDuration] = useState(DEFAULT_DURATION);
@@ -95,7 +100,9 @@ export default function CreateGift() {
 
   // Parse input in a way that allows USD decimals
   const parsedNumber = useMemo(() => {
+    console.log(amountInput);
     const s = String(amountInput).trim();
+    console.log(s);
     if (!s) return 0;
     // allow decimals for USD; sats should be integer but we’ll floor later
     const n = Number(s);
@@ -113,6 +120,7 @@ export default function CreateGift() {
    * - if giftDenomination === "USD": treat input as USD, compute sats using current price
    */
   const amount = useMemo(() => {
+    console.log(parsedNumber);
     if (!parsedNumber) return 0;
     if (giftDenomination === "BTC")
       return Math.max(0, Math.floor(parsedNumber));
@@ -120,15 +128,19 @@ export default function CreateGift() {
     // NOTE: mobile uses route params amount/amountValue; their amount probably already computed elsewhere.
     // For parity here, we compute sats from USD.
     const usd = parsedNumber;
+    console.log(usd);
+    console.log(poolInfoRef);
     const sats = dollarsToSats(usd, poolInfoRef.currentPriceAInB);
+    console.log(sats);
     return Math.max(0, Math.floor(sats));
   }, [parsedNumber, giftDenomination, poolInfoRef.currentPriceAInB]);
 
   const convertedSatAmount = amount;
-
+  console.log(convertedSatAmount);
   const trueFiatAmount = useMemo(() => {
     if (!parsedNumber) return 0;
     if (giftDenomination === "USD") {
+      console.log(parsedNumber);
       // input is USD -> microUSD
       return Math.round(parsedNumber * Math.pow(10, 6));
     }
@@ -166,12 +178,13 @@ export default function CreateGift() {
   // ---------------- Swap simulation (same logic as mobile) ----------------
   useEffect(() => {
     const calculateSwapSimulation = async () => {
+      console.log(convertedSatAmount);
       if (!convertedSatAmount) {
         simulationPromiseRef.current = null;
         setSimulationResult(null);
         return;
       }
-
+      console.log(bitcoinBalance);
       const hasBTCBalance = bitcoinBalance >= convertedSatAmount;
       const hasUSDBalance = dollarBalanceSat >= convertedSatAmount;
 
@@ -183,6 +196,7 @@ export default function CreateGift() {
       let needsSwap = false;
       let paymentMethod = null;
 
+      console.log(giftDenomination);
       // Determine if swap is needed based on gift denomination
       if (giftDenomination === "BTC") {
         const canPayBTCtoBTC = hasBTCBalance;
@@ -198,7 +212,8 @@ export default function CreateGift() {
       } else {
         const canPayUSDtoUSD = hasUSDBalance;
         const canPayBTCtoUSD = hasBTCBalance && meetsBTCMinimum;
-
+        console.log("canPayUSDtoUSD", canPayUSDtoUSD);
+        console.log("canPayBTCtoUSD", canPayBTCtoUSD);
         if (canPayUSDtoUSD) {
           paymentMethod = "USD";
           needsSwap = false;
@@ -580,9 +595,15 @@ export default function CreateGift() {
       }
 
       setLoadingMessage("Funding gift...");
+      let paymentType;
+      if (import.meta.env.MODE === "development") {
+        paymentType = "sparkrt";
+      } else {
+        paymentType = "spark";
+      }
       const paymentResponse = await sparkPaymenWrapper({
         address: derivedSparkAddress.address,
-        paymentType: "spark",
+        paymentType: paymentType,
         amountSats: convertedSatAmount,
         masterInfoObject,
         memo: "Fund Gift",
@@ -657,49 +678,27 @@ export default function CreateGift() {
     setSimulationResult(null);
   }, []);
 
-  // ---------------- Confirmation (web equivalent of GiftConfirmation) ----------------
   if (confirmData) {
-    // If you already have a GiftConfirmation route/component, navigate there instead.
-    // For alignment with mobile, we render a simple in-place confirmation.
+    const so = confirmData.storageObject;
+    const formattedAmount =
+      so.denomination === "BTC"
+        ? `${Number(so.amount).toLocaleString()} sats`
+        : `$${so.dollarAmount} USD`;
+
     return (
-      <div className="createGift-container" style={{ backgroundColor }}>
-        <div className="createGift-header">
-          <p className="createGift-title" style={{ color: textColor }}>
-            Gift Created
-          </p>
-        </div>
-
-        <div className="createGift-form" style={{ color: textColor }}>
-          <p>
-            <b>Amount:</b> {confirmData.storageObject.amount} sats
-          </p>
-          <p>
-            <b>Denomination:</b> {confirmData.storageObject.denomination}
-          </p>
-          <p>
-            <b>Expires:</b>{" "}
-            {new Date(confirmData.storageObject.expireTime).toLocaleString()}
-          </p>
-          <p>
-            <b>Link:</b> <a href={confirmData.webUrl}>{confirmData.webUrl}</a>
-          </p>
-
-          <div style={{ display: "flex", gap: 12 }}>
-            <CustomButton
-              actionFunction={() => {
-                navigator.clipboard?.writeText(confirmData.webUrl);
-              }}
-              textContent="Copy Link"
-              buttonStyles={{ width: "auto" }}
-            />
-            <CustomButton
-              actionFunction={resetPageState}
-              textContent="Create Another"
-              buttonStyles={{ width: "auto" }}
-            />
-          </div>
-        </div>
-      </div>
+      <GiftConfirmation
+        amount={so.amount}
+        description={so.description}
+        expiration={new Date(so.expireTime).toLocaleString()}
+        giftLink={confirmData.webUrl}
+        resetPageState={resetPageState}
+        storageObject={{
+          denomination: so.denomination,
+          dollarAmount: Number(so.dollarAmount),
+        }}
+        formattedAmount={formattedAmount}
+        onDone={() => navigate(-1)}
+      />
     );
   }
 

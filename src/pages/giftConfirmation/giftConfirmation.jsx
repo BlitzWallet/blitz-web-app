@@ -1,240 +1,194 @@
-import { useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+// GiftConfirmationScreen.web.jsx
+import React, { useMemo } from "react";
+import Lottie from "lottie-react";
 import { QRCodeSVG } from "qrcode.react";
-import { Colors } from "../../constants/theme";
-import { useThemeContext } from "../../contexts/themeContext";
-import useThemeColors from "../../hooks/useThemeColors";
-import FormattedSatText from "../../components/formattedSatText/formattedSatText";
-import { Share, Gift, Copy } from "lucide-react";
-import CustomButton from "../../components/customButton/customButton";
-import "./giftConfirmation.css";
 
-export default function GiftConfirmation() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { theme, darkModeType } = useThemeContext();
-  const { textColor, backgroundColor, backgroundOffset, textInputBackground } =
-    useThemeColors();
+// Adjust this import path to wherever you place the animation JSON in your web app.
+import confirmTxAnimation from "../../assets/confirmTxAnimation.json";
 
-  const { amount, description, expireTime, giftId, giftLink } =
-    location.state || {};
+/**
+ * Tailwind web port of:
+ * app/components/admin/homeComponents/gifts/giftConfirmationScreen.js
+ *
+ * Props you should pass from your app:
+ * - amount, description, expiration, giftLink, resetPageState, storageObject
+ * - formattedAmount (recommended) OR pass `formatAmount` to compute it
+ * - onDone (navigate back)
+ * - onShare (optional): your share implementation; fallback tries Web Share API then copy.
+ */
+export default function GiftConfirmation({
+  amount,
+  description,
+  expiration,
+  giftLink = " ",
+  resetPageState,
 
-  const colors = theme
-    ? darkModeType
-      ? Colors.lightsout
-      : Colors.dark
-    : Colors.light;
+  // Option A (recommended): compute this in your app using the same logic as RN
+  formattedAmount,
 
-  const [copied, setCopied] = useState(false);
+  // Option B: pass a formatter function similar to displayCorrectDenomination(...) usage
+  formatAmount, // ({ amount, storageObject }) => string
 
-  const expirationDate = expireTime
-    ? new Date(expireTime).toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
-    : "—";
+  storageObject, // { denomination: 'BTC'|'USD', dollarAmount?: number }
 
-  const handleCopy = useCallback(
-    async (data) => {
-      const text = data || giftLink;
-      if (!text) return;
-      try {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        /* clipboard not available */
-      }
-    },
-    [giftLink],
-  );
+  onDone,
+  onShare, // async ({ giftLink, formattedAmount }) => void
+}) {
+  const computedAmount = useMemo(() => {
+    if (formattedAmount) return formattedAmount;
+    if (formatAmount) return formatAmount({ amount, storageObject });
+    return String(amount ?? "");
+  }, [formattedAmount, formatAmount, amount, storageObject]);
 
-  const handleShare = useCallback(async () => {
-    if (!giftLink) return;
+  const copy = async (text) => {
+    await navigator.clipboard.writeText(text);
+    // Replace with your toast if you have one
+    // e.g. toast.success("Copied")
+  };
+
+  const handleShare = async () => {
     try {
+      if (onShare) {
+        await onShare({ giftLink, formattedAmount: computedAmount });
+        return;
+      }
+
       if (navigator.share) {
-        await navigator.share({
-          title: "Blitz Gift",
-          text: "Claim your Bitcoin gift!",
-          url: giftLink,
-        });
+        await navigator.share({ title: "Gift", text: giftLink, url: giftLink });
       } else {
-        handleCopy();
+        await copy(giftLink);
+        alert("Link copied (sharing not supported in this browser).");
       }
     } catch {
-      /* user cancelled */
+      // share cancelled
     }
-  }, [giftLink, handleCopy]);
-
-  const cardBorder = theme
-    ? darkModeType
-      ? "1px solid rgba(255, 255, 255, 0.08)"
-      : "1px solid rgba(255, 255, 255, 0.1)"
-    : "1px solid rgba(0, 0, 0, 0.06)";
-
-  if (!giftLink) {
-    return (
-      <div className="giftConfirm-container" style={{ backgroundColor }}>
-        <p style={{ color: textColor }}>No gift data found.</p>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="giftConfirm-container" style={{ backgroundColor }}>
-      <div className="giftConfirm-topBar">
-        <div style={{ width: 32 }} />
-        <div style={{ flex: 1 }} />
-        <button
-          className="giftConfirm-shareBtn"
-          onClick={handleShare}
-          title="Share"
-        >
-          <Share size={20} color={textColor} />
-        </button>
-      </div>
-
-      <div className="giftConfirm-scrollContent">
-        <div className="giftConfirm-header">
-          <div className="giftConfirm-successIcon">🎉</div>
-          <p className="giftConfirm-title" style={{ color: textColor }}>
-            Gift Created!
-          </p>
-          <p className="giftConfirm-subtitle" style={{ color: textColor }}>
-            Share this link with the recipient to let them claim their Bitcoin.
-          </p>
-        </div>
-
-        <div
-          className="giftConfirm-qrCard"
-          style={{ backgroundColor: backgroundOffset, border: cardBorder }}
-          onClick={() => handleCopy()}
-        >
-          <QRCodeSVG value={giftLink} size={250} level="M" />
-        </div>
-
-        <div
-          className="giftConfirm-card"
-          style={{ backgroundColor: backgroundOffset, border: cardBorder }}
-        >
-          <div
-            className="giftConfirm-cardHeader"
-            style={{ borderBottomColor: textInputBackground }}
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="mx-auto w-full max-w-2xl px-4 py-4">
+        {/* Top bar (Share) */}
+        <div className="mb-3 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-white/5 active:bg-white/10"
           >
-            <Gift size={22} color={textColor} />
-            <p
-              className="giftConfirm-cardHeaderText"
-              style={{ color: textColor }}
-            >
-              Gift Details
-            </p>
+            Share
+          </button>
+        </div>
+
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <div className="mx-auto h-[100px] w-[100px]">
+            <Lottie animationData={confirmTxAnimation} loop={false} autoplay />
           </div>
-          <div className="giftConfirm-detailsContent">
-            <div className="giftConfirm-detailRow">
-              <p
-                className="giftConfirm-detailLabel"
-                style={{ color: textColor }}
-              >
-                Amount
-              </p>
-              <FormattedSatText
-                balance={amount || 0}
-                styles={{ color: textColor, fontWeight: 600, fontSize: "14px" }}
-              />
-            </div>
-            {description && (
-              <div className="giftConfirm-detailRow">
-                <p
-                  className="giftConfirm-detailLabel"
-                  style={{ color: textColor }}
-                >
-                  Description
-                </p>
-                <p
-                  className="giftConfirm-detailValueDesc"
-                  style={{ color: textColor }}
-                >
-                  {description}
-                </p>
-              </div>
-            )}
-            <div className="giftConfirm-detailRow">
-              <p
-                className="giftConfirm-detailLabel"
-                style={{ color: textColor }}
-              >
-                Expires
-              </p>
-              <p
-                className="giftConfirm-detailValue"
-                style={{ color: textColor }}
-              >
-                {expirationDate}
-              </p>
-            </div>
+
+          <div className="mt-2 text-xl font-medium">Gift created</div>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-300">
+            Share this link or QR code with the recipient.
+          </p>
+        </div>
+
+        {/* QR card */}
+        <div className="mb-4 rounded-2xl bg-white/5 p-3">
+          <button
+            type="button"
+            onClick={() => copy(giftLink)}
+            title="Click to copy link"
+            className="mx-auto block rounded-xl bg-white p-2"
+          >
+            <QRCodeSVG value={giftLink} size={250} />
+          </button>
+          <div className="mt-3 text-center text-xs text-zinc-400">
+            Tap the QR to copy the link
           </div>
         </div>
 
-        <div
-          className="giftConfirm-card"
-          style={{ backgroundColor: backgroundOffset, border: cardBorder }}
-        >
-          <p className="giftConfirm-inputLabel" style={{ color: textColor }}>
-            Gift Link
-          </p>
-          <div className="giftConfirm-linkRow">
-            <div
-              className="giftConfirm-linkBox"
-              style={{
-                backgroundColor: textInputBackground,
-                borderColor: textInputBackground,
-              }}
-            >
-              <p className="giftConfirm-linkText" style={{ color: textColor }}>
-                {giftLink}
-              </p>
-            </div>
-            <button
-              className="giftConfirm-copyBtn"
-              onClick={() => handleCopy()}
-              title="Copy link"
-            >
-              <Copy
-                size={20}
-                color={theme && darkModeType ? textColor : colors.giftCardBlue}
+        {/* Details card */}
+        <div className="mb-4 rounded-2xl bg-white/5 p-4">
+          <div className="mb-4 flex items-center gap-2 border-b border-white/10 pb-4">
+            <span className="text-lg" aria-hidden="true">
+              🎁
+            </span>
+            <div className="text-sm font-semibold">Details</div>
+          </div>
+
+          <div className="space-y-3 text-sm">
+            <Row label="Amount" value={computedAmount} />
+
+            {description ? (
+              <Row
+                label="Description"
+                value={description}
+                valueClassName="max-w-[60%] break-words text-right"
               />
+            ) : null}
+
+            {expiration ? (
+              <Row label="Expires" value={String(expiration)} mutedValue />
+            ) : null}
+          </div>
+        </div>
+
+        {/* Gift link card */}
+        <div className="mb-6 rounded-2xl bg-white/5 p-4">
+          <div className="mb-3 text-sm font-semibold">Gift link</div>
+
+          <div className="flex gap-2">
+            <div
+              className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-xs text-zinc-100"
+              title={giftLink}
+            >
+              <div className="truncate">{giftLink}</div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => copy(giftLink)}
+              className="h-11 w-11 shrink-0 rounded-xl border border-white/10 bg-transparent text-xs font-semibold text-blue-400 hover:bg-white/5 active:bg-white/10"
+              title="Copy"
+            >
+              Copy
             </button>
           </div>
-          {copied && (
-            <p
-              className="giftConfirm-copied"
-              style={{ color: colors.giftCardBlue }}
-            >
-              Copied to clipboard!
-            </p>
-          )}
+        </div>
+
+        {/* Bottom buttons */}
+        <div className="grid gap-3">
+          <button
+            type="button"
+            onClick={onDone}
+            className="w-full rounded-2xl bg-blue-500 px-4 py-3 text-sm font-bold text-zinc-950 hover:bg-blue-400 active:bg-blue-600"
+          >
+            Done
+          </button>
+
+          <button
+            type="button"
+            onClick={resetPageState}
+            className="w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm font-bold text-zinc-100 hover:bg-white/5 active:bg-white/10"
+          >
+            Create another
+          </button>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="giftConfirm-bottomButtons">
-        <CustomButton
-          actionFunction={() => navigate("/gift", { replace: true })}
-          textContent="Done"
-          buttonStyles={{
-            // ...CENTER,
-            width: "auto",
-          }}
-          // buttonStyles={primaryBtn}
-        />
-        <CustomButton
-          actionFunction={() => navigate("/create-gift", { replace: true })}
-          textContent="Create Another"
-          buttonStyles={{
-            // ...CENTER,
-            width: "auto",
-          }}
-        />
+function Row({ label, value, mutedValue = false, valueClassName = "" }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="text-zinc-200">{label}</div>
+      <div
+        className={[
+          "text-right",
+          mutedValue ? "text-zinc-300" : "text-zinc-100",
+          valueClassName,
+        ].join(" ")}
+      >
+        {value}
       </div>
     </div>
   );
