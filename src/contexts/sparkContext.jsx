@@ -639,7 +639,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
 
         if (
           details.senderIdentityPublicKey ===
-          import.meta.env.SPARK_IDENTITY_PUBKEY
+          import.meta.env.VITE_SPARK_IDENTITY_PUBKEY
         ) {
           console.log("Refund from Spark, do not show tosat here");
           return;

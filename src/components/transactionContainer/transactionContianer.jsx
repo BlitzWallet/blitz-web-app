@@ -194,7 +194,7 @@ export default function TransactionContainer({
         continue;
       if (
         paymentDetails.senderIdentityPublicKey ===
-        import.meta.env.SPARK_IDENTITY_PUBKEY
+        import.meta.env.VITE_SPARK_IDENTITY_PUBKEY
       )
         continue;
       if (shownTxs.has(currentTransaction.sparkID)) continue;
