@@ -7,7 +7,11 @@ export function generateRandomContact() {
     separator: "",
   }); // big_red_donkey
 
-  return { uniqueName: randomName + Math.ceil(Math.random() * 99) };
+  const cleanName = randomName.replace(/[^\p{L}\p{N}_]/gu, ""); //staralize output
+
+  return {
+    uniqueName: cleanName + Math.ceil(Math.random() * 99),
+  };
 }
 
 export async function getBolt11InvoiceForContact(
@@ -16,7 +20,7 @@ export async function getBolt11InvoiceForContact(
   description,
   useBlitzContact = true,
   domain = "blitzwalletapp.com",
-  sendingUUID
+  sendingUUID,
 ) {
   try {
     let runCount = 0;
@@ -55,7 +59,7 @@ export function getTimeDisplay(
   timeDifferenceMinutes,
   timeDifferenceHours,
   timeDifferenceDays,
-  timeDifferenceYears
+  timeDifferenceYears,
 ) {
   const timeValue =
     timeDifferenceMinutes <= 60
@@ -63,29 +67,29 @@ export function getTimeDisplay(
         ? ""
         : Math.round(timeDifferenceMinutes)
       : timeDifferenceHours <= 24
-      ? Math.round(timeDifferenceHours)
-      : timeDifferenceDays <= 365
-      ? Math.round(timeDifferenceDays)
-      : Math.round(timeDifferenceYears);
+        ? Math.round(timeDifferenceHours)
+        : timeDifferenceDays <= 365
+          ? Math.round(timeDifferenceDays)
+          : Math.round(timeDifferenceYears);
 
   const timeUnit =
     timeDifferenceMinutes <= 60
       ? timeDifferenceMinutes < 1
         ? i18next.t("transactionLabelText.txTime_just_now")
         : Math.round(timeDifferenceMinutes) === 1
-        ? i18next.t("timeLabels.minute")
-        : i18next.t("timeLabels.minutes")
+          ? i18next.t("timeLabels.minute")
+          : i18next.t("timeLabels.minutes")
       : timeDifferenceHours <= 24
-      ? Math.round(timeDifferenceHours) === 1
-        ? i18next.t("timeLabels.hour")
-        : i18next.t("timeLabels.hours")
-      : timeDifferenceDays <= 365
-      ? Math.round(timeDifferenceDays) === 1
-        ? i18next.t("timeLabels.day")
-        : i18next.t("timeLabels.days")
-      : Math.round(timeDifferenceYears) === 1
-      ? i18next.t("timeLabels.year")
-      : i18next.t("timeLabels.years");
+        ? Math.round(timeDifferenceHours) === 1
+          ? i18next.t("timeLabels.hour")
+          : i18next.t("timeLabels.hours")
+        : timeDifferenceDays <= 365
+          ? Math.round(timeDifferenceDays) === 1
+            ? i18next.t("timeLabels.day")
+            : i18next.t("timeLabels.days")
+          : Math.round(timeDifferenceYears) === 1
+            ? i18next.t("timeLabels.year")
+            : i18next.t("timeLabels.years");
 
   const suffix =
     timeDifferenceMinutes > 1
