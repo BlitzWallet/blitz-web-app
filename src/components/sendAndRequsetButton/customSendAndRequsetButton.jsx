@@ -10,7 +10,7 @@ export default function CustomSendAndRequsetBTN({
   arrowColor,
   containerBackgroundColor,
   height = 40,
-  width = 40,
+  width = 25,
   containerStyles,
   activeOpacity = 0.2,
 }) {
