@@ -10,23 +10,37 @@ export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
 let bulkUpdateTransactionQueue = [];
 let isProcessingBulkUpdate = false;
 
-let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 2, {
-  upgrade(db) {
-    if (!db.objectStoreNames.contains(SPARK_TRANSACTIONS_TABLE_NAME)) {
-      const txStore = db.createObjectStore(SPARK_TRANSACTIONS_TABLE_NAME, {
-        keyPath: "sparkID",
-      });
-      txStore.createIndex("paymentStatus", "paymentStatus");
+export let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 5, {
+  upgrade(db, oldVersion) {
+    console.log(db, oldVersion, "upgrading spark transactions database");
+    // Runs for fresh installs or users on v1
+    if (oldVersion < 2) {
+      if (!db.objectStoreNames.contains(SPARK_TRANSACTIONS_TABLE_NAME)) {
+        const txStore = db.createObjectStore(SPARK_TRANSACTIONS_TABLE_NAME, {
+          keyPath: "sparkID",
+        });
+        txStore.createIndex("paymentStatus", "paymentStatus");
+      }
+      if (!db.objectStoreNames.contains(LIGHTNING_REQUEST_IDS_TABLE_NAME)) {
+        db.createObjectStore(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
+          keyPath: "sparkID",
+        });
+      }
+      if (!db.objectStoreNames.contains(SPARK_REQUEST_IDS_TABLE_NAME)) {
+        db.createObjectStore(SPARK_REQUEST_IDS_TABLE_NAME, {
+          keyPath: "sparkID",
+        });
+      }
     }
-    if (!db.objectStoreNames.contains(LIGHTNING_REQUEST_IDS_TABLE_NAME)) {
-      db.createObjectStore(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
-        keyPath: "sparkID",
-      });
-    }
-    if (!db.objectStoreNames.contains(SPARK_REQUEST_IDS_TABLE_NAME)) {
-      db.createObjectStore(SPARK_REQUEST_IDS_TABLE_NAME, {
-        keyPath: "sparkID",
-      });
+
+    // Runs for everyone upgrading from v2, and fresh installs (oldVersion=0 < 3)
+    if (oldVersion < 5) {
+      if (!db.objectStoreNames.contains("account_balance_snapshots")) {
+        const snapStore = db.createObjectStore("account_balance_snapshots", {
+          keyPath: "identityPubKey",
+        });
+        snapStore.createIndex("updatedAt", "updatedAt");
+      }
     }
   },
 });
@@ -104,13 +118,13 @@ export const getAllPendingSparkPayments = async (accountId) => {
 
     // Filter by paymentStatus = 'pending'
     let filtered = all.filter(
-      (transaction) => transaction.paymentStatus === "pending"
+      (transaction) => transaction.paymentStatus === "pending",
     );
 
     // Further filter by accountId if provided and valid
     if (accountId !== undefined && accountId !== null && accountId !== "") {
       filtered = filtered.filter(
-        (transaction) => transaction.accountId === String(accountId)
+        (transaction) => transaction.accountId === String(accountId),
       );
     }
 
@@ -189,7 +203,7 @@ export const addBulkUnpaidSparkContactTransactions = async (transactions) => {
     await tx.done;
 
     console.log(
-      `Successfully added ${validTransactions.length} unpaid contact invoices`
+      `Successfully added ${validTransactions.length} unpaid contact invoices`,
     );
 
     return {
@@ -348,7 +362,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
         // Check if transaction exists by final sparkID
         const allTransactions = await store.getAll();
         const existingTx = allTransactions.find(
-          (tx) => tx.sparkID === finalSparkId && tx.accountId === accountId
+          (tx) => tx.sparkID === finalSparkId && tx.accountId === accountId,
         );
 
         // Also check if temp ID exists (if different from final ID)
@@ -360,7 +374,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
           existingTempTx = allTransactions.find(
             (tx) =>
               tx.sparkID === processedTx.tempSparkId &&
-              tx.accountId === accountId
+              tx.accountId === accountId,
           );
         }
 
@@ -467,7 +481,10 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
               paymentType: processedTx.paymentType,
               accountId: processedTx.accountId,
               // Ensure new transactions store details as a JSON string
-              details: JSON.stringify(processedTx.details),
+              details: JSON.stringify({
+                ...processedTx.details,
+                dateAddedToDb: Date.now(),
+              }),
             };
 
             await store.add(newTx);
@@ -487,7 +504,7 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
         SPARK_TX_UPDATE_ENVENT_NAME,
         includedFailed ? "fullUpdate" : updateType,
         fee,
-        passedBalance
+        passedBalance,
       );
 
       return true;
@@ -510,13 +527,13 @@ export const addSingleSparkTransaction = async (tx) => {
       paymentStatus: tx.paymentStatus,
       paymentType: tx.paymentType ?? "unknown",
       accountId: tx.accountId ?? "unknown",
-      details: JSON.stringify(tx.details),
+      details: JSON.stringify({ ...tx.details, dateAddedToDb: Date.now() }),
     });
 
     handleEventEmitterPost(
       sparkTransactionsEventEmitter,
       SPARK_TX_UPDATE_ENVENT_NAME,
-      "fullUpdate"
+      "fullUpdate",
     );
 
     return true;
@@ -534,7 +551,7 @@ export const deleteSparkTransaction = async (sparkID) => {
     handleEventEmitterPost(
       sparkTransactionsEventEmitter,
       SPARK_TX_UPDATE_ENVENT_NAME,
-      "transactions"
+      "transactions",
     );
 
     return true;
