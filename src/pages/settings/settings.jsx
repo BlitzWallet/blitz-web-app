@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import ThemeText from "../../components/themeText/themeText";
@@ -26,6 +26,7 @@ import { useOverlay } from "../../contexts/overlayContext";
 import { useImageCache } from "../../contexts/imageCacheContext";
 import { useGlobalContacts } from "../../contexts/globalContacts";
 import copyToClipboard from "../../functions/copyToClipboard";
+import { useAuth } from "../../contexts/authContext";
 
 const PREFERENCES = [
   {
@@ -148,8 +149,11 @@ export default function SettingsIndex() {
   const { t } = useTranslation();
   const { openOverlay } = useOverlay();
   const { cache } = useImageCache();
+  const { deleteWallet } = useAuth();
   const location = useLocation();
   const props = location.state || {};
+  const queryParams = new URLSearchParams(location.search);
+  const confirmed = queryParams.get("confirmed");
   const isDoomsday = props.isDoomsday;
   const { theme, darkModeType } = useThemeContext();
   const { globalContactsInformation } = useGlobalContacts();
@@ -164,6 +168,16 @@ export default function SettingsIndex() {
   const myContact = globalContactsInformation?.myProfile;
   console.log(globalContactsInformation);
 
+  useEffect(() => {
+    if (!confirmed) return;
+    deleteWallet();
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  }, [confirmed]);
+
+  console.log(location, "test", confirmed, "test");
+
   const settingsElements = useMemo(() => {
     return settignsList.map((section, sectionIndex) => {
       return (
@@ -173,10 +187,10 @@ export default function SettingsIndex() {
               sectionIndex === 0
                 ? "Preferences"
                 : sectionIndex === 1
-                ? "Security"
-                : sectionIndex === 2
-                ? "Technical Settings"
-                : ""
+                  ? "Security"
+                  : sectionIndex === 2
+                    ? "Technical Settings"
+                    : ""
             }
             className="options-title"
           />
