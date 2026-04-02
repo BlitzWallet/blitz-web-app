@@ -124,14 +124,10 @@ export default function Store() {
         )}
       </div>
 
-      <div className="giftsOverview-actions ">
+      <div className="giftsOverview-actions">
         <CustomButton
           actionFunction={() => navigate("/create-gift")}
           textContent="Create Gift"
-          buttonStyles={{
-            // ...CENTER,
-            width: "auto",
-          }}
         />
         <CustomButton
           actionFunction={() =>
@@ -142,10 +138,6 @@ export default function Store() {
             })
           }
           textContent="Claim Gift"
-          buttonStyles={{
-            // ...CENTER,
-            width: "auto",
-          }}
         />
       </div>
     </div>

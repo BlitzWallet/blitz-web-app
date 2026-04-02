@@ -107,14 +107,6 @@ export function FlashnetProvider({ children }) {
     if (!sparkInformation.didConnectToFlashnet) return;
     if (appState !== "active") return;
 
-    // (Web optional) Don’t do background polling when tab is hidden.
-    // Remove if you want 1:1 behavior with mobile.
-    if (
-      typeof document !== "undefined" &&
-      document.visibilityState === "hidden"
-    )
-      return;
-
     const result = await findBestPool(
       currentWalletMnemoincRef.current,
       BTC_ASSET_ADDRESS,
@@ -122,7 +114,6 @@ export function FlashnetProvider({ children }) {
     );
 
     if (result?.didWork && result.pool) {
-      // In web builds, ensure ../app/functions uses window.localStorage.
       setLocalStorageItem("swapPoolInfo", JSON.stringify(result.pool));
       setPoolInfo(result.pool);
     }
@@ -134,6 +125,7 @@ export function FlashnetProvider({ children }) {
 
       try {
         raw = await getLocalStorageItem("swapPoolInfo");
+        console.log("raw", raw);
       } catch (e) {
         console.warn("[Flashnet] Failed to read swapPoolInfo from storage:", e);
       }

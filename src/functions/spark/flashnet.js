@@ -50,6 +50,7 @@ import { decode } from "bolt11";
 // Standard Bitcoin pubkey for pools (constant across Flashnet)
 export const BTC_ASSET_ADDRESS =
   "020202020202020202020202020202020202020202020202020202020202020202";
+
 export const USD_ASSET_ADDRESS =
   "3206c93b24a4d18ea19d0a9a213204af2c7e74a6d16c7535cc5d33eca4ad1eca";
 
@@ -182,7 +183,7 @@ export const findBestPool = async (
   try {
     // Web version: always direct (no webview runtime)
     const client = getFlashnetClient(mnemonic);
-
+    console.log("client", client);
     const pools = await client.listPools({
       assetAAddress: tokenAAddress,
       assetBAddress: tokenBAddress,
@@ -190,7 +191,7 @@ export const findBestPool = async (
       minTvl: options.minTvl || 1000,
       limit: options.limit || 10,
     });
-
+    console.log("pools", pools);
     if (!pools.pools || pools.pools.length === 0) {
       throw new Error(
         i18next.t("screens.inAccount.swapsPage.noPoolsFoundError", {
@@ -808,10 +809,16 @@ export const completeSwapConfirmation = async (
     setFlashnetTransfer(swap.inboundTransferId);
     setFlashnetTransfer(txDetails.id);
 
+    let paymentType;
+    if (import.meta.env.MODE === "development") {
+      paymentType = "sparkrt";
+    } else {
+      paymentType = "spark";
+    }
     const tx = {
       id: swap.outboundTransferId,
       paymentStatus: "completed",
-      paymentType: "spark",
+      paymentType: paymentType,
       accountId: sparkInfoRef.current.identityPubKey,
       details: {
         fee: realFeeAmount,
@@ -1107,9 +1114,9 @@ export function dollarsToSats(dollars, currentPriceAinB) {
       typeof currentPriceAinB === "bigint"
         ? Number(currentPriceAinB)
         : Number(currentPriceAinB || 0);
-    console.log(currentPriceAinB);
-    console.log(numDollars);
-    console.log(numPrice);
+    console.log("currentPriceAinB", currentPriceAinB);
+    console.log("numDollars", numDollars);
+    console.log("numPrice", numPrice);
 
     if (isNaN(numDollars) || isNaN(numPrice) || numPrice === 0) {
       return 0;
@@ -1318,6 +1325,7 @@ export const checkClawbackEligibility = async (mnemonic, sparkTransferId) => {
 export const checkClawbackStatus = async (mnemonic, internalRequestId) => {
   try {
     const client = getFlashnetClient(mnemonic);
+    console.log("client", client);
     const status = await client.checkClawbackStatus({ internalRequestId });
 
     return {

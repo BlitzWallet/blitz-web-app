@@ -100,9 +100,9 @@ export default function CreateGift() {
 
   // Parse input in a way that allows USD decimals
   const parsedNumber = useMemo(() => {
-    console.log(amountInput);
+    console.log("amountInput", amountInput);
     const s = String(amountInput).trim();
-    console.log(s);
+    console.log("s", s);
     if (!s) return 0;
     // allow decimals for USD; sats should be integer but we’ll floor later
     const n = Number(s);
@@ -120,7 +120,7 @@ export default function CreateGift() {
    * - if giftDenomination === "USD": treat input as USD, compute sats using current price
    */
   const amount = useMemo(() => {
-    console.log(parsedNumber);
+    console.log("parsedNumber", parsedNumber);
     if (!parsedNumber) return 0;
     if (giftDenomination === "BTC")
       return Math.max(0, Math.floor(parsedNumber));
@@ -128,19 +128,19 @@ export default function CreateGift() {
     // NOTE: mobile uses route params amount/amountValue; their amount probably already computed elsewhere.
     // For parity here, we compute sats from USD.
     const usd = parsedNumber;
-    console.log(usd);
-    console.log(poolInfoRef);
+    console.log("usd", usd);
+    console.log("poolInfoRef", poolInfoRef);
     const sats = dollarsToSats(usd, poolInfoRef.currentPriceAInB);
-    console.log(sats);
+    console.log("sats", sats);
     return Math.max(0, Math.floor(sats));
   }, [parsedNumber, giftDenomination, poolInfoRef.currentPriceAInB]);
 
   const convertedSatAmount = amount;
-  console.log(convertedSatAmount);
+  console.log("convertedSatAmount", convertedSatAmount);
   const trueFiatAmount = useMemo(() => {
     if (!parsedNumber) return 0;
     if (giftDenomination === "USD") {
-      console.log(parsedNumber);
+      console.log("parsedNumber", parsedNumber);
       // input is USD -> microUSD
       return Math.round(parsedNumber * Math.pow(10, 6));
     }
@@ -178,13 +178,13 @@ export default function CreateGift() {
   // ---------------- Swap simulation (same logic as mobile) ----------------
   useEffect(() => {
     const calculateSwapSimulation = async () => {
-      console.log(convertedSatAmount);
+      console.log("convertedSatAmount", convertedSatAmount);
       if (!convertedSatAmount) {
         simulationPromiseRef.current = null;
         setSimulationResult(null);
         return;
       }
-      console.log(bitcoinBalance);
+      console.log("bitcoinBalance", bitcoinBalance);
       const hasBTCBalance = bitcoinBalance >= convertedSatAmount;
       const hasUSDBalance = dollarBalanceSat >= convertedSatAmount;
 
@@ -196,7 +196,7 @@ export default function CreateGift() {
       let needsSwap = false;
       let paymentMethod = null;
 
-      console.log(giftDenomination);
+      console.log("giftDenomination", giftDenomination);
       // Determine if swap is needed based on gift denomination
       if (giftDenomination === "BTC") {
         const canPayBTCtoBTC = hasBTCBalance;
