@@ -366,8 +366,7 @@ export const TxItem = memo(function TxItem({
         : null,
     [isLRC20Payment, sparkInformation.tokens, transaction.details.LRC20Token],
   );
-
-  const isPending =
+  const showPendingTransactionStatusIcon =
     transaction.paymentStatus === TRANSACTION_CONSTANTS.PENDING ||
     transaction.isBalancePending ||
     showSwapConversion;
@@ -382,9 +381,13 @@ export const TxItem = memo(function TxItem({
     isFailedPayment,
     isReceive,
   );
-  const IconComponent = ICON_MAP[iconName] || ArrowDown;
 
   const isGrayMode = theme && darkModeType;
+
+  const iconBg =
+    frompage === TRANSACTION_CONSTANTS.HOME
+      ? backgroundColor
+      : backgroundOffset;
 
   const iconColor = isGrayMode
     ? textColor
@@ -394,14 +397,15 @@ export const TxItem = memo(function TxItem({
         : Colors.constants.cancelRed
       : Colors.constants.blue;
 
-  const iconBg =
-    frompage === TRANSACTION_CONSTANTS.HOME
-      ? backgroundColor
-      : backgroundOffset;
+  const amountColor = textColor;
 
   const paymentDescription = transaction.details?.description?.trim();
   const isDefaultDescription =
     paymentDescription === BLITZ_DEFAULT_PAYMENT_DESCRIPTION;
+
+  const IconComponent = showPendingTransactionStatusIcon
+    ? ICON_MAP["Clock"]
+    : ICON_MAP[iconName] || ArrowDown;
 
   const descriptionContent = useMemo(() => {
     if (isFailedPayment) return t("transactionLabelText.notSent");
