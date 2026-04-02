@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import MascotWalking from "../../components/mascotWalking";
 import "./style.css";
-import ThemeText from "../../components/themeText/themeText";
-import { useBitcoinPriceContext } from "../../contexts/bitcoinPriceContext";
 import { useAuth } from "../../contexts/authContext";
 import initializeUserSettings from "../../functions/initializeUserSettings";
 import { useKeysContext } from "../../contexts/keysContext";
@@ -12,16 +10,11 @@ import { useGlobalContacts } from "../../contexts/globalContacts";
 import { initializeDatabase } from "../../functions/messaging/cachedMessages";
 import { initializePOSTransactionsDatabase } from "../../functions/pos";
 import { initializeSparkDatabase } from "../../functions/spark/transactions";
-import { getCachedSparkTransactions } from "../../functions/spark";
-import { useLiquidEvent } from "../../contexts/liquidEventContext";
 import { useSpark } from "../../contexts/sparkContext";
 import { useNavigate } from "react-router-dom";
-import { useNodeContext } from "../../contexts/nodeContext.jsx";
 import { Colors } from "../../constants/theme.js";
 import { useThemeContext } from "../../contexts/themeContext.jsx";
 import useThemeColors from "../../hooks/useThemeColors.js";
-import loadNewFiatData from "../../functions/saveAndUpdateFiatData.js";
-import Storage from "../../functions/localStorage.js";
 import { useTranslation } from "react-i18next";
 import { Settings } from "lucide-react";
 
@@ -49,26 +42,7 @@ export default function LoadingScreen() {
 
   const { toggleGlobalAppDataInformation } = useGlobalAppData();
 
-  const [loadingMessage, setLoadingMessage] = useState(
-    "Please don't leave the tab"
-  );
   const [hasError, setHasError] = useState("");
-
-  useEffect(() => {
-    if (didInitializeMessageIntervalRef.current) return;
-    didInitializeMessageIntervalRef.current = true;
-
-    const intervalRef = setInterval(() => {
-      console.log("runngin in the interval");
-      setLoadingMessage((prev) =>
-        prev === "Please don't leave the tab"
-          ? "We are setting things up"
-          : "Please don't leave the tab"
-      );
-    }, 5000);
-
-    return () => clearInterval(intervalRef);
-  }, []);
 
   useEffect(() => {
     async function startConnectProcess() {
@@ -113,7 +87,7 @@ export default function LoadingScreen() {
 
           if (!didLoadUserSettings)
             throw new Error(
-              t("screens.inAccount.loadingScreen.userSettingsError")
+              t("screens.inAccount.loadingScreen.userSettingsError"),
             );
         }
 
@@ -122,12 +96,12 @@ export default function LoadingScreen() {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(
           0,
-          (hasSavedInfo ? 500 : 800) - elapsedTime
+          (hasSavedInfo ? 500 : 800) - elapsedTime,
         );
 
         if (remainingTime > 0) {
           console.log(
-            `Waiting ${remainingTime}ms to reach minimum 1s duration`
+            `Waiting ${remainingTime}ms to reach minimum 1s duration`,
           );
           await new Promise((resolve) => setTimeout(resolve, remainingTime));
         }
@@ -160,10 +134,6 @@ export default function LoadingScreen() {
       <div className="mascotContainer">
         <MascotWalking />
       </div>
-      <ThemeText
-        textStyles={{ color: theme ? textColor : Colors.light.blue }}
-        textContent={hasError ? hasError : loadingMessage}
-      />
     </div>
   );
 }
