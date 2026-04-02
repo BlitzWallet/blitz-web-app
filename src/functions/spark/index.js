@@ -519,12 +519,20 @@ export const getSparkPaymentStatus = (status) => {
     status === LightningSendRequestStatus.PREIMAGE_PROVIDED ||
     status === SparkLeavesSwapRequestStatus.SUCCEEDED ||
     status === SparkUserRequestStatus.SUCCEEDED ||
-    status === ClaimStaticDepositStatus.TRANSFER_COMPLETED
+    status === ClaimStaticDepositStatus.TRANSFER_COMPLETED ||
+    status === ClaimStaticDepositStatus.SPEND_TX_BROADCAST ||
+    status === LightningSendRequestStatus.LIGHTNING_PAYMENT_SUCCEEDED ||
+    status == LightningReceiveRequestStatus.LIGHTNING_PAYMENT_RECEIVED
     ? "completed"
     : status === "TRANSFER_STATUS_RETURNED" ||
         status === "TRANSFER_STATUS_EXPIRED" ||
         status === "TRANSFER_STATUS_SENDER_INITIATED" ||
+        status === LightningSendRequestStatus.USER_SWAP_RETURNED ||
         status === LightningSendRequestStatus.LIGHTNING_PAYMENT_FAILED ||
+        status === LightningSendRequestStatus.TRANSFER_FAILED ||
+        status === LightningSendRequestStatus.USER_TRANSFER_VALIDATION_FAILED ||
+        status === LightningSendRequestStatus.PREIMAGE_PROVIDING_FAILED ||
+        status === LightningSendRequestStatus.USER_SWAP_RETURN_FAILED ||
         status === SparkCoopExitRequestStatus.FAILED ||
         status === SparkCoopExitRequestStatus.EXPIRED ||
         status === LightningReceiveRequestStatus.TRANSFER_FAILED ||
@@ -533,13 +541,16 @@ export const getSparkPaymentStatus = (status) => {
         status ===
           LightningReceiveRequestStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED ||
         status === LightningReceiveRequestStatus.REFUND_SIGNING_FAILED ||
+        status === LightningReceiveRequestStatus.TRANSFER_CREATION_FAILED ||
         status === SparkLeavesSwapRequestStatus.FAILED ||
         status === SparkLeavesSwapRequestStatus.EXPIRED ||
         status === SparkUserRequestStatus.FAILED ||
+        status === SparkUserRequestStatus.CANCELED ||
         status === ClaimStaticDepositStatus.TRANSFER_CREATION_FAILED ||
         status === ClaimStaticDepositStatus.REFUND_SIGNING_FAILED ||
         status === ClaimStaticDepositStatus.UTXO_SWAPPING_FAILED ||
-        status === LightningReceiveRequestStatus.FUTURE_VALUE
+        status ===
+          ClaimStaticDepositStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED
       ? "failed"
       : "pending";
 };
