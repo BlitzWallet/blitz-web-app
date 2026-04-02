@@ -52,20 +52,20 @@ export default function Contacts() {
 
   const contactInfoList = useProcessedContacts(
     decodedAddedContacts,
-    contactsMessags
+    contactsMessags,
   );
 
   const filteredContacts =
     useFilteredContacts(
       contactInfoList,
       inputText.trim(),
-      hideUnknownContacts
+      hideUnknownContacts,
     ) ?? [];
   const profileContainerStyle = useMemo(
     () => ({
       backgroundColor: backgroundOffset,
     }),
-    [backgroundOffset]
+    [backgroundOffset],
   );
 
   const searchInputStyle = useMemo(
@@ -74,14 +74,14 @@ export default function Contacts() {
       paddingBottom: "10px",
       backgroundColor,
     }),
-    [backgroundColor]
+    [backgroundColor],
   );
 
   const scrollContentStyle = useMemo(
     () => ({
       paddingTop: contactInfoList.some((c) => c.contact.isFavorite) ? 0 : 10,
     }),
-    [contactInfoList]
+    [contactInfoList],
   );
 
   const showAddContactRowItem =
@@ -101,7 +101,7 @@ export default function Contacts() {
         if (!contact.isAdded) {
           let newAddedContacts = [...decodedAddedContacts];
           const indexOfContact = decodedAddedContacts.findIndex(
-            (obj) => obj.uuid === contact.uuid
+            (obj) => obj.uuid === contact.uuid,
           );
 
           let newContact = newAddedContacts[indexOfContact];
@@ -113,10 +113,10 @@ export default function Contacts() {
               addedContacts: await encryptMessage(
                 contactsPrivateKey,
                 publicKey,
-                JSON.stringify(newAddedContacts)
+                JSON.stringify(newAddedContacts),
               ),
             },
-            true
+            true,
           );
         }
         navigate("/expandedContactsPage", {
@@ -136,7 +136,7 @@ export default function Contacts() {
       contactsPrivateKey,
       publicKey,
       navigate,
-    ]
+    ],
   );
 
   const pinnedContacts = useMemo(() => {
@@ -205,7 +205,7 @@ export default function Contacts() {
           numberOfContacts={filteredContacts?.length}
           t={t}
           openOverlay={openOverlay}
-        />
+        />,
       );
     }
     return contacts;
@@ -249,7 +249,7 @@ export default function Contacts() {
 
   const hasContacts =
     decodedAddedContacts.filter(
-      (contact) => !hideUnknownContacts || contact.isAdded
+      (contact) => !hideUnknownContacts || contact.isAdded,
     ).length !== 0;
 
   const stickyHeaderIndicesValue = useMemo(() => {
@@ -338,10 +338,11 @@ export default function Contacts() {
           />
 
           <CustomButton
-            buttonStyles={{
-              // ...CENTER,
-              width: "auto",
-            }}
+            buttonStyles={
+              {
+                // ...CENTER,
+              }
+            }
             actionFunction={handleButtonPress}
             textContent={`${didEditProfile ? "Add contact" : "Edit profile"}`}
           />
@@ -372,7 +373,7 @@ export const PinnedContactElement = memo(
         if (!contact.isAdded) return;
         navigate("ContactsPageLongPressActions", { contact });
       },
-      [contact, navigate]
+      [contact, navigate],
     );
 
     const handlePress = useCallback(() => {
@@ -420,7 +421,7 @@ export const PinnedContactElement = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 export const ContactElement = memo(
@@ -450,7 +451,7 @@ export const ContactElement = memo(
       ? createFormattedDate(
           lastUpdated - serverTimeOffset,
           currentTime - serverTimeOffset,
-          t
+          t,
         )
       : "";
 
@@ -529,7 +530,7 @@ export const ContactElement = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 export const AddContactRowItem = memo(
   ({
@@ -588,5 +589,5 @@ export const AddContactRowItem = memo(
         </div>
       </div>
     );
-  }
+  },
 );
