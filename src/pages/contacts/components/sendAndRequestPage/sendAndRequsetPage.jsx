@@ -64,7 +64,7 @@ export default function SendAndRequestPage(props) {
   const [descriptionValue, setDescriptionValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [inputDenomination, setInputDenomination] = useState(
-    masterInfoObject.userBalanceDenomination
+    masterInfoObject.userBalanceDenomination,
   );
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { theme, darkModeType } = useThemeContext();
@@ -90,16 +90,16 @@ export default function SendAndRequestPage(props) {
       (isBTCdenominated
         ? Math.round(amountValue)
         : Math.round(
-            (SATSPERBITCOIN / fiatStats?.value) * (amountValue / 100)
+            (SATSPERBITCOIN / fiatStats?.value) * (amountValue / 100),
           )) || 0,
-    [amountValue, fiatStats, isBTCdenominated]
+    [amountValue, fiatStats, isBTCdenominated],
   );
 
   console.log(amountValue, convertedSendAmount, "testing");
 
   const canSendPayment = useMemo(
     () => convertedSendAmount,
-    [convertedSendAmount, paymentType]
+    [convertedSendAmount, paymentType],
   );
 
   const switchTextToConfirm = useMemo(() => {
@@ -130,7 +130,7 @@ export default function SendAndRequestPage(props) {
             sendingBalance,
             undefined,
             false,
-            domain
+            domain,
           );
           if (!lnurlResposne) throw new Error("Unable to get invoice");
           const invoice = lnurlResposne;
@@ -146,7 +146,7 @@ export default function SendAndRequestPage(props) {
 
           maxAmountSats = Math.max(
             Number(sendingBalance) - fee.fee + fee.supportFee,
-            0
+            0,
           );
         } else {
           const feeResponse = await sparkPaymenWrapper({
@@ -160,7 +160,7 @@ export default function SendAndRequestPage(props) {
           if (!feeResponse.didWork) throw new Error("Unable to get invoice");
           maxAmountSats = Math.max(
             Number(sendingBalance) - feeResponse.fee + feeResponse.supportFee,
-            0
+            0,
           );
         }
 
@@ -187,7 +187,7 @@ export default function SendAndRequestPage(props) {
       inputDenomination,
       currentWalletMnemoinc,
       selectedContact,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -196,15 +196,15 @@ export default function SendAndRequestPage(props) {
       return;
     }
     const totalSats = Math.round(
-      giftOption.selectedDenomination * giftOption.satsPerDollar
+      giftOption.selectedDenomination * giftOption.satsPerDollar,
     );
     const localfiatSatsPerDollar = fiatStats.value / SATSPERBITCOIN;
     setAmountValue(
       String(
         isBTCdenominated
           ? totalSats
-          : Math.round(localfiatSatsPerDollar * totalSats)
-      )
+          : Math.round(localfiatSatsPerDollar * totalSats),
+      ),
     );
   }, [giftOption]);
 
@@ -257,7 +257,7 @@ export default function SendAndRequestPage(props) {
       if (giftOption) {
         const retrivedContact = await getDataFromCollection(
           "blitzWalletUsers",
-          selectedContact.uuid
+          selectedContact.uuid,
         );
         if (!retrivedContact) {
           openOverlay({
@@ -270,7 +270,7 @@ export default function SendAndRequestPage(props) {
           openOverlay({
             for: "error",
             errorMessage: t(
-              "contacts.sendAndRequestPage.giftCardappVersionError"
+              "contacts.sendAndRequestPage.giftCardappVersionError",
             ),
           });
           return;
@@ -287,7 +287,7 @@ export default function SendAndRequestPage(props) {
           "theBitcoinCompanyV3",
           postData,
           contactsPrivateKey,
-          publicKey
+          publicKey,
         );
 
         if (response.result) {
@@ -298,7 +298,7 @@ export default function SendAndRequestPage(props) {
                 "usd",
                 contactsPrivateKey,
                 publicKey,
-                masterInfoObject
+                masterInfoObject,
               ));
           const USDBTCValue = fiatRates.didWork
             ? fiatRates.fiatRateResponse
@@ -536,7 +536,11 @@ export default function SendAndRequestPage(props) {
                 return newPrev;
               });
               setAmountValue(
-                convertTextInputValue(amountValue, fiatStats, inputDenomination)
+                convertTextInputValue(
+                  amountValue,
+                  fiatStats,
+                  inputDenomination,
+                ),
               );
             }}
           />
@@ -677,9 +681,7 @@ export default function SendAndRequestPage(props) {
                   setIsAmountFocused(true);
                 }}
                 textInputRef={descriptionRef}
-                placeholder={t(
-                  "contacts.sendAndRequestPage.descriptionPlaceholder"
-                )}
+                placeholder={t("constants.paymentDescriptionPlaceholder")}
                 customInputStyles={{
                   borderRadius: useAltLayout ? 15 : 8,
                   height: useAltLayout ? 50 : "unset",
