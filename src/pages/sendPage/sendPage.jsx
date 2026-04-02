@@ -73,7 +73,7 @@ export default function SendPage() {
   const [loadingMessage, setLoadingMessage] = useState(
     sparkInformation.didConnect
       ? t("wallet.sendPages.sendPaymentScreen.initialLoadingMessage")
-      : t("wallet.sendPages.sendPaymentScreen.connectToSparkMessage")
+      : t("wallet.sendPages.sendPaymentScreen.connectToSparkMessage"),
   );
   const navigate = useNavigate();
 
@@ -92,14 +92,14 @@ export default function SendPage() {
     selectedLRC20Asset !== "Bitcoin"
       ? formatTokensNumber(
           seletctedToken?.balance,
-          seletctedToken?.tokenMetadata?.decimals
+          seletctedToken?.tokenMetadata?.decimals,
         )
       : sparkInformation.balance;
 
   const convertedSendAmount = isBTCdenominated
     ? Math.round(Number(sendingAmount))
     : Math.round(
-        (SATSPERBITCOIN / (fiatStats?.value || 65000)) * Number(sendingAmount)
+        (SATSPERBITCOIN / (fiatStats?.value || 65000)) * Number(sendingAmount),
       ) || 0;
 
   const isLightningPayment = paymentInfo?.paymentNetwork === "lightning";
@@ -128,7 +128,7 @@ export default function SendPage() {
     "can send payment",
     userBalance,
     paymentFee,
-    paymentInfo
+    paymentInfo,
   ); //ecash is built into ln);
   const isUsingSwapWithZeroInvoice =
     paymentInfo?.paymentNetwork === "lightning" &&
@@ -169,6 +169,7 @@ export default function SendPage() {
         seletctedToken,
         currentWalletMnemoinc,
         t,
+        openOverlay,
       });
     }
     decodePayment();
@@ -202,7 +203,7 @@ export default function SendPage() {
     try {
       const formmateedSparkPaymentInfo = formatSparkPaymentAddress(
         paymentInfo,
-        false
+        false,
       );
 
       // manipulate paymetn details here
@@ -222,8 +223,8 @@ export default function SendPage() {
           ? paymentInfo?.sendAmount *
             10 ** seletctedToken?.tokenMetadata?.decimals
           : paymentInfo?.type === "Bitcoin"
-          ? convertedSendAmount + (paymentInfo?.paymentFee || 0)
-          : convertedSendAmount,
+            ? convertedSendAmount + (paymentInfo?.paymentFee || 0)
+            : convertedSendAmount,
         masterInfoObject,
         fee: paymentFee,
         memo,
@@ -306,7 +307,7 @@ export default function SendPage() {
               amount: minMaxLiquidSwapAmounts.min,
               masterInfoObject,
               fiatStats,
-            }
+            },
           )}`,
         });
         return;
@@ -323,7 +324,7 @@ export default function SendPage() {
               amount: SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT,
               fiatStats,
               masterInfoObject,
-            }
+            },
           )}`,
         });
         return;
@@ -548,22 +549,22 @@ export default function SendPage() {
               opacity: isSendingPayment
                 ? 1
                 : canSendPayment &&
-                  !(
-                    isLiquidPayment &&
-                    (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
-                      convertedSendAmount > minMaxLiquidSwapAmounts.max)
-                  ) &&
-                  !(
-                    paymentInfo?.type === "lnUrlPay" &&
-                    (convertedSendAmount < minLNURLSatAmount ||
-                      convertedSendAmount > maxLNURLSatAmount)
-                  ) &&
-                  !(
-                    paymentInfo?.type === "Bitcoin" &&
-                    convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
-                  )
-                ? 1
-                : 0.5,
+                    !(
+                      isLiquidPayment &&
+                      (convertedSendAmount < minMaxLiquidSwapAmounts.min ||
+                        convertedSendAmount > minMaxLiquidSwapAmounts.max)
+                    ) &&
+                    !(
+                      paymentInfo?.type === "lnUrlPay" &&
+                      (convertedSendAmount < minLNURLSatAmount ||
+                        convertedSendAmount > maxLNURLSatAmount)
+                    ) &&
+                    !(
+                      paymentInfo?.type === "Bitcoin" &&
+                      convertedSendAmount < SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
+                    )
+                  ? 1
+                  : 0.5,
               margin: "auto auto 0",
             }}
             actionFunction={() => {
@@ -575,8 +576,8 @@ export default function SendPage() {
                   ? "Loading..."
                   : "Save"
                 : isSendingPayment
-                ? "Sending..."
-                : "Send Payment"
+                  ? "Sending..."
+                  : "Send Payment"
             }
             useLoading={isSendingPayment || isLoading}
           />
