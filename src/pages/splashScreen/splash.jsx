@@ -10,7 +10,7 @@ import { initializeDatabase } from "../../functions/messaging/cachedMessages";
 import { initializePOSTransactionsDatabase } from "../../functions/pos";
 import { initializeSparkDatabase } from "../../functions/spark/transactions";
 // import { initRootstockSwapDB } from "../../functions/boltz/rootstock/swapDb";
-// import { initGiftDb } from "../../functions/gift/giftsStorage";
+import { initGiftDb } from "../../functions/gift/giftsStorage";
 // import { initPoolDb } from "../../functions/pools/poolsStorage";
 // import { initSavingsDb } from "../../functions/savings/savingsStorage";
 
@@ -50,7 +50,7 @@ export default function SplashScreen({ onInit, onDone }) {
         const posTransactions = await initializePOSTransactionsDatabase();
         const sparkTxs = await initializeSparkDatabase();
         // const rootstockSwaps = await initRootstockSwapDB();
-        // const giftsDb = await initGiftDb();
+        const giftsDb = await initGiftDb();
         // const poolsDB = await initPoolDb();
         // const savingsDB = await initSavingsDb();
 
@@ -58,9 +58,9 @@ export default function SplashScreen({ onInit, onDone }) {
           !didOpen ||
           //   !giftCardTable ||
           !posTransactions ||
-          !sparkTxs //||
+          !sparkTxs ||
           //   !rootstockSwaps ||
-          //   !giftsDb ||
+          !giftsDb //||
           //   !poolsDB ||
           //   !savingsDB
         )

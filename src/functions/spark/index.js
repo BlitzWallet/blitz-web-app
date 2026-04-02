@@ -16,8 +16,11 @@ import {
   saveCachedTokens,
 } from "../lrc20/cachedTokens";
 import Storage from "../localStorage";
+import { FlashnetClient } from "@flashnet/sdk";
 
 export let sparkWallet = {};
+export let flashnetClients = {};
+let initializingWallets = {};
 
 // Hash cache to avoid recalculating hashes
 const mnemonicHashCache = new Map();
@@ -39,6 +42,15 @@ const getWallet = (mnemonic) => {
   }
 
   return wallet;
+};
+
+export const getFlashnetClient = (mnemonic) => {
+  const hash = getMnemonicHash(mnemonic);
+  const client = flashnetClients[hash];
+  if (!client) {
+    throw new Error("Flashnet client not initialized");
+  }
+  return client;
 };
 
 // Clear cache when needed (call this on logout/cleanup)
@@ -70,6 +82,22 @@ export const initializeSparkWallet = async (mnemonic) => {
   } catch (err) {
     console.log("Initialize spark wallet error function", err);
     return { isConnected: false, error: err.message };
+  }
+};
+
+export const initializeFlashnet = async (mnemonic) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const flashnetAPI = new FlashnetClient(wallet, {
+      autoAuthenticate: true,
+    });
+    await flashnetAPI.initialize();
+
+    flashnetClients[sha256Hash(mnemonic)] = flashnetAPI;
+    return true;
+  } catch (err) {
+    console.log("Error initializing flashnet", err);
+    return false;
   }
 };
 

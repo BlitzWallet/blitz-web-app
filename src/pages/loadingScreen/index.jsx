@@ -7,25 +7,21 @@ import { useKeysContext } from "../../contexts/keysContext";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useGlobalAppData } from "../../contexts/appDataContext";
 import { useGlobalContacts } from "../../contexts/globalContacts";
-import { initializeDatabase } from "../../functions/messaging/cachedMessages";
-import { initializePOSTransactionsDatabase } from "../../functions/pos";
-import { initializeSparkDatabase } from "../../functions/spark/transactions";
 import { useSpark } from "../../contexts/sparkContext";
 import { useNavigate } from "react-router-dom";
 import { Colors } from "../../constants/theme.js";
 import { useThemeContext } from "../../contexts/themeContext.jsx";
-import useThemeColors from "../../hooks/useThemeColors.js";
 import { useTranslation } from "react-i18next";
 import { Settings } from "lucide-react";
+import { privateKeyFromSeedWords } from "../../functions/seed.js";
+import { deriveSparkIdentityKey } from "../../functions/gift/deriveGiftWallet.js";
+import { getPublicKey } from "nostr-tools";
+import { getCachedSparkTransactions } from "../../functions/spark/index.js";
+import { getAccountBalanceSnapshot } from "../../functions/spark/balanceSnapshots.js";
+import ThemeText from "../../components/themeText/themeText.jsx";
 
 export default function LoadingScreen() {
-  const didInitializeMessageIntervalRef = useRef(false);
-  const didInitializeWalletRef = useRef(false);
-  const didLoadInformation = useRef(false);
   const navigate = useNavigate();
-  const { theme, darkModeType } = useThemeContext();
-  const { textColor } = useThemeColors();
-  const { connectToSparkWallet } = useSpark();
   const {
     toggleMasterInfoObject,
     masterInfoObject,
@@ -33,14 +29,14 @@ export default function LoadingScreen() {
     preloadedUserData,
     setPreLoadedUserData,
   } = useGlobalContextProvider();
-  const { mnemoinc } = useAuth();
+  const { connectToSparkWallet, setSparkInformation } = useSpark();
+  const { theme, darkModeType } = useThemeContext();
   const { toggleContactsPrivateKey } = useKeysContext();
-  const { toggleGlobalContactsInformation, globalContactsInformation } =
-    useGlobalContacts();
+  const { mnemoinc } = useAuth();
+  const { toggleGlobalContactsInformation } = useGlobalContacts();
+  const { toggleGlobalAppDataInformation } = useGlobalAppData();
   const didRunConnectionRef = useRef(false);
   const { t } = useTranslation();
-
-  const { toggleGlobalAppDataInformation } = useGlobalAppData();
 
   const [hasError, setHasError] = useState("");
 
@@ -50,53 +46,60 @@ export default function LoadingScreen() {
 
       try {
         console.log("Process 1", new Date().getTime());
-        connectToSparkWallet();
+
+        const [privateKey, identityPubKey] = await Promise.all([
+          privateKeyFromSeedWords(mnemoinc),
+          deriveSparkIdentityKey(mnemoinc),
+        ]);
+
+        connectToSparkWallet(identityPubKey.publicKeyHex);
+
+        const publicKey = privateKey ? getPublicKey(privateKey) : null;
+        if (!privateKey || !publicKey)
+          throw new Error(
+            t("screens.inAccount.loadingScreen.userSettingsError"),
+          );
 
         const hasSavedInfo = Object.keys(masterInfoObject || {}).length > 5; //arbitrary number but filters out onboarding items
 
-        if (!hasSavedInfo) {
-          // connectToLiquidNode(accountMnemoinc);
-          const [
-            didOpen,
-            giftCardTable,
-            posTransactions,
-            // sparkTxs,
-            // rootstockSwaps,
-          ] = await Promise.all([
-            initializeDatabase(),
-            initializePOSTransactionsDatabase(),
-            initializeSparkDatabase(),
+        const [placeholderTxs, balanceSnapshot, didLoadUserSettings] =
+          await Promise.all([
+            getCachedSparkTransactions(20, identityPubKey.publicKeyHex),
+            getAccountBalanceSnapshot(identityPubKey.publicKeyHex),
+            hasSavedInfo
+              ? Promise.resolve(true)
+              : initializeUserSettings({
+                  setMasterInfoObject,
+                  toggleGlobalContactsInformation,
+                  toggleGlobalAppDataInformation,
+                  toggleMasterInfoObject,
+                  preloadedData: preloadedUserData.data,
+                  setPreLoadedUserData,
+                  privateKey,
+                  publicKey,
+                }),
           ]);
 
-          if (!didOpen || !posTransactions || !giftCardTable)
-            throw new Error("Database initialization failed");
-
-          const didLoadUserSettings = await initializeUserSettings({
-            mnemoinc,
-            toggleContactsPrivateKey,
-            setMasterInfoObject,
-            toggleGlobalContactsInformation,
-            // toggleGLobalEcashInformation,
-            toggleGlobalAppDataInformation,
-            toggleMasterInfoObject,
-            preloadedData: preloadedUserData.data,
-            setPreLoadedUserData,
-          });
-
-          console.log("Process 2", new Date().getTime());
-
+        if (!hasSavedInfo) {
           if (!didLoadUserSettings)
             throw new Error(
               t("screens.inAccount.loadingScreen.userSettingsError"),
             );
         }
 
-        console.log("Process 3", new Date().getTime());
+        toggleContactsPrivateKey(privateKey);
+        console.log(balanceSnapshot, placeholderTxs, "balance and tx snapshot");
+
+        setSparkInformation((prev) => ({
+          ...prev,
+          transactions: placeholderTxs,
+          ...(balanceSnapshot ?? {}),
+        }));
 
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(
           0,
-          (hasSavedInfo ? 500 : 800) - elapsedTime,
+          (hasSavedInfo ? 500 : 1500) - elapsedTime,
         );
 
         if (remainingTime > 0) {
@@ -114,6 +117,7 @@ export default function LoadingScreen() {
     }
     if (preloadedUserData.isLoading && !preloadedUserData.data) return;
     if (didRunConnectionRef.current) return;
+    if (!mnemoinc) return;
     didRunConnectionRef.current = true;
 
     startConnectProcess();
@@ -134,6 +138,14 @@ export default function LoadingScreen() {
       <div className="mascotContainer">
         <MascotWalking />
       </div>
+      {hasError && (
+        <ThemeText
+          textStyles={{
+            color: theme ? Colors.dark.text : Colors.constants.blue,
+          }}
+          textContent={hasError}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,10 @@ export const LIGHTNING_REQUEST_IDS_TABLE_NAME = "LIGHTNING_REQUEST_IDS";
 export const SPARK_REQUEST_IDS_TABLE_NAME = "SPARK_REQUEST_IDS";
 export const sparkTransactionsEventEmitter = new EventEmitter();
 export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
+
+export const HANDLE_FLASHNET_AUTO_SWAP = "HANDLE_FLASHNET_AUTO_SWAP";
+export const flashnetAutoSwapsEventListener = new EventEmitter();
+
 let bulkUpdateTransactionQueue = [];
 let isProcessingBulkUpdate = false;
 
@@ -540,6 +544,118 @@ export const addSingleSparkTransaction = async (tx) => {
   } catch (err) {
     console.error("addSingleSparkTransaction error:", err);
     return false;
+  }
+};
+
+export const updateSparkTransactionDetails = async (
+  sparkRequestID,
+  newDetails,
+) => {
+  if (!sparkRequestID || typeof newDetails !== "object") {
+    console.error("Invalid arguments passed to updateSparkTransactionDetails");
+    return false;
+  }
+
+  try {
+    const db = await dbPromise;
+
+    const existing = await db.get(
+      LIGHTNING_REQUEST_IDS_TABLE_NAME,
+      sparkRequestID,
+    );
+
+    if (!existing) {
+      console.error("Transaction not found for sparkID:", sparkRequestID);
+      return false;
+    }
+
+    let existingDetails = {};
+    try {
+      existingDetails = existing.details
+        ? typeof existing.details === "string"
+          ? JSON.parse(existing.details)
+          : existing.details
+        : {};
+    } catch {
+      console.warn("Failed to parse existing details JSON, resetting it");
+    }
+
+    const mergedDetails = { ...existingDetails, ...newDetails };
+
+    await db.put(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
+      ...existing,
+      details: JSON.stringify(mergedDetails),
+    });
+
+    if (newDetails.performSwaptoUSD) {
+      flashnetAutoSwapsEventListener.emit(
+        HANDLE_FLASHNET_AUTO_SWAP,
+        sparkRequestID,
+      );
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error updating spark transaction details:", error);
+    return false;
+  }
+};
+
+export const getSingleSparkLightningRequest = async (sparkRequestID) => {
+  if (!sparkRequestID) {
+    console.error("Invalid sparkRequestID provided");
+    return null;
+  }
+
+  try {
+    const db = await dbPromise;
+    const row = await db.get(LIGHTNING_REQUEST_IDS_TABLE_NAME, sparkRequestID);
+
+    if (!row) {
+      console.error("Lightning request not found for sparkID:", sparkRequestID);
+      return null;
+    }
+
+    if (row.details) {
+      try {
+        row.details =
+          typeof row.details === "string"
+            ? JSON.parse(row.details)
+            : row.details;
+      } catch (error) {
+        console.warn("Failed to parse request details JSON");
+      }
+    }
+
+    return row;
+  } catch (error) {
+    console.error("Error fetching single lightning request:", error);
+    return null;
+  }
+};
+
+export const getPendingAutoSwaps = async () => {
+  try {
+    const db = await dbPromise;
+
+    const all = await db.getAll(LIGHTNING_REQUEST_IDS_TABLE_NAME);
+
+    return all
+      .map((row) => ({
+        ...row,
+        details: parseDetailsToObject(row.details),
+      }))
+      .filter(
+        (row) =>
+          row.details.finalSparkID != null &&
+          (row.details.performSwaptoUSD === 1 ||
+            row.details.performSwaptoUSD === true ||
+            row.details.performSwaptoUSD == null) &&
+          !row.details.completedSwaptoUSD,
+      );
+  } catch (error) {
+    console.error("Error fetching pending auto swaps:", error);
+    return [];
   }
 };
 

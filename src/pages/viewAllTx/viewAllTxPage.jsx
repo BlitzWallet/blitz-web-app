@@ -5,7 +5,7 @@ export default function ViewAllTxsPage() {
   return (
     <div className="viewAllTxPage">
       <PageNavBar text="Transactions" />
-      <TransactionContanier frompage={"viewalltx"} />
+      <TransactionContanier frompage={"viewAllTx"} />
     </div>
   );
 }
