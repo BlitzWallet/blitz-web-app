@@ -643,7 +643,7 @@ export const getPendingAutoSwaps = async () => {
     return all
       .map((row) => ({
         ...row,
-        details: parseDetailsToObject(row.details),
+        details: JSON.parse(row.details),
       }))
       .filter(
         (row) =>

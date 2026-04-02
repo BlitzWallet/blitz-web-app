@@ -11,6 +11,7 @@ import { initializePOSTransactionsDatabase } from "../../functions/pos";
 import { initializeSparkDatabase } from "../../functions/spark/transactions";
 // import { initRootstockSwapDB } from "../../functions/boltz/rootstock/swapDb";
 import { initGiftDb } from "../../functions/gift/giftsStorage";
+import { useTranslation } from "react-i18next";
 // import { initPoolDb } from "../../functions/pools/poolsStorage";
 // import { initSavingsDb } from "../../functions/savings/savingsStorage";
 
@@ -27,6 +28,7 @@ import { initGiftDb } from "../../functions/gift/giftsStorage";
  * (fallbacks are provided so the screen works standalone too).
  */
 export default function SplashScreen({ onInit, onDone }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [phase, setPhase] = useState("enter"); // enter | hold | exit
