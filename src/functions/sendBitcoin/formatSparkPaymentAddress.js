@@ -10,7 +10,7 @@ export default function formatSparkPaymentAddress(paymentInfo, isLRC20Payment) {
     formmateedSparkPaymentInfo.address =
       paymentInfo?.decodedInput?.data?.address;
     formmateedSparkPaymentInfo.paymentType = "lightning";
-  } else if (paymentInfo.type === "spark") {
+  } else if (paymentInfo.type === "spark" || paymentInfo.type === "sparkrt") {
     formmateedSparkPaymentInfo.address = paymentInfo?.data?.address;
     formmateedSparkPaymentInfo.paymentType = isLRC20Payment ? "lrc20" : "spark";
   } else if (paymentInfo.type === InputTypes.LNURL_PAY) {

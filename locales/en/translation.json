@@ -1960,6 +1960,8 @@
           "reclaimed": "Reclaimed"
         },
         "createGift": {
+          "amountPlaceholderBtc": "Amount in sats",
+          "amountPlaceholderUsd": "Amount in USD",
           "noAmountError": "Please enter an amount to create your gift.",
           "connectError": "We couldn’t set up your gift wallet. Please try again.",
           "addressError": "We couldn’t get the address for your gift wallet.",
@@ -2021,6 +2023,7 @@
           "giftWalletInitError": "We were unable to reach the gift. Please try again later.",
           "noBalanceErrorReclaim": "There are no funds left to reclaim from this gift.",
           "notExpired": "You cannot reclaim this gift yet.",
+          "pendingIncomingError": "Your gift arrived but isn’t spendable yet. Wait a minute and try again.",
           "nobalanceError": "We couldn’t find an amount for this gift. Please try again later, or try restoring the gift.",
           "nobalanceErrorExpert": "There’s no amount available to restore for this gift.",
           "balanceMismatchError": "There was an issue getting the gift amount. Please try again.",

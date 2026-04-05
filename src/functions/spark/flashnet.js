@@ -184,11 +184,27 @@ export const findBestPool = async (
     // Web version: always direct (no webview runtime)
     const client = getFlashnetClient(mnemonic);
     console.log("client", client);
+
+    // const pool = await client.createConstantProductPool({
+    //   assetAAddress: USD_ASSET_ADDRESS, // Asset A = token
+    //   assetBAddress: BTC_ASSET_ADDRESS, // Asset B MUST be Bitcoin
+    //   lpFeeRateBps: 30,
+    //   totalHostFeeRateBps: 20,
+    //   initialLiquidity: {
+    //     assetAAmount: 100000000000n,
+    //     assetBAmount: 1000n,
+    //     assetAMinAmountIn: 100000000000n,
+    //     assetBMinAmountIn: 10000n,
+    //   },
+    // });
+    // console.log("Pool created:", pool.poolId);
+
     const pools = await client.listPools({
       assetAAddress: tokenAAddress,
       assetBAddress: tokenBAddress,
       sort: "TVL_DESC", // Prefer highest TVL (best liquidity)
       minTvl: options.minTvl || 1000,
+      // minTvl: 0,
       limit: options.limit || 10,
     });
     console.log("pools", pools);

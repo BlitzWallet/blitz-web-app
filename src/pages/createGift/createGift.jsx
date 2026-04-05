@@ -6,8 +6,10 @@ import React, {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import useThemeColors from "../../hooks/useThemeColors";
+import { useThemeContext } from "../../contexts/themeContext";
 import { useKeysContext } from "../../contexts/keysContext";
 import { useGifts } from "../../contexts/giftsContext";
 import { useSpark } from "../../contexts/sparkContext";
@@ -17,11 +19,15 @@ import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { useFlashnet } from "../../contexts/flashnetContext";
 import { useUserBalanceContext } from "../../contexts/userBalanceContext";
 
-import { STARTING_INDEX_FOR_GIFTS_DERIVE } from "../../constants";
+import {
+  HIDDEN_OPACITY,
+  STARTING_INDEX_FOR_GIFTS_DERIVE,
+} from "../../constants";
 import {
   deriveSparkAddress,
   deriveSparkGiftMnemonic,
   deriveSparkIdentityKey,
+  getSparkDefaultAccountNumber,
 } from "../../functions/gift/deriveGiftWallet";
 
 import { createGiftUrl } from "../../functions/gift/encodeDecodeSecret";
@@ -40,18 +46,22 @@ import {
 } from "../../functions/spark/flashnet";
 
 import CustomButton from "../../components/customButton/customButton";
+import ThemeText from "../../components/themeText/themeText";
 import GiftConfirmation from "../giftConfirmation/giftConfirmation";
+import { Colors } from "../../constants/theme";
+import { ArrowLeft, ChevronsUpDown, Gift } from "lucide-react";
 import "./createGift.css";
 import { useNodeContext } from "../../contexts/nodeContext";
+import { useActiveCustodyAccount } from "../../contexts/activeAccount";
 
-/**
- * Keep duration shape aligned with mobile: { label, value: "7" }
- */
-const DEFAULT_DURATION = { label: "7 Days", value: "7" };
+const PRIMARY_BLUE = Colors.constants.blue;
 
 export default function CreateGift() {
+  const { t } = useTranslation();
+  const { theme, darkModeType } = useThemeContext();
   const { bitcoinBalance, dollarBalanceSat, dollarBalanceToken } =
     useUserBalanceContext();
+  const { currentWalletMnemoinc } = useActiveCustodyAccount();
 
   const { poolInfoRef, swapLimits } = useFlashnet();
   const { saveGiftToCloud, deleteGiftFromCloudAndLocal } = useGifts();
@@ -76,7 +86,12 @@ export default function CreateGift() {
   const { fiatStats } = useNodeContext();
 
   // ---- Local state (aligned with mobile names) ----
-  const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [duration, setDuration] = useState(() => ({
+    value: "7",
+    label: t("screens.inAccount.giftPages.createGift.durationText", {
+      numDays: 7,
+    }),
+  }));
   const [description, setDescription] = useState("");
   const [giftDenomination, setGiftDenomination] = useState("BTC");
 
@@ -100,9 +115,7 @@ export default function CreateGift() {
 
   // Parse input in a way that allows USD decimals
   const parsedNumber = useMemo(() => {
-    console.log("amountInput", amountInput);
     const s = String(amountInput).trim();
-    console.log("s", s);
     if (!s) return 0;
     // allow decimals for USD; sats should be integer but we’ll floor later
     const n = Number(s);
@@ -120,7 +133,6 @@ export default function CreateGift() {
    * - if giftDenomination === "USD": treat input as USD, compute sats using current price
    */
   const amount = useMemo(() => {
-    console.log("parsedNumber", parsedNumber);
     if (!parsedNumber) return 0;
     if (giftDenomination === "BTC")
       return Math.max(0, Math.floor(parsedNumber));
@@ -128,19 +140,14 @@ export default function CreateGift() {
     // NOTE: mobile uses route params amount/amountValue; their amount probably already computed elsewhere.
     // For parity here, we compute sats from USD.
     const usd = parsedNumber;
-    console.log("usd", usd);
-    console.log("poolInfoRef", poolInfoRef);
     const sats = dollarsToSats(usd, poolInfoRef.currentPriceAInB);
-    console.log("sats", sats);
     return Math.max(0, Math.floor(sats));
   }, [parsedNumber, giftDenomination, poolInfoRef.currentPriceAInB]);
 
   const convertedSatAmount = amount;
-  console.log("convertedSatAmount", convertedSatAmount);
   const trueFiatAmount = useMemo(() => {
     if (!parsedNumber) return 0;
     if (giftDenomination === "USD") {
-      console.log("parsedNumber", parsedNumber);
       // input is USD -> microUSD
       return Math.round(parsedNumber * Math.pow(10, 6));
     }
@@ -154,23 +161,21 @@ export default function CreateGift() {
     poolInfoRef.currentPriceAInB,
   ]);
 
-  // ---- Duration options aligned with mobile values ("7","14"...)
+  // ---- Duration options aligned with mobile (t keys + values "7","14",…) ----
   const GIFT_DURATIONS = useMemo(() => {
-    return [
-      { label: "7 Days", value: "7" },
-      { label: "14 Days", value: "14" },
-      { label: "30 Days", value: "30" },
-      { label: "60 Days", value: "60" },
-      { label: "90 Days", value: "90" },
-      { label: "180 Days", value: "180" },
-    ];
-  }, []);
+    return [7, 14, 30, 60, 90, 180].map((numDays) => ({
+      label: t("screens.inAccount.giftPages.createGift.durationText", {
+        numDays,
+      }),
+      value: String(numDays),
+    }));
+  }, [t]);
 
   const handleSelectProcess = useCallback(
     (e) => {
       const value = e.target.value;
       const found = GIFT_DURATIONS.find((x) => x.value === value);
-      setDuration(found || DEFAULT_DURATION);
+      setDuration(found || GIFT_DURATIONS[0]);
     },
     [GIFT_DURATIONS],
   );
@@ -178,13 +183,12 @@ export default function CreateGift() {
   // ---------------- Swap simulation (same logic as mobile) ----------------
   useEffect(() => {
     const calculateSwapSimulation = async () => {
-      console.log("convertedSatAmount", convertedSatAmount);
       if (!convertedSatAmount) {
         simulationPromiseRef.current = null;
         setSimulationResult(null);
         return;
       }
-      console.log("bitcoinBalance", bitcoinBalance);
+
       const hasBTCBalance = bitcoinBalance >= convertedSatAmount;
       const hasUSDBalance = dollarBalanceSat >= convertedSatAmount;
 
@@ -196,7 +200,6 @@ export default function CreateGift() {
       let needsSwap = false;
       let paymentMethod = null;
 
-      console.log("giftDenomination", giftDenomination);
       // Determine if swap is needed based on gift denomination
       if (giftDenomination === "BTC") {
         const canPayBTCtoBTC = hasBTCBalance;
@@ -212,8 +215,7 @@ export default function CreateGift() {
       } else {
         const canPayUSDtoUSD = hasUSDBalance;
         const canPayBTCtoUSD = hasBTCBalance && meetsBTCMinimum;
-        console.log("canPayUSDtoUSD", canPayUSDtoUSD);
-        console.log("canPayBTCtoUSD", canPayBTCtoUSD);
+
         if (canPayUSDtoUSD) {
           paymentMethod = "USD";
           needsSwap = false;
@@ -229,18 +231,15 @@ export default function CreateGift() {
         return;
       }
 
-      const swapPromise = simulateSwap(
-        masterInfoObject?.currentWalletMnemoinc || accountMnemoinc,
-        {
-          poolId: poolInfoRef.lpPublicKey,
-          assetInAddress:
-            paymentMethod === "BTC" ? BTC_ASSET_ADDRESS : USD_ASSET_ADDRESS,
-          assetOutAddress:
-            paymentMethod === "BTC" ? USD_ASSET_ADDRESS : BTC_ASSET_ADDRESS,
-          amountIn:
-            paymentMethod === "BTC" ? convertedSatAmount : trueFiatAmount,
-        },
-      );
+      // Start the simulation
+      const swapPromise = simulateSwap(currentWalletMnemoinc, {
+        poolId: poolInfoRef.lpPublicKey,
+        assetInAddress:
+          paymentMethod === "BTC" ? BTC_ASSET_ADDRESS : USD_ASSET_ADDRESS,
+        assetOutAddress:
+          paymentMethod === "BTC" ? USD_ASSET_ADDRESS : BTC_ASSET_ADDRESS,
+        amountIn: paymentMethod === "BTC" ? convertedSatAmount : trueFiatAmount,
+      });
 
       simulationPromiseRef.current = swapPromise;
 
@@ -268,10 +267,7 @@ export default function CreateGift() {
     dollarBalanceSat,
     swapLimits,
     poolInfoRef.currentPriceAInB,
-    poolInfoRef.lpPublicKey,
-    trueFiatAmount,
-    masterInfoObject,
-    accountMnemoinc,
+    currentWalletMnemoinc,
   ]);
 
   // ---------------- determinePaymentMethod (same as mobile) ----------------
@@ -347,7 +343,6 @@ export default function CreateGift() {
     const totalBalance = bitcoinBalance + dollarBalanceSat;
     if (totalBalance < convertedSatAmount) return false;
 
-    // balance fragmentation check (same as mobile)
     if (
       bitcoinBalance < convertedSatAmount &&
       dollarBalanceSat < convertedSatAmount &&
@@ -437,7 +432,7 @@ export default function CreateGift() {
 
       // wait for simulation to finish (same as mobile)
       if (simulationPromiseRef.current) {
-        await simulationPromiseRef.current;
+        simulationPromiseRef.current;
         await new Promise((res) => setTimeout(res, 500));
       }
 
@@ -462,6 +457,8 @@ export default function CreateGift() {
         accountMnemoinc,
         currentDeriveIndex,
       );
+
+      console.log("giftWalletMnemoinc", giftWalletMnemoinc);
       if (!giftWalletMnemoinc?.success) {
         throw new Error(
           giftWalletMnemoinc?.error || "Failed to derive gift wallet mnemonic",
@@ -471,13 +468,9 @@ export default function CreateGift() {
       setLoadingMessage("Generating secret + encrypting mnemonic...");
 
       const randomSecret = crypto.getRandomValues(new Uint8Array(32));
-      const randomSecretHex = Array.from(randomSecret)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
       const randomPubkey = getPublicKey(randomSecret); // must match your implementation
       const encryptedMnemonic = await encryptMessage(
-        randomSecretHex,
+        randomSecret,
         randomPubkey,
         giftWalletMnemoinc.derivedMnemonic,
       );
@@ -516,7 +509,7 @@ export default function CreateGift() {
 
       const derivedIdentityPubKey = await deriveSparkIdentityKey(
         giftWalletMnemoinc.derivedMnemonic,
-        1,
+        getSparkDefaultAccountNumber(),
       );
       if (!derivedIdentityPubKey?.success) {
         throw new Error(
@@ -593,7 +586,6 @@ export default function CreateGift() {
           satFee,
         };
       }
-
       setLoadingMessage("Funding gift...");
       let paymentType;
       if (import.meta.env.MODE === "development") {
@@ -601,15 +593,17 @@ export default function CreateGift() {
       } else {
         paymentType = "spark";
       }
+      console.log(currentWalletMnemoinc);
+      console.log(accountMnemoinc);
       const paymentResponse = await sparkPaymenWrapper({
         address: derivedSparkAddress.address,
-        paymentType: paymentType,
+        paymentType: "spark",
         amountSats: convertedSatAmount,
         masterInfoObject,
         memo: "Fund Gift",
         userBalance: sparkInformation?.userBalance,
         sparkInformation,
-        mnemonic: masterInfoObject?.currentWalletMnemoinc || accountMnemoinc,
+        mnemonic: currentWalletMnemoinc || accountMnemoinc,
         usablePaymentMethod: determinePaymentMethod,
         swapPaymentQuote,
         paymentInfo: {
@@ -624,6 +618,7 @@ export default function CreateGift() {
         poolInfoRef,
       });
 
+      console.log("paymentResponse", paymentResponse);
       if (!paymentResponse?.didWork) {
         await deleteGiftFromCloudAndLocal(storageObject.uuid);
         throw new Error("Payment error");
@@ -702,93 +697,172 @@ export default function CreateGift() {
     );
   }
 
-  // ---------------- UI (web) ----------------
+  const durationDropdownBg = theme ? backgroundColor : textInputBackground;
+
+  /** Matches mobile TextInput placeholderTextColor (theme + darkModeType). */
+  const inputPlaceholderColor =
+    theme && !darkModeType
+      ? Colors.constants.darkModeTextInputPlaceholder
+      : "#767676";
+
+  // ---------------- UI (web) — aligned with mobile GlobalThemeView + field layout ----------------
   return (
-    <div className="createGift-container" style={{ backgroundColor }}>
+    <div
+      className="createGift-container"
+      style={{
+        backgroundColor,
+        ["--createGift-placeholder"]: inputPlaceholderColor,
+      }}
+    >
       <div className="createGift-header">
         <button
           type="button"
           className="createGift-backBtn"
-          style={{ color: textColor }}
           onClick={() => navigate(-1)}
+          aria-label={t("constants.back")}
         >
-          ←
+          <ArrowLeft
+            size={24}
+            strokeWidth={2.25}
+            aria-hidden
+            color={PRIMARY_BLUE}
+          />
         </button>
-        <p className="createGift-title" style={{ color: textColor }}>
-          Create Gift
-        </p>
-        <div style={{ width: 32 }} />
+        <ThemeText
+          className="createGift-title"
+          textContent={t("screens.inAccount.giftPages.createGift.header")}
+          textStyles={{
+            flex: 1,
+            minWidth: 0,
+            fontSize: "18px",
+            fontWeight: 600,
+            textAlign: "center",
+            margin: 0,
+          }}
+        />
+        <div className="createGift-topBarSpacer" />
       </div>
 
       {loadingMessage ? (
         <div className="createGift-loading">
           <div className="createGift-loadingSpinner" />
-          <p style={{ color: textColor, fontSize: 16, margin: 0 }}>
-            {loadingMessage}
-          </p>
+          <ThemeText
+            textContent={loadingMessage}
+            textStyles={{ fontSize: 16, margin: 0 }}
+          />
         </div>
       ) : (
         <div className="createGift-form">
-          <div className="createGift-heroIcon">🎁</div>
+          <div
+            className="createGift-iconCircle"
+            style={{ backgroundColor: backgroundOffset }}
+            aria-hidden
+          >
+            <Gift size={40} strokeWidth={1.75} color={PRIMARY_BLUE} />
+          </div>
 
           {/* Amount */}
           <div
             className="createGift-field"
             style={{ backgroundColor: backgroundOffset }}
           >
-            <p className="createGift-label" style={{ color: textColor }}>
-              Amount
-            </p>
+            <ThemeText
+              className="createGift-label createGift-label--field"
+              textContent={t("constants.amount")}
+              textStyles={{ fontWeight: 500, marginBottom: 12 }}
+            />
             <input
-              className="createGift-input"
+              className="createGift-input createGift-input--amount"
               style={{
                 backgroundColor: textInputBackground,
                 color: textInputColor,
+                borderColor: backgroundColor,
+                borderWidth: 1,
+                borderStyle: "solid",
               }}
               type="number"
               inputMode="decimal"
               min="0"
               placeholder={
-                giftDenomination === "BTC" ? "Amount in sats" : "Amount in USD"
+                giftDenomination === "BTC"
+                  ? t(
+                      "screens.inAccount.giftPages.createGift.amountPlaceholderBtc",
+                    )
+                  : t(
+                      "screens.inAccount.giftPages.createGift.amountPlaceholderUsd",
+                    )
               }
               value={amountInput}
               onChange={(e) => setAmountInput(e.target.value)}
             />
-            <p
+            <ThemeText
               className="createGift-hint"
-              style={{ color: textColor, opacity: 0.7 }}
-            >
-              {giftDenomination === "BTC"
-                ? `≈ $${satsToDollars(convertedSatAmount, poolInfoRef.currentPriceAInB).toFixed(2)}`
-                : `≈ ${convertedSatAmount} sats`}
-            </p>
+              textContent={
+                giftDenomination === "BTC"
+                  ? `≈ $${satsToDollars(convertedSatAmount, poolInfoRef.currentPriceAInB).toFixed(2)}`
+                  : `≈ ${convertedSatAmount} sats`
+              }
+              textStyles={{ opacity: 0.7, margin: 0, fontSize: 14 }}
+            />
           </div>
 
-          {/* Type (BTC / USD) */}
+          {/* Type — segmented control: outer radius 8px only, flat split (mobile DenominationToggle) */}
           <div
             className="createGift-field"
             style={{ backgroundColor: backgroundOffset }}
           >
-            <p className="createGift-label" style={{ color: textColor }}>
-              Type
-            </p>
+            <ThemeText
+              className="createGift-label createGift-label--field"
+              textContent={t("screens.inAccount.giftPages.createGift.type")}
+              textStyles={{ fontWeight: 500, marginBottom: 12 }}
+            />
             <div
               className="createGift-denomToggle"
-              style={{ backgroundColor: textInputBackground }}
+              style={{
+                backgroundColor: textInputBackground,
+                border: `1px solid ${backgroundColor}`,
+              }}
             >
               <button
                 type="button"
                 className={`createGift-denomBtn ${giftDenomination === "BTC" ? "active" : ""}`}
                 onClick={() => setGiftDenomination("BTC")}
+                style={
+                  giftDenomination === "BTC"
+                    ? {
+                        backgroundColor: PRIMARY_BLUE,
+                        color: "#FFFFFF",
+                        opacity: 1,
+                      }
+                    : {
+                        backgroundColor: "transparent",
+                        color: textColor,
+                        opacity: 0.5,
+                      }
+                }
               >
-                BTC
+                {t("constants.bitcoin_upper")}
               </button>
               <button
                 type="button"
                 className={`createGift-denomBtn ${giftDenomination === "USD" ? "active" : ""}`}
                 onClick={() => setGiftDenomination("USD")}
+                style={{
+                  ...(giftDenomination === "USD"
+                    ? {
+                        backgroundColor: PRIMARY_BLUE,
+                        color: "#FFFFFF",
+                        opacity: 1,
+                      }
+                    : {
+                        backgroundColor: "transparent",
+                        color: textColor,
+                        opacity: 0.5,
+                      }),
+                  borderLeft: `1px solid ${backgroundColor}`,
+                }}
               >
-                USD
+                {t("constants.dollars_upper")}
               </button>
             </div>
           </div>
@@ -798,53 +872,96 @@ export default function CreateGift() {
             className="createGift-field"
             style={{ backgroundColor: backgroundOffset }}
           >
-            <p className="createGift-label" style={{ color: textColor }}>
-              Description{" "}
-              <span style={{ opacity: 0.5, fontSize: 12 }}>(optional)</span>
-            </p>
+            <div className="createGift-descriptionLabelRow">
+              <ThemeText
+                className="createGift-label"
+                textContent={t("constants.description")}
+                textStyles={{ fontWeight: 500, margin: 0 }}
+              />
+              <ThemeText
+                className="createGift-label createGift-label--optional"
+                textContent={t("constants.optionalFlag")}
+                textStyles={{
+                  fontWeight: 500,
+                  fontSize: 12,
+                  opacity: 0.5,
+                  margin: 0,
+                }}
+              />
+            </div>
             <textarea
               className="createGift-textarea"
               style={{
                 backgroundColor: textInputBackground,
                 color: textInputColor,
+                borderColor: backgroundColor,
+                borderWidth: 1,
+                borderStyle: "solid",
               }}
-              placeholder="e.g. Happy birthday!"
+              placeholder={t(
+                "screens.inAccount.giftPages.createGift.inputPlaceholder",
+              )}
               maxLength={150}
-              rows={3}
+              rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
-          {/* Duration */}
+          {/* Duration — matches mobile DropdownMenu surface (not primary blue) */}
           <div
             className="createGift-field"
             style={{ backgroundColor: backgroundOffset }}
           >
-            <p className="createGift-label" style={{ color: textColor }}>
-              Duration
-            </p>
-            <select
-              className="createGift-select"
-              style={{
-                backgroundColor: textInputBackground,
-                color: textInputColor,
-              }}
-              value={duration.value}
-              onChange={handleSelectProcess}
-            >
-              {GIFT_DURATIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <ThemeText
+              className="createGift-label createGift-label--field"
+              textContent={t("apps.VPN.durationSlider.duration")}
+              textStyles={{ fontWeight: 500, marginBottom: 12 }}
+            />
+            <div className="createGift-durationWrap">
+              <select
+                className="createGift-select createGift-select--duration"
+                style={{
+                  backgroundColor: durationDropdownBg,
+                  color: textInputColor,
+                  borderColor: backgroundColor,
+                }}
+                value={duration.value}
+                onChange={handleSelectProcess}
+                aria-label={t("apps.VPN.durationSlider.duration")}
+              >
+                {GIFT_DURATIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <span className="createGift-durationChevron">
+                <ChevronsUpDown
+                  size={20}
+                  strokeWidth={2.25}
+                  color={textInputColor}
+                />
+              </span>
+            </div>
           </div>
 
-          <p className="createGift-disclaimer" style={{ color: textColor }}>
-            This gift will expire after {duration.value} days. If unclaimed, you
-            can reclaim the funds.
-          </p>
+          <ThemeText
+            className="createGift-disclaimer"
+            textContent={t(
+              "screens.inAccount.giftPages.createGift.disclaimer",
+              {
+                numDays: duration.value,
+              },
+            )}
+            textStyles={{
+              textAlign: "center",
+              opacity: 0.6,
+              fontSize: 13,
+              lineHeight: "20px",
+              margin: 0,
+            }}
+          />
 
           {!isGiftValid && (
             <p className="createGift-error">
@@ -857,8 +974,12 @@ export default function CreateGift() {
 
           <CustomButton
             actionFunction={createGift}
-            textContent="Create Gift"
-            buttonStyles={{ width: "auto", opacity: !isGiftValid ? 0.5 : 1 }}
+            textContent={t("screens.inAccount.giftPages.createGift.button")}
+            buttonStyles={{
+              width: "100%",
+              maxWidth: 448,
+              opacity: !isGiftValid ? HIDDEN_OPACITY : 1,
+            }}
             disabled={!isGiftValid}
           />
         </div>

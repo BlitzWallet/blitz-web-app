@@ -4,6 +4,15 @@ import { wordlist } from "@scure/bip39/wordlists/english";
 import { bech32m } from "bech32";
 
 /**
+ * Must match @buildonspark/spark-sdk initWallet: REGTEST → 0, MAINNET → 1.
+ * Use for deriveSparkIdentityKey and SparkWallet.initialize so the address
+ * you fund is the same wallet SparkWallet loads.
+ */
+export function getSparkDefaultAccountNumber() {
+  return import.meta.env.MODE === "development" ? 0 : 1;
+}
+
+/**
  * Derives a mnemonic for a Spark Wallet gift at a specific index.
  * Path: m/8797555'/{giftIndex}'/0'
  */
@@ -33,9 +42,12 @@ export function deriveSparkGiftMnemonic(mnemonic, giftIndex = 0) {
 
 /**
  * Derives the identity key that Spark generates internally for a given mnemonic.
- * Spark uses m/8797555'/{accountNumber}'/0' where accountNumber defaults to 1.
+ * Path: m/8797555'/{accountNumber}'/0'. Default account matches Spark SDK (REGTEST: 0, MAINNET: 1).
  */
-export function deriveSparkIdentityKey(sparkMnemonic, accountNumber = 1) {
+export function deriveSparkIdentityKey(
+  sparkMnemonic,
+  accountNumber = getSparkDefaultAccountNumber(),
+) {
   try {
     const derivationPath = `m/8797555'/${accountNumber}'/0'`;
     const seed = mnemonicToSeedSync(sparkMnemonic);

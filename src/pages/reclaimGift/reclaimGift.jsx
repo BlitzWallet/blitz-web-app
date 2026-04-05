@@ -1,42 +1,32 @@
-import { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Colors } from "../../constants/theme";
-import { useThemeContext } from "../../contexts/themeContext";
+import { useTranslation } from "react-i18next";
+
 import useThemeColors from "../../hooks/useThemeColors";
 import { useGifts } from "../../contexts/giftsContext";
-import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
-import { RotateCcw } from "lucide-react";
+
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import CustomButton from "../../components/customButton/customButton";
+
 import "./reclaimGift.css";
 
 export default function ReclaimGift() {
   const navigate = useNavigate();
-  const { theme, darkModeType } = useThemeContext();
+  const { t } = useTranslation();
+
   const {
-    textColor,
-    backgroundColor,
     backgroundOffset,
+    backgroundColor,
+    textColor,
     textInputBackground,
     textInputColor,
   } = useThemeColors();
-  const { expiredGiftsArray, currentDerivedGiftIndex } = useGifts();
-  const { masterInfoObject } = useGlobalContextProvider();
 
-  const colors = theme
-    ? darkModeType
-      ? Colors.lightsout
-      : Colors.dark
-    : Colors.light;
+  const { expiredGiftsArray } = useGifts();
 
   const [enteredLink, setEnteredLink] = useState("");
-  const [selectedUuid, setSelectedUuid] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [giftNumber, setGiftNumber] = useState("");
 
-  const currentGiftIndex =
-    masterInfoObject?.currentDerivedGiftIndex || currentDerivedGiftIndex || 1;
-
-  const dropdownOptions = useMemo(() => {
+  const dropdownData = useMemo(() => {
     if (!expiredGiftsArray || !expiredGiftsArray.length) return [];
     return expiredGiftsArray.map((item) => ({
       label: item.uuid,
@@ -45,265 +35,184 @@ export default function ReclaimGift() {
     }));
   }, [expiredGiftsArray]);
 
-  const hasExpiredGifts = dropdownOptions.length > 0;
+  const hasExpiredGift = !!dropdownData.length;
 
-  function handleDropdownSelect(e) {
-    const uuid = e.target.value;
-    setSelectedUuid(uuid);
-    setEnteredLink(uuid);
-  }
+  const selectValue = useMemo(() => {
+    if (!enteredLink) return "";
+    return dropdownData.some((o) => o.value === enteredLink)
+      ? enteredLink
+      : "";
+  }, [enteredLink, dropdownData]);
 
-  function handleReclaim() {
+  function handleClaimGift() {
     if (!enteredLink) return;
-    const trimmed = enteredLink.trim();
+    const url = enteredLink;
     setEnteredLink("");
-    setSelectedUuid("");
     navigate("/claim-gift", {
-      state: {
-        claimType: "reclaim",
-        url: trimmed,
-        giftUuid: trimmed,
-      },
+      state: { claimType: "reclaim", url },
     });
   }
 
-  const advancedParsedNum = parseInt(giftNumber, 10);
-  const advancedIsValid =
-    giftNumber &&
-    advancedParsedNum >= 1 &&
-    advancedParsedNum <= currentGiftIndex;
-  const advancedShowError = giftNumber && !advancedIsValid;
-
-  function handleAdvancedClaim() {
-    if (!advancedIsValid) return;
-    setGiftNumber("");
-    navigate("/claim-gift", {
-      state: {
-        claimType: "reclaim",
-        expertMode: true,
-        customGiftIndex: advancedParsedNum,
-      },
-    });
+  function handleDropdownSelection(e) {
+    const selectedValue = e.target.value;
+    if (!selectedValue) return;
+    const selected = dropdownData.find((opt) => opt.value === selectedValue);
+    if (!selected) return;
+    setEnteredLink(selected.data.uuid);
   }
 
-  const cardBorder = theme
-    ? darkModeType
-      ? "1px solid rgba(255, 255, 255, 0.08)"
-      : "1px solid rgba(255, 255, 255, 0.1)"
-    : "1px solid rgba(0, 0, 0, 0.06)";
+  function handleAdvancedMode() {
+    navigate("/advanced-gift-claim");
+  }
 
-  if (showAdvanced) {
+  const header = (
+    <div className="reclaimGift-topBar">
+      <button
+        type="button"
+        className="reclaimGift-backBtn"
+        style={{ color: textColor }}
+        onClick={() => navigate(-1)}
+        aria-label="Back"
+      >
+        <ArrowLeft size={24} strokeWidth={2.25} aria-hidden />
+      </button>
+      <p className="reclaimGift-topBarTitle" style={{ color: textColor }}>
+        {t("screens.inAccount.giftPages.claimPage.reclaimButton")}
+      </p>
+      <div className="reclaimGift-topBarSpacer" />
+    </div>
+  );
+
+  // ---- Empty state: no expired gifts ----
+  if (!hasExpiredGift) {
     return (
       <div className="reclaimGift-container" style={{ backgroundColor }}>
-        <div className="reclaimGift-topBar">
-          <button
-            className="reclaimGift-backBtn"
-            style={{ color: textColor }}
-            onClick={() => setShowAdvanced(false)}
-          >
-            ←
-          </button>
-          <p className="reclaimGift-topBarTitle" style={{ color: textColor }}>
-            Advanced Gift Recovery
-          </p>
-          <div style={{ width: 32 }} />
-        </div>
+        {header}
 
         <div className="reclaimGift-scrollContent">
-          <div
-            className="reclaimGift-indexCard"
-            style={{
-              backgroundColor:
-                theme && darkModeType ? backgroundOffset : colors.giftCardBlue,
-            }}
-          >
-            <div>
-              <p className="reclaimGift-indexLabel">Current Gift Index</p>
-              <p className="reclaimGift-indexNumber">{currentGiftIndex}</p>
-            </div>
-            <div className="reclaimGift-indexIconCircle">
-              <span className="reclaimGift-indexIconEmoji">🎁</span>
-            </div>
-          </div>
-
-          <div
-            className="reclaimGift-infoCard"
-            style={{ backgroundColor: backgroundOffset, border: cardBorder }}
-          >
-            <p className="reclaimGift-infoTitle" style={{ color: textColor }}>
-              How does this work?
-            </p>
-            <p className="reclaimGift-infoDesc" style={{ color: textColor }}>
-              Each gift you create is assigned an index number. If a gift wasn't
-              claimed and you've lost track of it, you can enter its index
-              number here to attempt recovery.
-            </p>
-            <p
-              className="reclaimGift-infoDesc reclaimGift-infoDescSpaced"
-              style={{ color: textColor }}
-            >
-              Valid gift numbers range from 1 to {currentGiftIndex}. Only use
-              this if the normal reclaim process doesn't work.
-            </p>
-          </div>
-
-          <div
-            className="reclaimGift-inputCard"
-            style={{ backgroundColor: backgroundOffset, border: cardBorder }}
-          >
-            <p className="reclaimGift-inputLabel" style={{ color: textColor }}>
-              Gift Number
-            </p>
-            <input
-              className="reclaimGift-input"
-              style={{
-                backgroundColor: textInputBackground,
-                color: textInputColor,
-              }}
-              type="number"
-              min="1"
-              max={currentGiftIndex}
-              placeholder={`1 – ${currentGiftIndex}`}
-              value={giftNumber}
-              onChange={(e) => setGiftNumber(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdvancedClaim()}
-            />
-            {advancedShowError && (
+          <div className="reclaimGift-centerContent">
+            <div className="reclaimGift-emptyState">
               <div
-                className="reclaimGift-errorBox"
-                style={{
-                  backgroundColor:
-                    theme && darkModeType
-                      ? textInputBackground
-                      : colors.giftCardBlue,
-                }}
+                className="reclaimGift-iconCircle"
+                style={{ backgroundColor: backgroundOffset }}
               >
-                <span className="reclaimGift-errorIcon">⚠️</span>
-                <p className="reclaimGift-errorText">
-                  Please enter a number between 1 and {currentGiftIndex}
-                </p>
+                <RotateCcw size={36} color={textColor} strokeWidth={1.75} />
               </div>
-            )}
+
+              <p className="reclaimGift-mainTitle" style={{ color: textColor }}>
+                {t("screens.inAccount.giftPages.reclaimPage.header")}
+              </p>
+
+              <p
+                className="reclaimGift-mainDesc"
+                style={{ color: textColor }}
+              >
+                {t(
+                  "screens.inAccount.giftPages.reclaimPage.noReclaimsMessage",
+                )}
+              </p>
+            </div>
+
+            <div className="reclaimGift-bottomButtonArea">
+              <CustomButton
+                actionFunction={handleAdvancedMode}
+                textContent={t(
+                  "screens.inAccount.giftPages.reclaimPage.advancedModeBTN",
+                )}
+                buttonStyles={{ width: "100%" }}
+              />
+            </div>
           </div>
         </div>
-
-        <CustomButton
-          actionFunction={handleAdvancedClaim}
-          textContent="Restore Gift"
-          buttonStyles={{
-            // ...CENTER,
-            width: "auto",
-          }}
-          disabled={!advancedIsValid}
-        />
       </div>
     );
   }
 
+  // ---- Has expired gifts: link + dropdown ----
   return (
     <div className="reclaimGift-container" style={{ backgroundColor }}>
-      <div className="reclaimGift-topBar">
-        <button
-          className="reclaimGift-backBtn"
-          style={{ color: textColor }}
-          onClick={() => navigate(-1)}
-        >
-          ←
-        </button>
-        <p className="reclaimGift-topBarTitle" style={{ color: textColor }}>
-          Reclaim Gift
-        </p>
-        <div style={{ width: 32 }} />
-      </div>
+      {header}
 
       <div className="reclaimGift-scrollContent">
         <div className="reclaimGift-centerContent">
           <div
-            className="reclaimGift-iconCircle"
+            className="reclaimGift-iconCircle reclaimGift-iconCircleLarge"
             style={{ backgroundColor: backgroundOffset }}
           >
-            <RotateCcw size={36} color={textColor} />
+            <RotateCcw size={40} color={textColor} strokeWidth={1.75} />
           </div>
 
           <p className="reclaimGift-mainTitle" style={{ color: textColor }}>
-            Reclaim Expired Gifts
+            {t("screens.inAccount.giftPages.reclaimPage.header")}
           </p>
 
-          {hasExpiredGifts ? (
-            <>
-              <p className="reclaimGift-mainDesc" style={{ color: textColor }}>
-                Select an expired gift from the list or enter its UUID to
-                reclaim the funds back to your wallet.
-              </p>
+          <p className="reclaimGift-mainDesc" style={{ color: textColor }}>
+            {t("screens.inAccount.giftPages.reclaimPage.desc")}
+          </p>
 
-              <div
-                className="reclaimGift-formCard"
+          <div
+            className="reclaimGift-formCard"
+            style={{ backgroundColor: backgroundOffset }}
+          >
+            <input
+              className="reclaimGift-input"
+              value={enteredLink}
+              onChange={(e) => setEnteredLink(e.target.value)}
+              placeholder={t(
+                "screens.inAccount.giftPages.reclaimPage.inputPlaceholder",
+              )}
+              onKeyDown={(e) => e.key === "Enter" && handleClaimGift()}
+              style={{
+                backgroundColor: textInputBackground,
+                color: textInputColor,
+              }}
+            />
+
+            <div className="reclaimGift-dropdownWrapper">
+              <select
+                className="reclaimGift-select"
+                value={selectValue}
+                onChange={handleDropdownSelection}
                 style={{
-                  backgroundColor: backgroundOffset,
-                  border: cardBorder,
+                  backgroundColor: textInputBackground,
+                  color: textInputColor,
                 }}
               >
-                <input
-                  className="reclaimGift-input"
-                  style={{
-                    backgroundColor: textInputBackground,
-                    color: textInputColor,
-                  }}
-                  type="text"
-                  placeholder="Enter gift UUID..."
-                  value={enteredLink}
-                  onChange={(e) => {
-                    setEnteredLink(e.target.value);
-                    setSelectedUuid("");
-                  }}
-                  onKeyDown={(e) => e.key === "Enter" && handleReclaim()}
-                />
-
-                <select
-                  className="reclaimGift-select"
-                  style={{
-                    backgroundColor: textInputBackground,
-                    color: textInputColor,
-                  }}
-                  value={selectedUuid}
-                  onChange={handleDropdownSelect}
-                >
-                  <option value="">Select an expired gift...</option>
-                  {dropdownOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label.substring(0, 20)}...
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          ) : (
-            <p className="reclaimGift-mainDesc" style={{ color: textColor }}>
-              You don't have any expired gifts that can be reclaimed right now.
-            </p>
-          )}
+                <option value="">
+                  {t(
+                    "screens.inAccount.giftPages.reclaimPage.dropdownPlaceHolder",
+                  )}
+                </option>
+                {dropdownData.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           <button
+            type="button"
             className="reclaimGift-advancedLink"
             style={{ color: textColor }}
-            onClick={() => setShowAdvanced(true)}
+            onClick={handleAdvancedMode}
           >
-            Advanced Mode
+            {t("screens.inAccount.giftPages.reclaimPage.advancedModeBTN")}
           </button>
+
+          <div className="reclaimGift-claimButtonArea">
+            <CustomButton
+              actionFunction={handleClaimGift}
+              textContent={t(
+                "screens.inAccount.giftPages.reclaimPage.button",
+              )}
+              disabled={!enteredLink}
+              buttonStyles={{ width: "100%" }}
+            />
+          </div>
         </div>
       </div>
-
-      {hasExpiredGifts && (
-        <CustomButton
-          actionFunction={handleReclaim}
-          textContent="Reclaim"
-          buttonStyles={{
-            // ...CENTER,
-            width: "auto",
-          }}
-          disabled={!enteredLink}
-        />
-      )}
     </div>
   );
 }

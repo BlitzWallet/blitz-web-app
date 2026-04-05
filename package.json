@@ -10,12 +10,14 @@
     "preview": "vite preview",
     "generate-pwa-assets": "pwa-assets-generator",
     "preview:watch": "vite build --watch",
-    "preview:serve": "vite preview --host"
+    "preview:serve": "vite preview --host",
+    "setup:regtest": "echo \"Dev console: window.__BLITZ_REGTEST_POOL_SETUP__(mnemonic)\""
   },
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@breeztech/breez-sdk-liquid": "^0.11.2",
-    "@buildonspark/spark-sdk": "^0.6.7",
+    "@buildonspark/issuer-sdk": "^0.1.22",
+    "@buildonspark/spark-sdk": "^0.7.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@flashnet/sdk": "^0.5.7",

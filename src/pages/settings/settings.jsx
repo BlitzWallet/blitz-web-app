@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ThemeText from "../../components/themeText/themeText";
 import SocialOptionsBottomBar from "./socialOptions/socialOptions";
 import ContactProfileImage from "../contacts/components/profileImage/profileImage";
-import "../../components/profileActionButton/profileActionButton.css";
+// import "../components/profileActionButton/profileActionButton.css";
 import "./settings.css";
 import {
   ArrowLeft,
@@ -174,10 +174,10 @@ export default function SettingsIndex() {
               sectionIndex === 0
                 ? "Preferences"
                 : sectionIndex === 1
-                ? "Security"
-                : sectionIndex === 2
-                ? "Technical Settings"
-                : ""
+                  ? "Security"
+                  : sectionIndex === 2
+                    ? "Technical Settings"
+                    : ""
             }
             className="options-title"
           />

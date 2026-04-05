@@ -113,6 +113,8 @@ export function FlashnetProvider({ children }) {
       USD_ASSET_ADDRESS,
     );
 
+    console.log("result", result);
+
     if (result?.didWork && result.pool) {
       setLocalStorageItem("swapPoolInfo", JSON.stringify(result.pool));
       setPoolInfo(result.pool);

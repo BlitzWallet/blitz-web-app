@@ -224,6 +224,8 @@ export const sparkPaymenWrapper = async ({
           amountSats,
           mnemonic,
         });
+
+        console.log("sparkPayResponse", sparkPayResponse);
       }
 
       if (!sparkPayResponse.didWork)

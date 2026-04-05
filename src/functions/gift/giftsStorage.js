@@ -26,7 +26,8 @@ export function getAllLocalGifts() {
   return getGiftsMap();
 }
 
-export function getGiftByUuid(uuid) {
+/** Async API matches upstream (local storage is sync; wrapped for await compatibility). */
+export async function getGiftByUuid(uuid) {
   const map = getGiftsMap();
   return map[uuid] || null;
 }

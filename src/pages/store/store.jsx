@@ -102,7 +102,7 @@ export default function Store() {
                 style={{ color: colors.giftCardBlue }}
                 onClick={() => navigate("/reclaim-gift")}
               >
-                Advanced Recovery
+                Reclaim Gift
               </button>
             </div>
           )}
@@ -138,6 +138,8 @@ export default function Store() {
             })
           }
           textContent="Claim Gift"
+          buttonStyles={{ backgroundColor: Colors.constants.blue }}
+          textStyles={{ color: "#FFFFFF" }}
         />
       </div>
     </div>

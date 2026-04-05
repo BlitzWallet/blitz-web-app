@@ -1,5 +1,4 @@
 import { SparkWallet } from "@buildonspark/spark-sdk";
-import { FlashnetClient } from "@flashnet/sdk";
 import { getAllSparkTransactions } from "./transactions";
 import { SPARK_TO_SPARK_FEE } from "../../constants/math";
 import {
@@ -17,9 +16,12 @@ import {
   saveCachedTokens,
 } from "../lrc20/cachedTokens";
 import Storage from "../localStorage";
+import { FlashnetClient } from "@flashnet/sdk";
+import { getSparkDefaultAccountNumber } from "../gift/deriveGiftWallet";
 
 export let sparkWallet = {};
-export const flashnetClients = {};
+export let flashnetClients = {};
+let initializingWallets = {};
 
 // Hash cache to avoid recalculating hashes
 const mnemonicHashCache = new Map();
@@ -35,7 +37,7 @@ const getMnemonicHash = (mnemonic) => {
 const getWallet = (mnemonic) => {
   const hash = getMnemonicHash(mnemonic);
   const wallet = sparkWallet[hash];
-
+  console.log("wallet", wallet);
   if (!wallet) {
     throw new Error("sparkWallet not initialized");
   }
@@ -43,12 +45,21 @@ const getWallet = (mnemonic) => {
   return wallet;
 };
 
+export const getFlashnetClient = (mnemonic) => {
+  const hash = getMnemonicHash(mnemonic);
+  const client = flashnetClients[hash];
+  if (!client) {
+    throw new Error("Flashnet client not initialized");
+  }
+  return client;
+};
+
 // Clear cache when needed (call this on logout/cleanup)
 export const clearMnemonicCache = () => {
   mnemonicHashCache.clear();
 };
 
-export const initializeSparkWallet = async (mnemonic, network) => {
+export const initializeSparkWallet = async (mnemonic) => {
   try {
     const hash = getMnemonicHash(mnemonic);
 
@@ -56,9 +67,12 @@ export const initializeSparkWallet = async (mnemonic, network) => {
     if (sparkWallet[hash]) {
       return { isConnected: true };
     }
-
+    const network =
+      import.meta.env.MODE === "development" ? "REGTEST" : "MAINNET";
+    const accountNumber = getSparkDefaultAccountNumber();
     const { wallet } = await SparkWallet.initialize({
       mnemonicOrSeed: mnemonic,
+      accountNumber,
       options: {
         network: network,
         optimizationOptions: {
@@ -67,11 +81,31 @@ export const initializeSparkWallet = async (mnemonic, network) => {
       },
     });
 
+    console.log("wallet", wallet);
+
     sparkWallet[hash] = wallet;
+
+    console.log("sparkWallet", sparkWallet[hash]);
     return { isConnected: true };
   } catch (err) {
     console.log("Initialize spark wallet error function", err);
     return { isConnected: false, error: err.message };
+  }
+};
+
+export const initializeFlashnet = async (mnemonic) => {
+  try {
+    const wallet = await getWallet(mnemonic);
+    const flashnetAPI = new FlashnetClient(wallet, {
+      autoAuthenticate: true,
+    });
+    await flashnetAPI.initialize();
+
+    flashnetClients[sha256Hash(mnemonic)] = flashnetAPI;
+    return true;
+  } catch (err) {
+    console.log("Error initializing flashnet", err);
+    return false;
   }
 };
 
@@ -137,17 +171,6 @@ export const getSparkBalance = async (mnemonic) => {
     console.log("Get spark balance error", err);
     return { didWork: false };
   }
-};
-
-export const getFlashnetClient = (mnemonic) => {
-  const hash = getMnemonicHash(mnemonic);
-  const client = flashnetClients[hash];
-
-  if (!client) {
-    throw new Error("Flashnet client not initialized");
-  }
-
-  return client;
 };
 
 export const getSparkStaticBitcoinL1Address = async (mnemonic) => {
@@ -282,32 +305,6 @@ export const getSparkBitcoinPaymentRequest = async (paymentId, mnemonic) => {
     return await getWallet(mnemonic).getCoopExitRequest(paymentId);
   } catch (err) {
     console.log("Get bitcoin payment fee estimate error", err);
-  }
-};
-
-export const initializeFlashnet = async (mnemonic) => {
-  try {
-    const key = sha256Hash(mnemonic);
-
-    // Optional: if already initialized, don't re-init
-    if (flashnetClients[key]) return true;
-
-    const wallet = await getWallet(mnemonic);
-
-    const isDev = import.meta.env.MODE === "development";
-    const flashnetAPI = new FlashnetClient(wallet, {
-      sparkNetworkType: isDev ? "REGTEST" : "MAINNET",
-      clientEnvironment: isDev ? "regtest" : "mainnet",
-      autoAuthenticate: true,
-    });
-
-    await flashnetAPI.initialize();
-
-    flashnetClients[key] = flashnetAPI;
-    return true;
-  } catch (err) {
-    console.log("Error initializing flashnet (web)", err);
-    return false;
   }
 };
 
@@ -558,12 +555,20 @@ export const getSparkPaymentStatus = (status) => {
     status === LightningSendRequestStatus.PREIMAGE_PROVIDED ||
     status === SparkLeavesSwapRequestStatus.SUCCEEDED ||
     status === SparkUserRequestStatus.SUCCEEDED ||
-    status === ClaimStaticDepositStatus.TRANSFER_COMPLETED
+    status === ClaimStaticDepositStatus.TRANSFER_COMPLETED ||
+    status === ClaimStaticDepositStatus.SPEND_TX_BROADCAST ||
+    status === LightningSendRequestStatus.LIGHTNING_PAYMENT_SUCCEEDED ||
+    status == LightningReceiveRequestStatus.LIGHTNING_PAYMENT_RECEIVED
     ? "completed"
     : status === "TRANSFER_STATUS_RETURNED" ||
         status === "TRANSFER_STATUS_EXPIRED" ||
         status === "TRANSFER_STATUS_SENDER_INITIATED" ||
+        status === LightningSendRequestStatus.USER_SWAP_RETURNED ||
         status === LightningSendRequestStatus.LIGHTNING_PAYMENT_FAILED ||
+        status === LightningSendRequestStatus.TRANSFER_FAILED ||
+        status === LightningSendRequestStatus.USER_TRANSFER_VALIDATION_FAILED ||
+        status === LightningSendRequestStatus.PREIMAGE_PROVIDING_FAILED ||
+        status === LightningSendRequestStatus.USER_SWAP_RETURN_FAILED ||
         status === SparkCoopExitRequestStatus.FAILED ||
         status === SparkCoopExitRequestStatus.EXPIRED ||
         status === LightningReceiveRequestStatus.TRANSFER_FAILED ||
@@ -572,13 +577,16 @@ export const getSparkPaymentStatus = (status) => {
         status ===
           LightningReceiveRequestStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED ||
         status === LightningReceiveRequestStatus.REFUND_SIGNING_FAILED ||
+        status === LightningReceiveRequestStatus.TRANSFER_CREATION_FAILED ||
         status === SparkLeavesSwapRequestStatus.FAILED ||
         status === SparkLeavesSwapRequestStatus.EXPIRED ||
         status === SparkUserRequestStatus.FAILED ||
+        status === SparkUserRequestStatus.CANCELED ||
         status === ClaimStaticDepositStatus.TRANSFER_CREATION_FAILED ||
         status === ClaimStaticDepositStatus.REFUND_SIGNING_FAILED ||
         status === ClaimStaticDepositStatus.UTXO_SWAPPING_FAILED ||
-        status === LightningReceiveRequestStatus.FUTURE_VALUE
+        status ===
+          ClaimStaticDepositStatus.REFUND_SIGNING_COMMITMENTS_QUERYING_FAILED
       ? "failed"
       : "pending";
 };
