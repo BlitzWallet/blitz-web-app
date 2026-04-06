@@ -2,25 +2,35 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Colors } from "../../constants/theme";
+import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useGifts } from "../../contexts/giftsContext";
 
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import CustomButton from "../../components/customButton/customButton";
+import ThemeText from "../../components/themeText/themeText";
 
 import "./reclaimGift.css";
+
+const PRIMARY_BLUE = Colors.constants.blue;
 
 export default function ReclaimGift() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { theme, darkModeType } = useThemeContext();
 
   const {
     backgroundOffset,
     backgroundColor,
-    textColor,
     textInputBackground,
     textInputColor,
   } = useThemeColors();
+
+  const inputPlaceholderColor =
+    theme && !darkModeType
+      ? Colors.constants.darkModeTextInputPlaceholder
+      : "#767676";
 
   const { expiredGiftsArray } = useGifts();
 
@@ -70,47 +80,79 @@ export default function ReclaimGift() {
       <button
         type="button"
         className="reclaimGift-backBtn"
-        style={{ color: textColor }}
         onClick={() => navigate(-1)}
-        aria-label="Back"
+        aria-label={t("constants.back")}
       >
-        <ArrowLeft size={24} strokeWidth={2.25} aria-hidden />
+        <ArrowLeft size={24} strokeWidth={2.25} aria-hidden color={PRIMARY_BLUE} />
       </button>
-      <p className="reclaimGift-topBarTitle" style={{ color: textColor }}>
-        {t("screens.inAccount.giftPages.claimPage.reclaimButton")}
-      </p>
+      <ThemeText
+        className="reclaimGift-title"
+        textContent={t("screens.inAccount.giftPages.claimPage.reclaimButton")}
+        textStyles={{
+          flex: 1,
+          minWidth: 0,
+          fontSize: "18px",
+          fontWeight: 600,
+          textAlign: "center",
+          margin: 0,
+        }}
+      />
       <div className="reclaimGift-topBarSpacer" />
     </div>
+  );
+
+  const iconAction = (
+    <div className="reclaimGift-iconAction" aria-hidden>
+      <RotateCcw size={40} color={PRIMARY_BLUE} strokeWidth={1.75} />
+    </div>
+  );
+
+  const mainTitle = (
+    <ThemeText
+      className="reclaimGift-mainTitle"
+      textContent={t("screens.inAccount.giftPages.reclaimPage.header")}
+      textStyles={{
+        fontSize: "22px",
+        fontWeight: 600,
+        textAlign: "center",
+        margin: "0 0 12px",
+      }}
+    />
   );
 
   // ---- Empty state: no expired gifts ----
   if (!hasExpiredGift) {
     return (
-      <div className="reclaimGift-container" style={{ backgroundColor }}>
+      <div
+        className="reclaimGift-container"
+        style={{
+          backgroundColor,
+          ["--reclaim-placeholder"]: inputPlaceholderColor,
+        }}
+      >
         {header}
 
         <div className="reclaimGift-scrollContent">
           <div className="reclaimGift-centerContent">
             <div className="reclaimGift-emptyState">
-              <div
-                className="reclaimGift-iconCircle"
-                style={{ backgroundColor: backgroundOffset }}
-              >
-                <RotateCcw size={36} color={textColor} strokeWidth={1.75} />
-              </div>
+              {iconAction}
 
-              <p className="reclaimGift-mainTitle" style={{ color: textColor }}>
-                {t("screens.inAccount.giftPages.reclaimPage.header")}
-              </p>
+              {mainTitle}
 
-              <p
+              <ThemeText
                 className="reclaimGift-mainDesc"
-                style={{ color: textColor }}
-              >
-                {t(
+                textContent={t(
                   "screens.inAccount.giftPages.reclaimPage.noReclaimsMessage",
                 )}
-              </p>
+                textStyles={{
+                  fontSize: "13px",
+                  textAlign: "center",
+                  margin: "0 0 32px",
+                  maxWidth: 384,
+                  lineHeight: "20px",
+                  opacity: 0.6,
+                }}
+              />
             </div>
 
             <div className="reclaimGift-bottomButtonArea">
@@ -119,7 +161,7 @@ export default function ReclaimGift() {
                 textContent={t(
                   "screens.inAccount.giftPages.reclaimPage.advancedModeBTN",
                 )}
-                buttonStyles={{ width: "100%" }}
+                buttonStyles={{ width: "100%", maxWidth: 448 }}
               />
             </div>
           </div>
@@ -130,25 +172,33 @@ export default function ReclaimGift() {
 
   // ---- Has expired gifts: link + dropdown ----
   return (
-    <div className="reclaimGift-container" style={{ backgroundColor }}>
+    <div
+      className="reclaimGift-container"
+      style={{
+        backgroundColor,
+        ["--reclaim-placeholder"]: inputPlaceholderColor,
+      }}
+    >
       {header}
 
       <div className="reclaimGift-scrollContent">
         <div className="reclaimGift-centerContent">
-          <div
-            className="reclaimGift-iconCircle reclaimGift-iconCircleLarge"
-            style={{ backgroundColor: backgroundOffset }}
-          >
-            <RotateCcw size={40} color={textColor} strokeWidth={1.75} />
-          </div>
+          {iconAction}
 
-          <p className="reclaimGift-mainTitle" style={{ color: textColor }}>
-            {t("screens.inAccount.giftPages.reclaimPage.header")}
-          </p>
+          {mainTitle}
 
-          <p className="reclaimGift-mainDesc" style={{ color: textColor }}>
-            {t("screens.inAccount.giftPages.reclaimPage.desc")}
-          </p>
+          <ThemeText
+            className="reclaimGift-mainDesc"
+            textContent={t("screens.inAccount.giftPages.reclaimPage.desc")}
+            textStyles={{
+              fontSize: "13px",
+              textAlign: "center",
+              margin: "0 0 32px",
+              maxWidth: 384,
+              lineHeight: "20px",
+              opacity: 0.6,
+            }}
+          />
 
           <div
             className="reclaimGift-formCard"
@@ -165,6 +215,9 @@ export default function ReclaimGift() {
               style={{
                 backgroundColor: textInputBackground,
                 color: textInputColor,
+                borderColor: backgroundColor,
+                borderWidth: 1,
+                borderStyle: "solid",
               }}
             />
 
@@ -176,6 +229,9 @@ export default function ReclaimGift() {
                 style={{
                   backgroundColor: textInputBackground,
                   color: textInputColor,
+                  borderColor: backgroundColor,
+                  borderWidth: 1,
+                  borderStyle: "solid",
                 }}
               >
                 <option value="">
@@ -192,14 +248,22 @@ export default function ReclaimGift() {
             </div>
           </div>
 
-          <button
-            type="button"
+          <ThemeText
             className="reclaimGift-advancedLink"
-            style={{ color: textColor }}
-            onClick={handleAdvancedMode}
-          >
-            {t("screens.inAccount.giftPages.reclaimPage.advancedModeBTN")}
-          </button>
+            clickFunction={handleAdvancedMode}
+            textContent={t(
+              "screens.inAccount.giftPages.reclaimPage.advancedModeBTN",
+            )}
+            textStyles={{
+              fontSize: "14px",
+              textDecoration: "underline",
+              cursor: "pointer",
+              marginTop: "20px",
+              marginBottom: "20px",
+              textAlign: "center",
+              width: "100%",
+            }}
+          />
 
           <div className="reclaimGift-claimButtonArea">
             <CustomButton
@@ -208,7 +272,7 @@ export default function ReclaimGift() {
                 "screens.inAccount.giftPages.reclaimPage.button",
               )}
               disabled={!enteredLink}
-              buttonStyles={{ width: "100%" }}
+              buttonStyles={{ width: "100%", maxWidth: 448 }}
             />
           </div>
         </div>

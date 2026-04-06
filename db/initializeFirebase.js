@@ -76,6 +76,10 @@ export async function initializeFirebase(publicKey, privateKey) {
           privateKey,
           publicKey,
         );
+
+        console.log("privateKey", privateKey);
+        console.log("publicKey", publicKey);
+        console.log("token", token);
         if (!token)
           throw new Error("Not able to get custom token from backend");
         console.log("custom sign in token from backend", token);

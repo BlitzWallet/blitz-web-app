@@ -5,6 +5,8 @@ import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useGifts } from "../../contexts/giftsContext";
 import { useOverlay } from "../../contexts/overlayContext";
+import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
+import WalletNavBar from "../wallet/components/nav/nav";
 import GiftCardItem from "./components/giftCardItem/giftCardItem";
 import ThemeText from "../../components/themeText/themeText";
 import CustomButton from "../../components/customButton/customButton";
@@ -15,6 +17,8 @@ export default function Store() {
   const { theme, darkModeType } = useThemeContext();
   const { textColor, backgroundOffset, backgroundColor } = useThemeColors();
   const { openOverlay } = useOverlay();
+  const { masterInfoObject } = useGlobalContextProvider();
+  const didEnabledLrc20 = masterInfoObject.lrc20Settings?.isEnabled;
   const { giftsArray, expiredGiftsArray, checkForRefunds } = useGifts();
 
   const colors = theme
@@ -42,6 +46,12 @@ export default function Store() {
 
   return (
     <div className="giftsOverviewContainer" style={{ backgroundColor }}>
+      <div className="giftsOverview-nav">
+        <WalletNavBar
+          didEnabledLrc20={didEnabledLrc20}
+          openOverlay={openOverlay}
+        />
+      </div>
       <div className="giftsOverview-list">
         {hasActiveGifts && (
           <div className="giftsOverview-section">

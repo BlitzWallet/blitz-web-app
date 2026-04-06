@@ -359,6 +359,10 @@ export default function CreateGift() {
       dollarsToSats(swapLimits.usd, poolInfoRef.currentPriceAInB);
     const meetsBTCMinimum = convertedSatAmount >= swapLimits.bitcoin;
 
+    console.log("convertedSatAmount", convertedSatAmount);
+    console.log("swapLimits.usd", swapLimits.usd);
+    console.log("meetsUSDMinimum", meetsUSDMinimum);
+
     if (giftDenomination === "BTC") {
       const canPayBTCtoBTC = hasBTCBalance;
       const canPayUSDtoBTC = hasUSDBalance && meetsUSDMinimum;
@@ -388,6 +392,8 @@ export default function CreateGift() {
             dollarsToSats(Number(simulation.feePaidAssetIn) / Math.pow(10, 6)) +
             convertedSatAmount * INTEGRATOR_FEE,
         );
+
+        console.log("totalBTCNeeded", totalBTCNeeded);
 
         if (totalBTCNeeded > bitcoinBalance) {
           return false;
@@ -588,7 +594,7 @@ export default function CreateGift() {
       }
       setLoadingMessage("Funding gift...");
       let paymentType;
-      if (import.meta.env.MODE === "development") {
+      if (import.meta.env.VITE_MODE === "development") {
         paymentType = "sparkrt";
       } else {
         paymentType = "spark";

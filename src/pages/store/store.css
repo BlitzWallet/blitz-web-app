@@ -14,6 +14,10 @@
   box-sizing: border-box;
 }
 
+.giftsOverview-nav {
+  flex-shrink: 0;
+}
+
 .giftsOverview-list {
   flex: 1;
   min-height: 0;

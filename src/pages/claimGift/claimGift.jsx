@@ -45,6 +45,7 @@ import "./claimGift.css";
  * - USD micro-units: result.tokensObj?.[USDB_TOKEN_ID]?.balance (mobile) OR result.tokenBalances Map (web)
  */
 function getSparkBalanceAmount(result, denomination) {
+  console.log("result", result);
   if (!result) return 0;
 
   // Some SDKs include didWork; some don't.
@@ -59,6 +60,7 @@ function getSparkBalanceAmount(result, denomination) {
 
   if (denomination === "USD") {
     const tok = result.tokensObj?.[USDB_TOKEN_ID];
+    console.log("tok", tok);
     if (tok) {
       const raw = tok.balance ?? tok.availableToSendBalance ?? tok.ownedBalance;
       return toNum(raw);
@@ -205,7 +207,7 @@ export default function ClaimGiftScreen() {
 
       setGiftDetails(details);
       console.log("details", details);
-      console.log(import.meta.env.MODE);
+      console.log(import.meta.env.VITE_MODE);
       // Pre-initialize wallet in background (mobile pattern)
       walletInitPromise.current = initializeSparkWallet(details.giftSeed)
         .then((result) => {
@@ -241,7 +243,7 @@ export default function ClaimGiftScreen() {
         // Web/mobile normalization
         const btcBal = getSparkBalanceAmount(res, "BTC");
         const usdBal = getSparkBalanceAmount(res, "USD");
-
+        console.log("btcBal", btcBal);
         if (expectedAmount === undefined || expectedAmount === null) {
           // expert mode path: any balance is fine
           return denomination === "BTC" ? btcBal > 0 : usdBal > 0;
@@ -249,9 +251,14 @@ export default function ClaimGiftScreen() {
 
         const bitcoinCheck = btcBal >= Number(expectedAmount) * 0.97;
         const dollarCheck = usdBal >= Number(expectedAmount) * 1e6 * 0.97;
+        console.log("dollarCheck", dollarCheck);
+        console.log("denomination", denomination);
+        console.log("usdBal", usdBal);
+        console.log("expectedAmount", expectedAmount * 1e6 * 0.97);
         return denomination === "BTC" ? bitcoinCheck : dollarCheck;
       };
 
+      console.log("handleBalanceCheck", handleBalanceCheck(result));
       if (handleBalanceCheck(result)) return result;
 
       for (const delay of delays) {
@@ -287,7 +294,7 @@ export default function ClaimGiftScreen() {
           t("screens.inAccount.giftPages.claimPage.balanceMismatchError"),
         );
       }
-
+      console.log("result", result);
       return result;
     },
     [t, denomination],

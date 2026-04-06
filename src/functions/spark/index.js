@@ -48,6 +48,7 @@ const getWallet = (mnemonic) => {
 export const getFlashnetClient = (mnemonic) => {
   const hash = getMnemonicHash(mnemonic);
   const client = flashnetClients[hash];
+  console.log("client", client);
   if (!client) {
     throw new Error("Flashnet client not initialized");
   }
@@ -68,8 +69,13 @@ export const initializeSparkWallet = async (mnemonic) => {
       return { isConnected: true };
     }
     const network =
-      import.meta.env.MODE === "development" ? "REGTEST" : "MAINNET";
+      import.meta.env.VITE_MODE === "development" ? "REGTEST" : "MAINNET";
+
+    console.log("import.meta.env.VITE_MODE", import.meta.env.VITE_MODE);
     const accountNumber = getSparkDefaultAccountNumber();
+    console.log("accountNumber", accountNumber);
+    console.log("network", network);
+    console.log("mnemonic", mnemonic);
     const { wallet } = await SparkWallet.initialize({
       mnemonicOrSeed: mnemonic,
       accountNumber,
@@ -96,7 +102,10 @@ export const initializeSparkWallet = async (mnemonic) => {
 export const initializeFlashnet = async (mnemonic) => {
   try {
     const wallet = await getWallet(mnemonic);
+    const isDev = import.meta.env.VITE_MODE === "development";
     const flashnetAPI = new FlashnetClient(wallet, {
+      sparkNetworkType: isDev ? "REGTEST" : "MAINNET",
+      clientEnvironment: isDev ? "regtest" : "mainnet",
       autoAuthenticate: true,
     });
     await flashnetAPI.initialize();

@@ -13,6 +13,7 @@ import {
   isNewDaySince,
 } from "./rotateAddressDateChecker";
 import { getPublicKey, privateKeyFromSeedWords } from "./seed";
+
 export default async function initializeUserSettings({
   mnemoinc,
   toggleContactsPrivateKey,

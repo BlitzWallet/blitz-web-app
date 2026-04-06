@@ -68,7 +68,7 @@ export async function getLnurlPayments(uuid) {
       db,
       "blitzWalletUsers",
       uuid,
-      "lnurlPayments"
+      "lnurlPayments",
     );
 
     const querySnapshot = await getDocs(paymentsRef);
@@ -98,7 +98,7 @@ export async function batchDeleteLnurlPayments(uuid, paymentIds) {
         "blitzWalletUsers",
         uuid,
         "lnurlPayments",
-        paymentId
+        paymentId,
       );
       batch.delete(paymentRef);
     });
@@ -114,7 +114,7 @@ export async function batchDeleteLnurlPayments(uuid, paymentIds) {
 
 export async function isValidUniqueName(
   collectionName = "blitzWalletUsers",
-  wantedName
+  wantedName,
 ) {
   try {
     const usersRef = collection(db, collectionName);
@@ -123,8 +123,8 @@ export async function isValidUniqueName(
       where(
         "contacts.myProfile.uniqueNameLower",
         "==",
-        wantedName.toLowerCase()
-      )
+        wantedName.toLowerCase(),
+      ),
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.empty;
@@ -135,7 +135,7 @@ export async function isValidUniqueName(
 }
 export async function getSingleContact(
   wantedName,
-  collectionName = "blitzWalletUsers"
+  collectionName = "blitzWalletUsers",
 ) {
   try {
     const usersRef = collection(db, collectionName);
@@ -144,8 +144,8 @@ export async function getSingleContact(
       where(
         "contacts.myProfile.uniqueNameLower",
         "==",
-        wantedName.toLowerCase()
-      )
+        wantedName.toLowerCase(),
+      ),
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map((doc) => doc.data());
@@ -157,13 +157,13 @@ export async function getSingleContact(
 
 export async function canUsePOSName(
   collectionName = "blitzWalletUsers",
-  wantedName
+  wantedName,
 ) {
   try {
     const usersRef = collection(db, collectionName);
     const q = query(
       usersRef,
-      where("posSettings.storeNameLower", "==", wantedName.toLowerCase())
+      where("posSettings.storeNameLower", "==", wantedName.toLowerCase()),
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.empty;
@@ -176,7 +176,7 @@ export async function canUsePOSName(
 
 export async function searchUsers(
   searchTerm,
-  collectionName = "blitzWalletUsers"
+  collectionName = "blitzWalletUsers",
 ) {
   const parsedSearchTerm = searchTerm.trim();
   if (!parsedSearchTerm) return [];
@@ -190,14 +190,14 @@ export async function searchUsers(
       usersRef,
       where("contacts.myProfile.uniqueNameLower", ">=", term),
       where("contacts.myProfile.uniqueNameLower", "<=", term + "\uffff"),
-      limit(5)
+      limit(5),
     );
 
     const nameQuery = query(
       usersRef,
       where("contacts.myProfile.nameLower", ">=", term),
       where("contacts.myProfile.nameLower", "<=", term + "\uffff"),
-      limit(5)
+      limit(5),
     );
 
     // Execute both queries
@@ -234,7 +234,7 @@ export async function searchUsers(
 
 export async function getUnknownContact(
   uuid,
-  collectionName = "blitzWalletUsers"
+  collectionName = "blitzWalletUsers",
 ) {
   try {
     const docRef = doc(db, collectionName, uuid);
@@ -252,7 +252,7 @@ export async function getUnknownContact(
 
 export async function bulkGetUnknownContacts(
   uuidList,
-  collectionName = "blitzWalletUsers"
+  collectionName = "blitzWalletUsers",
 ) {
   // Validate input
   if (!Array.isArray(uuidList) || uuidList.length === 0) {
@@ -352,10 +352,10 @@ export async function syncDatabasePayment(myPubKey, privateKey) {
         where("timestamp", ">", savedMillis),
         or(
           where("toPubKey", "==", myPubKey),
-          where("fromPubKey", "==", myPubKey)
-        )
+          where("fromPubKey", "==", myPubKey),
+        ),
       ),
-      orderBy("timestamp")
+      orderBy("timestamp"),
     );
 
     const snapshot = await getDocs(combinedQuery);
@@ -368,7 +368,7 @@ export async function syncDatabasePayment(myPubKey, privateKey) {
     const processedMessages = await processWithRAF(
       allMessages,
       myPubKey,
-      privateKey
+      privateKey,
     );
 
     return processedMessages;
@@ -384,7 +384,7 @@ function processWithRAF(allMessages, myPubKey, privateKey, onProgress) {
     // Create worker
     const worker = new Worker(
       new URL("../src/workers/messageWorker.js", import.meta.url),
-      { type: "module" }
+      { type: "module" },
     );
 
     worker.onmessage = function (e) {
@@ -420,7 +420,7 @@ export async function isValidNip5Name(wantedName) {
     const usersRef = collection(db, "nip5Verification");
     const q = query(
       usersRef,
-      where("nameLower", "==", wantedName.toLowerCase())
+      where("nameLower", "==", wantedName.toLowerCase()),
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.empty;
@@ -544,7 +544,7 @@ export async function reloadGiftsOnDomesday(uuid) {
 
     const q = query(
       collection(db, "blitzGifts"),
-      where("createdBy", "==", uuid)
+      where("createdBy", "==", uuid),
     );
 
     const snapshot = await getDocs(q);

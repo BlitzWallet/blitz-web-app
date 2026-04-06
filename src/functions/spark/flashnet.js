@@ -404,8 +404,8 @@ export const executeSwap = async (
       amountIn: amountIn.toString(),
       minAmountOut: calculatedMinOut.toString(),
       maxSlippageBps,
-      integratorFeeRateBps,
-      integratorPublicKey: getIntegratorPublicKey(),
+      // integratorFeeRateBps,
+      // integratorPublicKey: getIntegratorPublicKey(),
     });
 
     return {
@@ -826,7 +826,7 @@ export const completeSwapConfirmation = async (
     setFlashnetTransfer(txDetails.id);
 
     let paymentType;
-    if (import.meta.env.MODE === "development") {
+    if (import.meta.env.VITE_MODE === "development") {
       paymentType = "sparkrt";
     } else {
       paymentType = "spark";

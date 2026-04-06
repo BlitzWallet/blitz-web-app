@@ -47,6 +47,21 @@ export const migrateCachedTokens = async (mnemonic) => {
   return parsedData;
 };
 
+/** Spark SDK uses `availableToSendBalance`; `balance` may be absent. */
+function toTokenBalanceNumber(tokensData) {
+  const raw = tokensData?.balance ?? tokensData?.availableToSendBalance ?? 0;
+  if (typeof raw === "bigint") return Number(raw);
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function toMaxSupplyNumber(meta) {
+  const m = meta?.maxSupply;
+  if (typeof m === "bigint") return Number(m);
+  const n = Number(m);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export const mergeTokensWithCache = (currentTokens, cachedTokens, mnemonic) => {
   let merged = {};
   const selctedCashedTokens = cachedTokens[sha256Hash(mnemonic)]
@@ -62,11 +77,12 @@ export const mergeTokensWithCache = (currentTokens, cachedTokens, mnemonic) => {
   }
 
   for (const [identifier, tokensData] of currentTokens) {
+    const meta = tokensData.tokenMetadata ?? {};
     merged[identifier] = {
-      balance: Number(tokensData.balance),
+      balance: toTokenBalanceNumber(tokensData),
       tokenMetadata: {
-        ...tokensData.tokenMetadata,
-        maxSupply: Number(tokensData.tokenMetadata.maxSupply),
+        ...meta,
+        maxSupply: toMaxSupplyNumber(meta),
       },
     };
   }

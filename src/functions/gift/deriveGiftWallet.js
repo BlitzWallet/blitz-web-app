@@ -9,7 +9,7 @@ import { bech32m } from "bech32";
  * you fund is the same wallet SparkWallet loads.
  */
 export function getSparkDefaultAccountNumber() {
-  return import.meta.env.MODE === "development" ? 0 : 1;
+  return import.meta.env.VITE_MODE === "development" ? 0 : 1;
 }
 
 /**
@@ -84,7 +84,7 @@ export function deriveSparkAddress(identityPublicKey) {
     }
 
     let hrp;
-    if (import.meta.env.MODE === "development") {
+    if (import.meta.env.VITE_MODE === "development") {
       hrp = "sparkrt";
     } else {
       hrp = "spark";

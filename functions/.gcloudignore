@@ -1,0 +1,4 @@
+# Do not upload secrets; defineSecret("BACKEND_PRIVATE_KEY") supplies prod.
+# Local emulator still uses functions/.env via dotenv path in index.js.
+.env
+.env.*
