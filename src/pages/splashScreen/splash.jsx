@@ -12,8 +12,8 @@ import { initializeSparkDatabase } from "../../functions/spark/transactions";
 // import { initRootstockSwapDB } from "../../functions/boltz/rootstock/swapDb";
 import { initGiftDb } from "../../functions/gift/giftsStorage";
 import { useTranslation } from "react-i18next";
-// import { initPoolDb } from "../../functions/pools/poolsStorage";
-// import { initSavingsDb } from "../../functions/savings/savingsStorage";
+import { initPoolDb } from "../../functions/pools/poolsStorage";
+import { initSavingsDb } from "../../functions/savings/savingsStorage";
 
 /**
  * SplashScreen — web equivalent of the React Native splash screen.
@@ -53,8 +53,8 @@ export default function SplashScreen({ onInit, onDone }) {
         const sparkTxs = await initializeSparkDatabase();
         // const rootstockSwaps = await initRootstockSwapDB();
         const giftsDb = await initGiftDb();
-        // const poolsDB = await initPoolDb();
-        // const savingsDB = await initSavingsDb();
+        const poolsDB = await initPoolDb();
+        const savingsDB = await initSavingsDb();
 
         if (
           !didOpen ||
@@ -62,9 +62,9 @@ export default function SplashScreen({ onInit, onDone }) {
           !posTransactions ||
           !sparkTxs ||
           //   !rootstockSwaps ||
-          !giftsDb //||
-          //   !poolsDB ||
-          //   !savingsDB
+          !giftsDb ||
+          !poolsDB ||
+          !savingsDB
         )
           throw new Error(t("screens.inAccount.loadingScreen.dbInitError"));
 
