@@ -18,7 +18,7 @@ export default function NavBarProfileImage() {
       style={{ backgroundColor: backgroundOffset }}
       className="navbarProfileImageContainer"
       onClick={() => {
-        navigate("/settings");
+        navigate("/settingsHub");
       }}
     >
       <ContactProfileImage

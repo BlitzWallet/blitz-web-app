@@ -1,0 +1,70 @@
+.profile-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 24px;
+}
+
+.profile-card__avatar {
+  width: 125px;
+  height: 125px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-card__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.profile-card__name {
+  font-size: 15px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-card__username {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: opacity 0.15s;
+}
+
+.profile-card__username:active {
+  opacity: 0.6;
+}
+
+.profile-card__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-card__action-btn {
+  flex: 1;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  padding: 0 12px;
+}
+
+.profile-card__action-btn:active {
+  opacity: 0.7;
+}

@@ -1,0 +1,107 @@
+.settings-hub__container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.settings-hub__top-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+  min-height: 50px;
+}
+
+.settings-hub__back-btn,
+.settings-hub__settings-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.settings-hub__back-btn:active,
+.settings-hub__settings-btn:active {
+  opacity: 0.5;
+}
+
+.settings-hub__header-text-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.settings-hub__header-label {
+  font-size: 17px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  position: absolute;
+  white-space: nowrap;
+}
+
+.settings-hub__header-label--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Static label for doomsday mode */
+.settings-hub__top-bar > .settings-hub__header-label {
+  position: static;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+.settings-hub__scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-hub__content {
+  width: 90%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 8px 0 32px;
+}
+
+/* Doomsday layout */
+.settings-hub__doomsday {
+  width: 90%;
+  max-width: 600px;
+  margin: 20px auto 0;
+}
+
+.settings-hub__restore-btn {
+  width: 100%;
+  border: 2px solid;
+  border-radius: 8px;
+  background: none;
+  padding: 10px 25px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 30px;
+  transition: opacity 0.15s;
+}
+
+.settings-hub__restore-btn:active {
+  opacity: 0.6;
+}

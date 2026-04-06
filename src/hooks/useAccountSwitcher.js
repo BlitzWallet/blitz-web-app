@@ -5,13 +5,13 @@ import {
   NWC_ACCOUNT_UUID,
   useActiveCustodyAccount,
 } from "../contexts/activeAccount";
-import { useSparkWallet } from "../contexts/sparkContext";
+import { useSpark } from "../contexts/sparkContext";
 import { initWallet } from "../functions/initiateWalletConnection";
 import { useNavigate } from "react-router-dom";
 
 export default function useAccountSwitcher() {
   const navigate = useNavigate();
-  const { setSparkInformation, sparkInformation } = useSparkWallet();
+  const { setSparkInformation, sparkInformation } = useSpark();
   const {
     currentWalletMnemoinc,
     selectedAltAccount,

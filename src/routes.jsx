@@ -76,6 +76,7 @@ const pages = {
   SettingsContentIndex: lazy(
     () => import("./pages/settings/settingsItem/settingsItem.jsx"),
   ),
+  SettingsHub: lazy(() => import("./pages/settingsHub/index.jsx")),
   SettingsHome: lazy(() => import("./pages/settings/settings.jsx")),
   ViewMnemoinc: lazy(() => import("./pages/viewkey/viewKey.jsx")),
   RestoreWallet: lazy(() => import("./pages/restoreWallet/restoreWallet.jsx")),
@@ -125,6 +126,7 @@ export const routeGroups = {
 
   // Slide left animation - typically for settings/navigation
   [ANIMATIONS.SLIDE_LEFT]: [
+    { path: "/settingsHub", component: pages.SettingsHub, useSafeArea: true },
     { path: "/settings", component: pages.SettingsHome, useSafeArea: true },
     {
       path: "/settings-item",
