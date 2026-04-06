@@ -91,22 +91,22 @@ function Root() {
   return (
     <NavigationStackProvider>
       <AuthProvider navigate={navigate}>
-        <GlobalRescanLiquidSwaps>
-          <KeysContextProvider>
-            <GlobalContactsList>
-              <GlobalContextProvider>
-                <ActiveCustodyAccountProvider>
-                  <AppStatusProvider>
-                    <ThemeContextProvider>
-                      <SparkWalletProvider navigate={navigate}>
-                        <GLobalNodeContextProider>
-                          <BitcoinPriceProvider>
-                            <GlobalAppDataProvider>
-                              <LiquidEventProvider>
-                                <ImageCacheProvider>
-                                  <GlobalServerTimeProvider>
-                                    <OverlayProvider>
-                                      <ToastProvider>
+        <ToastProvider>
+          <ThemeContextProvider>
+            <AppStatusProvider>
+              <GlobalRescanLiquidSwaps>
+                <KeysContextProvider>
+                  <GlobalContactsList>
+                    <GlobalContextProvider>
+                      <ActiveCustodyAccountProvider>
+                        <SparkWalletProvider navigate={navigate}>
+                          <GLobalNodeContextProider>
+                            <BitcoinPriceProvider>
+                              <GlobalAppDataProvider>
+                                <LiquidEventProvider>
+                                  <ImageCacheProvider>
+                                    <GlobalServerTimeProvider>
+                                      <OverlayProvider>
                                         <GiftProvider>
                                           <PoolProvider>
                                             <FlashnetProvider>
@@ -212,22 +212,22 @@ function Root() {
                                             </FlashnetProvider>
                                           </PoolProvider>
                                         </GiftProvider>
-                                      </ToastProvider>
-                                    </OverlayProvider>
-                                  </GlobalServerTimeProvider>
-                                </ImageCacheProvider>
-                              </LiquidEventProvider>
-                            </GlobalAppDataProvider>
-                          </BitcoinPriceProvider>
-                        </GLobalNodeContextProider>
-                      </SparkWalletProvider>
-                    </ThemeContextProvider>
-                  </AppStatusProvider>
-                </ActiveCustodyAccountProvider>
-              </GlobalContextProvider>
-            </GlobalContactsList>
-          </KeysContextProvider>
-        </GlobalRescanLiquidSwaps>
+                                      </OverlayProvider>
+                                    </GlobalServerTimeProvider>
+                                  </ImageCacheProvider>
+                                </LiquidEventProvider>
+                              </GlobalAppDataProvider>
+                            </BitcoinPriceProvider>
+                          </GLobalNodeContextProider>
+                        </SparkWalletProvider>
+                      </ActiveCustodyAccountProvider>
+                    </GlobalContextProvider>
+                  </GlobalContactsList>
+                </KeysContextProvider>
+              </GlobalRescanLiquidSwaps>
+            </AppStatusProvider>
+          </ThemeContextProvider>
+        </ToastProvider>
       </AuthProvider>
     </NavigationStackProvider>
   );
