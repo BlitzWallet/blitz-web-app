@@ -34,6 +34,20 @@
   margin: 0;
 }
 
+.claimGift-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 448px;
+}
+
+.claimGift-main--centered {
+  flex: 1;
+  justify-content: center;
+  min-height: 0;
+}
+
 .claimGift-headerText {
   font-size: 22px;
   font-weight: 600;
@@ -177,6 +191,12 @@
   font-size: 14px;
   opacity: 0.5;
   margin: 0 0 auto;
+}
+
+.claimGift-buttonWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .claimGift-error {
