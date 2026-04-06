@@ -141,8 +141,10 @@
   align-items: flex-start;
   padding: 15px 0;
   width: 100%;
+  max-width: 350px;
   cursor: pointer;
   user-select: none;
+  margin: 0 auto;
 }
 
 /*
