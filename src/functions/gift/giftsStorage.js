@@ -1,41 +1,147 @@
-import Storage from "../localStorage";
+import { openDB, deleteDB } from "idb";
 
-const GIFTS_STORAGE_KEY = "BLITZ_GIFTS";
+export const CACHED_GIFTS = "SAVED_GIFTS";
+export const GIFTS_TABLE_NAME = "giftsTable";
 
-function getGiftsMap() {
-  return Storage.getItem(GIFTS_STORAGE_KEY) || {};
+let dbPromise = null;
+
+const getDB = async () => {
+  if (!dbPromise) {
+    dbPromise = openDB(CACHED_GIFTS, 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains(GIFTS_TABLE_NAME)) {
+          const store = db.createObjectStore(GIFTS_TABLE_NAME, {
+            keyPath: "uuid",
+          });
+          store.createIndex("lastUpdated", "lastUpdated");
+          store.createIndex("createdBy", "createdBy");
+        }
+      },
+      blocking(cv, bv, event) {
+        event.target.close();
+        dbPromise = null;
+      },
+    });
+  }
+  return dbPromise;
+};
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    dbPromise?.then((db) => db.close());
+    dbPromise = null;
+  });
 }
 
-function persistGiftsMap(map) {
-  Storage.setItem(GIFTS_STORAGE_KEY, map);
-}
+export const initGiftDb = async () => {
+  try {
+    await getDB();
+    console.log("Gift database initialized successfully");
+    return true;
+  } catch (err) {
+    console.error("initGiftDb error:", err);
+    return false;
+  }
+};
 
-export function saveGiftLocal(gift) {
-  const map = getGiftsMap();
-  map[gift.uuid] = gift;
-  persistGiftsMap(map);
-}
+export const saveGiftLocal = async (giftObj) => {
+  try {
+    if (!giftObj?.uuid) throw new Error("Gift UUID is required");
+    if (!giftObj?.createdBy) throw new Error("Gift createdBy is required");
 
-export function deleteGiftLocal(uuid) {
-  const map = getGiftsMap();
-  delete map[uuid];
-  persistGiftsMap(map);
-}
+    const db = await getDB();
+    await db.put(GIFTS_TABLE_NAME, {
+      ...giftObj,
+      lastUpdated: giftObj.lastUpdated || Date.now(),
+    });
 
-export function getAllLocalGifts() {
-  return getGiftsMap();
-}
+    console.log("Gift saved successfully");
+    return true;
+  } catch (err) {
+    console.error("saveGiftLocal error:", err);
+    throw new Error(`Unable to save gift locally: ${err.message}`);
+  }
+};
 
-/** Async API matches upstream (local storage is sync; wrapped for await compatibility). */
-export async function getGiftByUuid(uuid) {
-  const map = getGiftsMap();
-  return map[uuid] || null;
-}
+export const deleteGiftLocal = async (uuid) => {
+  try {
+    if (!uuid) throw new Error("No UUID provided for deletion");
 
-export function updateGiftLocal(uuid, updates) {
-  const map = getGiftsMap();
-  if (!map[uuid]) return false;
-  map[uuid] = { ...map[uuid], ...updates, lastUpdated: Date.now() };
-  persistGiftsMap(map);
-  return true;
-}
+    const db = await getDB();
+    await db.delete(GIFTS_TABLE_NAME, uuid);
+
+    console.log(`Deleted gift with UUID: ${uuid}`);
+    return true;
+  } catch (err) {
+    console.error("deleteGiftLocal error:", err);
+    throw new Error(`Unable to delete gift: ${err.message}`);
+  }
+};
+
+export const getAllLocalGifts = async () => {
+  try {
+    const db = await getDB();
+    const all = await db.getAllFromIndex(GIFTS_TABLE_NAME, "lastUpdated");
+    return all.reverse();
+  } catch (err) {
+    console.error("getAllLocalGifts error:", err);
+    return [];
+  }
+};
+
+export const getGiftByUuid = async (uuid) => {
+  try {
+    if (!uuid) {
+      console.error("No UUID provided for query");
+      return null;
+    }
+
+    const db = await getDB();
+    const result = await db.get(GIFTS_TABLE_NAME, uuid);
+
+    if (!result) {
+      console.log(`No gift found with UUID: ${uuid}`);
+      return null;
+    }
+
+    return result;
+  } catch (err) {
+    console.error("getGiftByUuid error:", err);
+    return null;
+  }
+};
+
+export const updateGiftLocal = async (uuid, updatedFields) => {
+  try {
+    if (!uuid) throw new Error("Gift UUID is required");
+
+    const db = await getDB();
+    const existing = await db.get(GIFTS_TABLE_NAME, uuid);
+    if (!existing) throw new Error(`Gift with UUID ${uuid} not found`);
+
+    const updatedGift = {
+      ...existing,
+      ...updatedFields,
+      uuid,
+      lastUpdated: Date.now(),
+    };
+
+    await db.put(GIFTS_TABLE_NAME, updatedGift);
+
+    console.log("Gift updated successfully");
+    return updatedGift;
+  } catch (err) {
+    console.error("updateGiftLocal error:", err);
+    throw new Error(`Unable to update gift: ${err.message}`);
+  }
+};
+
+export const deleteGiftsTable = async () => {
+  try {
+    await deleteDB(CACHED_GIFTS);
+    dbPromise = null;
+    console.log("giftsTable deleted successfully");
+  } catch (err) {
+    console.error("Error deleting gifts table:", err);
+  }
+};

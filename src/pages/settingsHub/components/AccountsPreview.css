@@ -1,0 +1,24 @@
+.accounts-preview__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 4px;
+}
+
+.accounts-preview__title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.accounts-preview__view-all {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.accounts-preview__more {
+  font-size: 12px;
+  opacity: 0.6;
+  display: block;
+  margin-top: 4px;
+}

@@ -3,6 +3,7 @@ import Storage from "../functions/localStorage";
 import { wipeEntireSparkDatabase } from "../functions/spark/transactions";
 import { wipeEntireContactDatabase } from "../functions/messaging/cachedMessages";
 import { wipeEntirePOSDatabase } from "../functions/pos";
+import { auth } from "../../db/initializeFirebase";
 
 const AuthContext = createContext();
 
@@ -34,6 +35,7 @@ export const AuthProvider = ({ children, navigate }) => {
     await wipeEntireSparkDatabase();
     await wipeEntireContactDatabase();
     await wipeEntirePOSDatabase();
+    await auth.signOut();
 
     setAuthState({
       isAuthenticated: false,

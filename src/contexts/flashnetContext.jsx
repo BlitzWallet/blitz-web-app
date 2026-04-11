@@ -879,12 +879,11 @@ export function FlashnetProvider({ children }) {
           BTC_ASSET_ADDRESS,
         ),
       ]);
-      console.log("usdLimits", usdLimits);
       if (usdLimits.didWork && bitconLimits.didWork) {
         setSwapLimits({
           usd: parseFloat(
             (
-              (Number(usdLimits.assetData) / 10000000) *
+              (Number(usdLimits.assetData) / 1000000) *
               SEND_AMOUNT_INCREASE_BUFFER
             ).toFixed(2),
           ),

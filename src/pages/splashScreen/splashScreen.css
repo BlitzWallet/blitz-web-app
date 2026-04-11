@@ -1,0 +1,256 @@
+/* ═══════════════════════════════════════════════════════════════
+   SplashScreen.css
+   Mirrors the React Native SplashScreen Lottie animation.
+
+   CSS variables consumed (set by your ThemeContextProvider):
+     --bg-color        background of the whole screen
+     --accent-color    Blitz Blue  (#0375F6 light / #fff dark)
+     --bolt-top        top of the bolt gradient
+     --bolt-bottom     bottom of the bolt gradient
+
+   Fallbacks make it look correct even without a theme provider.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Root container ─────────────────────────────────────────── */
+.splash-root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color, #ebebeb); /* light mode default */
+  z-index: 9999;
+
+  /* Phase transitions */
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.splash-exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Centred layout ─────────────────────────────────────────── */
+.splash-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* ── Logo wrapper (150 × 150 px — same as the Lottie style) ─── */
+.splash-logo-wrap {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Glow ring ──────────────────────────────────────────────── */
+.splash-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(3, 117, 246, 0.18) 0%,
+    transparent 70%
+  );
+  animation: glow-pulse 2s ease-in-out infinite;
+  animation-delay: 0.6s;
+  opacity: 0;
+}
+
+@keyframes glow-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* ── Lightning bolt SVG ─────────────────────────────────────── */
+.splash-bolt {
+  width: 60px;
+  height: 90px;
+  position: relative;
+  z-index: 1;
+
+  /* 1. Scale in from nothing */
+  animation:
+    bolt-appear 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both,
+    bolt-shimmer 1.8s ease-in-out 1s infinite;
+
+  /* Force GPU layer */
+  will-change: transform, opacity;
+}
+
+@keyframes bolt-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes bolt-shimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.35) drop-shadow(0 0 8px rgba(3, 117, 246, 0.7));
+  }
+}
+
+/* ── SVG draw-on mask animation ─────────────────────────────── */
+/*
+   The <rect class="draw-rect"> inside the SVG mask starts at height=0
+   and expands to height=90 – this creates the "draw on" effect
+   you get from the Lottie animation.
+*/
+.draw-rect {
+  transform-origin: top center;
+  animation: draw-on 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+}
+
+@keyframes draw-on {
+  from {
+    height: 0;
+  }
+  to {
+    height: 90px;
+  }
+}
+
+/* ── Error state ────────────────────────────────────────────── */
+.splash-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 320px;
+  padding: 0 24px;
+  text-align: center;
+  animation: fade-in 0.3s ease both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-error-icon {
+  width: 80px;
+  height: 80px;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) 0.2s both;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.splash-error-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color, #1a1a2e);
+  margin: 0;
+}
+
+.splash-error-body {
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.splash-error-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 28px;
+  border-radius: 8px;
+  background-color: var(--accent-color, #0375f6);
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.splash-error-btn:hover {
+  opacity: 0.85;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Theme variants — map your ThemeContextProvider values here.
+   These override the CSS variable defaults set above.
+══════════════════════════════════════════════════════════════ */
+
+/* Light mode (default) */
+[data-theme="light"] .splash-root,
+.splash-root {
+  --bg-color: #ebebeb;
+  --bolt-top: #ffffff;
+  --bolt-bottom: #0375f6;
+  --accent-color: #0375f6;
+  --text-color: #1a1a2e;
+  --text-secondary: #555;
+}
+
+/* Dark mode */
+[data-theme="dark"] .splash-root {
+  --bg-color: #002549; /* COLORS.darkModeBackground */
+  --bolt-top: #ffffff;
+  --bolt-bottom: #ffffff;
+  --accent-color: #ffffff;
+  --text-color: #ffffff;
+  --text-secondary: #aaa;
+}
+
+/* Lights-out mode */
+[data-theme="lights-out"] .splash-root {
+  --bg-color: #000000; /* COLORS.lightsOutBackground */
+  --bolt-top: #ffffff;
+  --bolt-bottom: #ffffff;
+  --accent-color: #ffffff;
+  --text-color: #ffffff;
+  --text-secondary: #888;
+}

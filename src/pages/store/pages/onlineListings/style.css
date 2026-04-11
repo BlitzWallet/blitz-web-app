@@ -1,0 +1,177 @@
+.onlineListingsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.onlineListingsTopBar {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  margin-bottom: 20px;
+}
+
+.onlineListingsTopBar .pageHeaderText {
+  font-size: 1.25rem;
+  text-align: center;
+  white-space: nowrap; /* Prevent line break */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Add "..." at end */
+  max-width: 100%; /* Optional: constrain width */
+  flex: 1; /* Fill available space if needed */
+  padding: 0 35px;
+  margin: 0;
+}
+
+.onlineListingsBackBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onlineListingsCountryBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.onlineListingsStickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 0 5% 8px;
+}
+
+.onlineListingsSearchInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.onlineListingsCategoryRow {
+  padding: 0 5% 12px;
+}
+
+.onlineListingsCategorySelect {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.onlineListingsScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 5% 10px;
+}
+
+.onlineListingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+
+.onlineListingsCard {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.onlineListingsCardHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.onlineListingsGlobePlaceholder {
+  border-radius: 8px;
+  overflow: hidden;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.onlineListingsCardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.onlineListingsCardInfo p {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.onlineListingsLightningBadge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.onlineListingsCategoryChip {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 16px;
+  margin: 12px 0;
+}
+
+.onlineListingsCategoryChip p {
+  margin: 0;
+}
+
+.onlineListingsVisitBtn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.onlineListingsVisitBtn p {
+  margin: 0;
+}
+
+.onlineListingsFooter {
+  padding: 10px 0 0;
+  display: flex;
+  justify-content: center;
+}

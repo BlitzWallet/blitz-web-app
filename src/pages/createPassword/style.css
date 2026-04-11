@@ -32,6 +32,8 @@
 }
 .passwordContainer .topText {
   margin-bottom: 20px;
+  font-size: 0.8rem;
+  opacity: 0.6;
 }
 
 .passwordContainer input[type="password"] {

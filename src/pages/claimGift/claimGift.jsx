@@ -14,7 +14,10 @@ import {
   USDB_TOKEN_ID,
 } from "../../constants";
 import { parseGiftUrl } from "../../functions/gift/encodeDecodeSecret";
-import { deriveSparkGiftMnemonic } from "../../functions/gift/deriveGiftWallet";
+import {
+  deriveSparkGiftMnemonic,
+  getSparkDefaultAccountNumber,
+} from "../../functions/gift/deriveGiftWallet";
 import { deriveKeyFromMnemonic, getPublicKey } from "../../functions/seed";
 import { decryptMessage } from "../../functions/encodingAndDecoding";
 import { getGiftCard, deleteGift } from "../../../db";
@@ -133,6 +136,7 @@ export default function ClaimGiftScreen() {
       const giftWalletMnemonic = await deriveSparkGiftMnemonic(
         accountMnemoinc,
         STARTING_INDEX_FOR_GIFTS_DERIVE + customGiftIndex,
+        getSparkDefaultAccountNumber(),
       );
       return { giftSeed: giftWalletMnemonic.derivedMnemonic };
     }

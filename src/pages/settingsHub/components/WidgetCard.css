@@ -1,0 +1,16 @@
+.widget-card {
+  width: 100%;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.widget-card--interactive {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.widget-card--interactive:active {
+  opacity: 0.78;
+}

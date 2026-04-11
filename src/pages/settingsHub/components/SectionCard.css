@@ -1,0 +1,17 @@
+.section-card-wrapper {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.section-card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.5;
+  margin: 0 0 8px 4px;
+}
+
+.section-card-body {
+  border-radius: 16px;
+  overflow: hidden;
+}

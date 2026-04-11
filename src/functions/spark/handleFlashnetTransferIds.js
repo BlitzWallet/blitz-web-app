@@ -1,4 +1,4 @@
-import { getLocalStorageItem, setLocalStorageItem } from "../localStorage";
+import Storage from "../localStorage";
 
 let flashnetInternalTransferIds = new Set();
 
@@ -13,22 +13,11 @@ export function isFlashnetTransfer(txid) {
 export function setFlashnetTransfer(txid) {
   flashnetInternalTransferIds.add(txid);
   const current = Array.from(flashnetInternalTransferIds);
-  setLocalStorageItem("savedFlashnetTransferIds", JSON.stringify(current));
+  Storage.setItem("savedFlashnetTransferIds", current);
 }
 
 export async function loadSavedTransferIds() {
-  const raw = await getLocalStorageItem("savedFlashnetTransferIds");
-  if (raw == null || raw === "") {
-    flashnetInternalTransferIds = new Set();
-    return flashnetInternalTransferIds;
-  }
-  let savedIds;
-  try {
-    savedIds = JSON.parse(raw);
-  } catch {
-    flashnetInternalTransferIds = new Set();
-    return flashnetInternalTransferIds;
-  }
-  flashnetInternalTransferIds = new Set(Array.isArray(savedIds) ? savedIds : []);
+  const savedIds = Storage.getItem("savedFlashnetTransferIds");
+  flashnetInternalTransferIds = new Set(savedIds || []);
   return flashnetInternalTransferIds;
 }

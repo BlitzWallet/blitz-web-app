@@ -9,7 +9,17 @@ export default [
     files: ["**/*.{js,jsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+
+        BigInt: "readonly",
+        Buffer: "readonly",
+        btoa: "readonly",
+        atob: "readonly",
+        TextDecoder: "readonly",
+        TextEncoder: "readonly",
+        structuredClone: "readonly",
+      },
       parserOptions: {
         ecmaVersion: "latest",
         ecmaFeatures: { jsx: true },
@@ -33,6 +43,7 @@ export default [
       "no-unused-vars": "off",
       "no-unreachable": "off",
       "no-useless-escape": "off",
+      "no-empty": "off",
       quotes: "off",
     },
   },

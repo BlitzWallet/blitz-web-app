@@ -1,11 +1,6 @@
 // ============================================
-// WEB VERSION (ReactJS / Browser) OF flashnet.js
-// Aligned with mobile version function order.
-// Notes:
-// - This module assumes you can run the Flashnet SDK in the browser.
-// - Any "webview" bridge calls are removed; runtime is always treated as "direct".
-// - Storage is implemented via window.localStorage.
-// - Env var access uses Vite-style import.meta.env first, then process.env as fallback.
+// FLASHNET SWAP & LIGHTNING PAYMENT FUNCTIONS
+// Based on Official Flashnet SDK Documentation v0.4.2+
 // ============================================
 
 import {
@@ -14,7 +9,6 @@ import {
   isFlashnetError,
   isFlashnetErrorCode,
 } from "@flashnet/sdk";
-
 import {
   getFlashnetClient,
   getSingleTxDetails,
@@ -34,12 +28,11 @@ import {
   FLASHNET_REFUND_REGEX,
   USDB_TOKEN_ID,
 } from "../../constants";
-
 import {
   isFlashnetTransfer,
   setFlashnetTransfer,
 } from "./handleFlashnetTransferIds";
-
+import Storage from "../localStorage";
 import { bulkUpdateSparkTransactions } from "./transactions";
 import { decode } from "bolt11";
 
@@ -57,16 +50,14 @@ export const USD_ASSET_ADDRESS =
 export const FLASHNET_POOL_IDENTITY_KEY =
   "02894808873b896e21d29856a6d7bb346fb13c019739adb9bf0b6a8b7e28da53da";
 
-// Default slippage tolerance
 export const DEFAULT_SLIPPAGE_BPS = 100; // 1%
 export const SEND_AMOUNT_INCREASE_BUFFER = 1.01; // 1%
-export const DEFAULT_MAX_SLIPPAGE_BPS = 300; // 3% for lightning payments
+export const DEFAULT_MAX_SLIPPAGE_BPS = 300; // 3%
 export const INTEGRATOR_FEE = 0.01; // 1%
 
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
-
 const getIntegratorPublicKey = () => {
   // Supports Vite / CRA / Node-like env injection patterns
   return (
@@ -77,33 +68,6 @@ const getIntegratorPublicKey = () => {
   );
 };
 
-/**
- * Minimal browser localStorage wrappers mirroring the mobile module interface:
- * getLocalStorageItem(key) -> Promise<string|null>
- * setLocalStorageItem(key, value) -> Promise<void>
- */
-const getLocalStorageItem = async (key) => {
-  try {
-    if (typeof window === "undefined" || !window.localStorage) return null;
-    return window.localStorage.getItem(key);
-  } catch (e) {
-    console.error("[flashnet:web] getLocalStorageItem error", e);
-    return null;
-  }
-};
-
-const setLocalStorageItem = async (key, value) => {
-  try {
-    if (typeof window === "undefined" || !window.localStorage) return;
-    window.localStorage.setItem(key, value);
-  } catch (e) {
-    console.error("[flashnet:web] setLocalStorageItem error", e);
-  }
-};
-
-/**
- * Format error for logging
- */
 const formatError = (error, operation) => {
   if (isFlashnetError(error)) {
     return {
@@ -131,15 +95,14 @@ const formatError = (error, operation) => {
     parsedError = error;
   }
 
-  const match = parsedError?.match?.(FLASHNET_ERROR_CODE_REGEX);
+  const match = parsedError?.match(FLASHNET_ERROR_CODE_REGEX);
   const errorCode = match?.[0] ?? null;
 
   if (errorCode) {
     const metadata = getErrorMetadata(errorCode);
-
     return {
       operation,
-      errorCode: errorCode,
+      errorCode,
       category: metadata.category,
       message: metadata.userMessage,
       userMessage: i18next.t(`flashnetUserMessages.${errorCode}`, {
@@ -160,9 +123,16 @@ const formatError = (error, operation) => {
   };
 };
 
-/**
- * Calculate minimum output with slippage tolerance
- */
+const getRefundTxidFromErrormessage = (message) => {
+  try {
+    const match = message?.match(FLASHNET_REFUND_REGEX);
+    if (match) return match[1];
+  } catch (err) {
+    console.log("error getting txid from error message", err);
+  }
+  return undefined;
+};
+
 export const calculateMinOutput = (expectedOutput, slippageBps) => {
   const amount = BigInt(expectedOutput);
   const slippageFactor = BigInt(10000 - slippageBps);
@@ -181,33 +151,16 @@ export const findBestPool = async (
   options = {},
 ) => {
   try {
-    // Web version: always direct (no webview runtime)
     const client = getFlashnetClient(mnemonic);
-    console.log("client", client);
-
-    // const pool = await client.createConstantProductPool({
-    //   assetAAddress: USD_ASSET_ADDRESS, // Asset A = token
-    //   assetBAddress: BTC_ASSET_ADDRESS, // Asset B MUST be Bitcoin
-    //   lpFeeRateBps: 30,
-    //   totalHostFeeRateBps: 20,
-    //   initialLiquidity: {
-    //     assetAAmount: 100000000000n,
-    //     assetBAmount: 1000n,
-    //     assetAMinAmountIn: 100000000000n,
-    //     assetBMinAmountIn: 10000n,
-    //   },
-    // });
-    // console.log("Pool created:", pool.poolId);
 
     const pools = await client.listPools({
       assetAAddress: tokenAAddress,
       assetBAddress: tokenBAddress,
-      sort: "TVL_DESC", // Prefer highest TVL (best liquidity)
+      sort: "TVL_DESC",
       minTvl: options.minTvl || 1000,
-      // minTvl: 0,
       limit: options.limit || 10,
     });
-    console.log("pools", pools);
+
     if (!pools.pools || pools.pools.length === 0) {
       throw new Error(
         i18next.t("screens.inAccount.swapsPage.noPoolsFoundError", {
@@ -271,7 +224,6 @@ export const getPoolDetails = async (mnemonic, poolId) => {
 export const listAllPools = async (mnemonic, filters = {}) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     const response = await client.listPools({
       minTvl: filters.minTvl || 0,
       minVolume24h: filters.minVolume24h || 0,
@@ -337,7 +289,6 @@ export const simulateSwap = async (
 ) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     const simulation = await client.simulateSwap({
       poolId,
       assetInAddress,
@@ -396,7 +347,16 @@ export const executeSwap = async (
         maxSlippageBps,
       );
     }
-
+    // console.log({
+    //   poolId,
+    //   assetInAddress,
+    //   assetOutAddress,
+    //   amountIn: amountIn.toString(),
+    //   minAmountOut: calculatedMinOut.toString(),
+    //   maxSlippageBps,
+    //   integratorFeeRateBps,
+    //   integratorPublicKey: import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY,
+    // });
     const swap = await client.executeSwap({
       poolId,
       assetInAddress,
@@ -404,8 +364,8 @@ export const executeSwap = async (
       amountIn: amountIn.toString(),
       minAmountOut: calculatedMinOut.toString(),
       maxSlippageBps,
-      // integratorFeeRateBps,
-      // integratorPublicKey: getIntegratorPublicKey(),
+      integratorFeeRateBps,
+      integratorPublicKey: import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY,
     });
 
     return {
@@ -423,12 +383,9 @@ export const executeSwap = async (
     const errorDetails = formatError(error, "executeSwap");
     console.warn("Execute swap error:", errorDetails);
 
-    const id = getRefundTxidFromErrormessage(error?.message || "");
-    if (id) {
-      setFlashnetTransfer(id);
-    }
+    const id = getRefundTxidFromErrormessage(error.message);
+    if (id) setFlashnetTransfer(id);
 
-    // Check for auto-clawback results
     if (isFlashnetError(error) && error.wasClawbackAttempted()) {
       errorDetails.clawbackSummary = {
         attempted: true,
@@ -440,17 +397,9 @@ export const executeSwap = async (
       };
     }
 
-    return {
-      didWork: false,
-      error: error.message,
-      details: errorDetails,
-    };
+    return { didWork: false, error: error.message, details: errorDetails };
   }
 };
-
-// ============================================
-// BITCOIN <-> TOKEN SWAPS (Convenience Functions)
-// ============================================
 
 export const swapBitcoinToToken = async (
   mnemonic,
@@ -553,7 +502,6 @@ export const getLightningPaymentQuote = async (
 ) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     const quote = await client.getPayLightningWithTokenQuote(
       invoice,
       tokenAddress,
@@ -604,7 +552,6 @@ export const payLightningWithToken = async (
 ) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     const result = await client.payLightningWithToken({
       invoice,
       tokenAddress,
@@ -665,15 +612,12 @@ export const payLightningWithToken = async (
 export const getUserSwapHistory = async (mnemonic, limit = 50, offset) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     let result;
     if (offset) {
       result = await client.getUserSwaps(undefined, { limit, offset });
     } else {
       result = await client.getUserSwaps(undefined, { limit });
     }
-
-    console.log("User swap history response:", result);
 
     return {
       didWork: true,
@@ -695,31 +639,21 @@ export const getUserSwapHistory = async (mnemonic, limit = 50, offset) => {
 };
 
 // ============================================
-// Track current LN -> USD swaps for the session
+// ACTIVE SWAP TRACKING
 // ============================================
 
 let activeSwapTransferIds = new Set();
 
-export const isSwapActive = () => {
-  return activeSwapTransferIds.size > 0;
-};
+export const isSwapActive = () => activeSwapTransferIds.size > 0;
 
-export const getActiveSwapTransferIds = () => {
-  return new Set(activeSwapTransferIds);
-};
+export const getActiveSwapTransferIds = () => new Set(activeSwapTransferIds);
 
 export const addActiveSwap = (transferId) => {
   activeSwapTransferIds.add(transferId);
-  console.log(
-    `[Swap Tracker] Added swap ${transferId}, total active: ${activeSwapTransferIds.size}`,
-  );
 };
 
 export const removeActiveSwap = (transferId) => {
   activeSwapTransferIds.delete(transferId);
-  console.log(
-    `[Swap Tracker] Removed swap ${transferId}, total active: ${activeSwapTransferIds.size}`,
-  );
 };
 
 // ============================================
@@ -733,20 +667,13 @@ export const savePendingSwapConfirmation = async (
   outboundTransferId,
 ) => {
   try {
-    const existing = await getLocalStorageItem(PENDING_SWAP_CONFIRMATIONS_KEY);
-    const pending = existing ? JSON.parse(existing) : {};
-
-    pending[sparkRequestID] = {
+    const existing = Storage.getItem(PENDING_SWAP_CONFIRMATIONS_KEY) || {};
+    existing[sparkRequestID] = {
       outboundTransferId,
       timestamp: Date.now(),
       lastChecked: null,
     };
-
-    await setLocalStorageItem(
-      PENDING_SWAP_CONFIRMATIONS_KEY,
-      JSON.stringify(pending),
-    );
-    console.log("[Swap Retry] Saved pending confirmation:", sparkRequestID);
+    Storage.setItem(PENDING_SWAP_CONFIRMATIONS_KEY, existing);
   } catch (err) {
     console.error("[Swap Retry] Failed to save pending confirmation:", err);
   }
@@ -754,17 +681,10 @@ export const savePendingSwapConfirmation = async (
 
 export const removePendingSwapConfirmation = async (sparkRequestID) => {
   try {
-    const existing = await getLocalStorageItem(PENDING_SWAP_CONFIRMATIONS_KEY);
+    const existing = Storage.getItem(PENDING_SWAP_CONFIRMATIONS_KEY);
     if (!existing) return;
-
-    const pending = JSON.parse(existing);
-    delete pending[sparkRequestID];
-
-    await setLocalStorageItem(
-      PENDING_SWAP_CONFIRMATIONS_KEY,
-      JSON.stringify(pending),
-    );
-    console.log("[Swap Retry] Removed pending confirmation:", sparkRequestID);
+    delete existing[sparkRequestID];
+    Storage.setItem(PENDING_SWAP_CONFIRMATIONS_KEY, existing);
   } catch (err) {
     console.error("[Swap Retry] Failed to remove pending confirmation:", err);
   }
@@ -772,8 +692,7 @@ export const removePendingSwapConfirmation = async (sparkRequestID) => {
 
 export const getPendingSwapConfirmations = async () => {
   try {
-    const existing = await getLocalStorageItem(PENDING_SWAP_CONFIRMATIONS_KEY);
-    return existing ? JSON.parse(existing) : {};
+    return Storage.getItem(PENDING_SWAP_CONFIRMATIONS_KEY) || {};
   } catch (err) {
     console.error("[Swap Retry] Failed to get pending confirmations:", err);
     return {};
@@ -791,11 +710,6 @@ export const completeSwapConfirmation = async (
   sparkInfoRef,
 ) => {
   try {
-    console.log(
-      "[Swap Confirmation] Starting confirmation for:",
-      sparkRequestID,
-    );
-
     const realFeeAmount = Math.round(
       dollarsToSats(
         result.swap.feeAmount / Math.pow(10, 6),
@@ -804,9 +718,8 @@ export const completeSwapConfirmation = async (
     );
 
     const userSwaps = await getUserSwapHistory(mnemoinc, 5);
-
     const swap = userSwaps.swaps.find(
-      (savedSwap) => savedSwap.outboundTransferId === outboundTransferId,
+      (s) => s.outboundTransferId === outboundTransferId,
     );
 
     if (!swap) {
@@ -869,46 +782,24 @@ export const completeSwapConfirmation = async (
 
 export const retryPendingSwapConfirmations = async (mnemoinc, sparkInfoRef) => {
   try {
-    console.log("[Swap Retry] Checking for pending confirmations...");
-
     const pending = await getPendingSwapConfirmations();
     const sparkRequestIDs = Object.keys(pending);
-
-    if (sparkRequestIDs.length === 0) {
-      console.log("[Swap Retry] No pending confirmations found");
-      return;
-    }
-
-    console.log(
-      `[Swap Retry] Found ${sparkRequestIDs.length} pending confirmation(s)`,
-    );
+    if (sparkRequestIDs.length === 0) return;
 
     for (const sparkRequestID of sparkRequestIDs) {
       const { outboundTransferId, timestamp, lastChecked } =
         pending[sparkRequestID];
-
-      // Only remove if too old AND has been checked at least once
       const MAX_AGE = 24 * 60 * 60 * 1000;
       if (lastChecked && Date.now() - timestamp > MAX_AGE) {
-        console.warn(
-          `[Swap Retry] Confirmation too old (checked at least once), removing:`,
-          sparkRequestID,
-        );
         await removePendingSwapConfirmation(sparkRequestID);
         continue;
       }
 
       try {
-        console.log(`[Swap Retry] Retrying confirmation for:`, sparkRequestID);
-
-        // Update lastChecked timestamp
         const updatedPending = await getPendingSwapConfirmations();
         if (updatedPending[sparkRequestID]) {
           updatedPending[sparkRequestID].lastChecked = Date.now();
-          await setLocalStorageItem(
-            PENDING_SWAP_CONFIRMATIONS_KEY,
-            JSON.stringify(updatedPending),
-          );
+          Storage.setItem(PENDING_SWAP_CONFIRMATIONS_KEY, updatedPending);
         }
 
         let swap = null;
@@ -922,54 +813,37 @@ export const retryPendingSwapConfirmations = async (mnemoinc, sparkInfoRef) => {
             batchSize,
             offset,
           );
-
           if (!userSwaps?.swaps || userSwaps.swaps.length === 0) break;
-
           swap = userSwaps.swaps.find(
             (s) => s.outboundTransferId === outboundTransferId,
           );
-
           if (!swap) offset += batchSize;
         }
 
-        if (!swap) {
-          console.error(
-            "[Swap Retry] Swap not found in history after checking up to 50 swaps",
-          );
-          continue;
-        }
+        if (!swap) continue;
 
-        // Get the lightning request
         const lightningRequest = await getSparkLightningPaymentStatus({
           lightningInvoiceId: sparkRequestID,
           mnemonic: mnemoinc,
         });
 
         if (!lightningRequest?.transfer?.sparkId) {
-          console.error("[Swap Retry] Lightning request not found");
           await removePendingSwapConfirmation(sparkRequestID);
           continue;
         }
 
-        // Get transaction details
         const txDetails = await getSingleTxDetails(
           mnemoinc,
-          lightningRequest?.transfer?.sparkId,
+          lightningRequest.transfer.sparkId,
         );
+        if (!txDetails) continue;
 
-        if (!txDetails) {
-          console.error("[Swap Retry] Transaction details not found");
-          continue;
-        }
-
-        // Check if already completed
         if (isFlashnetTransfer(lightningRequest.transfer.sparkId)) {
-          console.log("[Swap Retry] Already completed, removing");
           await removePendingSwapConfirmation(sparkRequestID);
           continue;
         }
 
-        const result = {
+        const fakeResult = {
           swap: {
             ...swap,
             feeAmount: swap.feePaid || 0,
@@ -979,36 +853,24 @@ export const retryPendingSwapConfirmations = async (mnemoinc, sparkInfoRef) => {
         };
 
         const invoice = lightningRequest?.invoice?.encodedInvoice || "";
-
         lightningRequest.description = lightningRequest?.invoice?.memo || "";
 
-        const success = await completeSwapConfirmation(
+        await completeSwapConfirmation(
           sparkRequestID,
           outboundTransferId,
           lightningRequest,
           txDetails,
-          result,
+          fakeResult,
           invoice,
           mnemoinc,
           sparkInfoRef,
         );
 
-        if (success) {
-          console.log(
-            "[Swap Retry] Successfully completed pending confirmation",
-          );
-        } else {
-          console.warn("[Swap Retry] Failed to complete confirmation");
-        }
-
-        // Add delay between retries
         await new Promise((res) => setTimeout(res, 1000));
       } catch (err) {
         console.error(`[Swap Retry] Error processing ${sparkRequestID}:`, err);
       }
     }
-
-    console.log("[Swap Retry] Finished processing pending confirmations");
   } catch (err) {
     console.error("[Swap Retry] Error in retry process:", err);
   }
@@ -1018,104 +880,18 @@ export const retryPendingSwapConfirmations = async (mnemoinc, sparkInfoRef) => {
 // UTILITY FUNCTIONS
 // ============================================
 
-export const calculateSwapOutput = async (
-  mnemonic,
-  { poolId, assetInAddress, assetOutAddress, amountIn },
-) => {
-  return await simulateSwap(mnemonic, {
-    poolId,
-    assetInAddress,
-    assetOutAddress,
-    amountIn,
-  });
-};
-
-export const checkSwapViability = async (
-  mnemonic,
-  params,
-  maxPriceImpactPct = 5,
-) => {
-  try {
-    const simulation = await simulateSwap(mnemonic, params);
-
-    if (!simulation.didWork) {
-      return {
-        viable: false,
-        reason: "Simulation failed",
-        error: simulation.error,
-      };
-    }
-
-    const priceImpact = parseFloat(simulation.simulation.priceImpact);
-
-    if (priceImpact > maxPriceImpactPct) {
-      return {
-        viable: false,
-        reason: `Price impact too high: ${priceImpact.toFixed(2)}% (max: ${maxPriceImpactPct}%)`,
-        priceImpact,
-        simulation: simulation.simulation,
-      };
-    }
-
-    return {
-      viable: true,
-      priceImpact,
-      simulation: simulation.simulation,
-    };
-  } catch (error) {
-    return {
-      viable: false,
-      reason: error.message,
-      error: formatError(error, "checkSwapViability"),
-    };
-  }
-};
-
-export const getCurrentPrice = async (mnemonic, poolId) => {
-  try {
-    const poolResult = await getPoolDetails(mnemonic, poolId);
-
-    if (!poolResult.didWork) {
-      throw new Error("Failed to get pool details");
-    }
-
-    return {
-      didWork: true,
-      price: poolResult.marketData.currentPrice,
-      priceChange24h: poolResult.marketData.priceChange24h,
-      volume24h: poolResult.marketData.volume24h,
-      tvl: poolResult.marketData.tvl,
-    };
-  } catch (error) {
-    console.warn(
-      "Get current price error:",
-      formatError(error, "getCurrentPrice"),
-    );
-    return {
-      didWork: false,
-      error: error.message,
-      details: formatError(error, "getCurrentPrice"),
-    };
-  }
-};
-
 export function satsToDollars(sats, currentPriceAinB) {
   try {
     const DOLLAR_DECIMALS = 1_000_000;
-
     const numSats = typeof sats === "bigint" ? Number(sats) : Number(sats || 0);
     const numPrice =
       typeof currentPriceAinB === "bigint"
         ? Number(currentPriceAinB)
         : Number(currentPriceAinB || 0);
-
-    if (isNaN(numSats) || isNaN(numPrice) || numPrice === 0) {
-      return 0;
-    }
-
+    if (isNaN(numSats) || isNaN(numPrice) || numPrice === 0) return 0;
     return (numSats * numPrice) / DOLLAR_DECIMALS;
   } catch (error) {
-    console.error("Error in satsToDollars:", error, { sats, currentPriceAinB });
+    console.error("Error in satsToDollars:", error);
     return 0;
   }
 }
@@ -1123,27 +899,16 @@ export function satsToDollars(sats, currentPriceAinB) {
 export function dollarsToSats(dollars, currentPriceAinB) {
   try {
     const DOLLAR_DECIMALS = 1_000_000;
-
     const numDollars =
       typeof dollars === "bigint" ? Number(dollars) : Number(dollars || 0);
     const numPrice =
       typeof currentPriceAinB === "bigint"
         ? Number(currentPriceAinB)
         : Number(currentPriceAinB || 0);
-    console.log("currentPriceAinB", currentPriceAinB);
-    console.log("numDollars", numDollars);
-    console.log("numPrice", numPrice);
-
-    if (isNaN(numDollars) || isNaN(numPrice) || numPrice === 0) {
-      return 0;
-    }
-
+    if (isNaN(numDollars) || isNaN(numPrice) || numPrice === 0) return 0;
     return (numDollars * DOLLAR_DECIMALS) / numPrice;
   } catch (error) {
-    console.error("Error in dollarsToSats:", error, {
-      dollars,
-      currentPriceAinB,
-    });
+    console.error("Error in dollarsToSats:", error);
     return 0;
   }
 }
@@ -1154,36 +919,21 @@ export function currentPriceAinBToPriceDollars(currentPriceAInB) {
       typeof currentPriceAInB === "bigint"
         ? Number(currentPriceAInB)
         : Number(currentPriceAInB || 0);
-
-    if (isNaN(numPrice)) {
-      return 0;
-    }
-
+    if (isNaN(numPrice)) return 0;
     return (numPrice * 100000000) / 1000000;
   } catch (error) {
-    console.error("Error in currentPriceAinBToPriceDollars:", error, {
-      currentPriceAInB,
-    });
+    console.error("Error in currentPriceAinBToPriceDollars:", error);
     return 0;
   }
 }
 
-// ============================================
-// ERROR HANDLING UTILITIES
-// ============================================
-
 export const handleFlashnetError = (error) => {
   if (!isFlashnetErrorCode(error.errorCode)) {
-    return {
-      isFlashnetError: false,
-      message: error.message,
-    };
+    return { isFlashnetError: false, message: error.message };
   }
 
   const flashnetError = new FlashnetError(error.error, {
-    response: {
-      ...error,
-    },
+    response: { ...error },
   });
 
   const errorInfo = {
@@ -1199,60 +949,33 @@ export const handleFlashnetError = (error) => {
     recovery: flashnetError.recovery,
   };
 
-  // Check for specific error types
   if (flashnetError.isSlippageError()) {
     errorInfo.type = "slippage";
-    errorInfo.userMessage = "screens.inAccount.swapsPage.slippageError";
+    errorInfo.userMessage = i18next.t(
+      "screens.inAccount.swapsPage.slippageError",
+    );
   } else if (flashnetError.isInsufficientLiquidityError()) {
     errorInfo.type = "insufficient_liquidity";
-    errorInfo.userMessage = "screens.inAccount.swapsPage.noLiquidity";
+    errorInfo.userMessage = i18next.t(
+      "screens.inAccount.swapsPage.noLiquidity",
+    );
   } else if (flashnetError.isAuthError()) {
     errorInfo.type = "authentication";
-    errorInfo.userMessage = "screens.inAccount.swapsPage.authenticationError";
+    errorInfo.userMessage = i18next.t(
+      "screens.inAccount.swapsPage.authenticationError",
+    );
   } else if (flashnetError.isPoolNotFoundError()) {
     errorInfo.type = "pool_not_found";
-    errorInfo.userMessage = "screens.inAccount.swapsPage.noPoolError";
+    errorInfo.userMessage = i18next.t(
+      "screens.inAccount.swapsPage.noPoolError",
+    );
   }
-  errorInfo.userMessage = i18next.t(errorInfo.userMessage);
 
   return errorInfo;
 };
 
-const getRefundTxidFromErrormessage = (message) => {
-  try {
-    const match = message.match(FLASHNET_REFUND_REGEX);
-
-    if (match) {
-      const transferID = match[1]; // first capture group
-      return transferID;
-    } else {
-      console.log("No transfer ID found");
-    }
-  } catch (err) {
-    console.log("error getting txid from error message", err);
-  }
-};
-
-const formatAndReturnWebviewError = (receivedError) => {
-  // Web version: kept for alignment, but generally unused.
-  try {
-    if (receivedError.formatted) {
-      console.log(receivedError.formatted.errorCode);
-      const error = handleFlashnetError(receivedError.formatted);
-
-      return {
-        didWork: false,
-        error: receivedError.error,
-        details: error,
-      };
-    }
-  } catch (err) {
-    console.log("error getting txid from error message", err);
-  }
-};
-
 // ============================================
-// MANUAL CLAWBACK & RECOVERY
+// CLAWBACK & RECOVERY
 // ============================================
 
 export const requestManualClawback = async (
@@ -1262,7 +985,6 @@ export const requestManualClawback = async (
 ) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     const result = await client.clawback({
       sparkTransferId,
       lpIdentityPublicKey: poolId,
@@ -1286,7 +1008,7 @@ export const requestManualClawback = async (
       return {
         didWork: false,
         accepted: false,
-        error: result.error || "Clawback request rejected by pool",
+        error: result.error || "Rejected by pool",
       };
     }
   } catch (error) {
@@ -1305,43 +1027,27 @@ export const requestManualClawback = async (
 export const checkClawbackEligibility = async (mnemonic, sparkTransferId) => {
   try {
     const client = getFlashnetClient(mnemonic);
-
     const eligibility = await client.checkClawbackEligibility({
       sparkTransferId,
     });
 
     if (eligibility.accepted) {
-      console.log("Transfer is eligible for clawback");
-      return {
-        didWork: true,
-        error: null,
-        response: true,
-      };
+      return { didWork: true, error: null, response: true };
     } else {
-      console.log("Cannot clawback:", eligibility.error);
-      return {
-        didWork: true,
-        error: eligibility.error,
-        response: false,
-      };
+      return { didWork: true, error: eligibility.error, response: false };
     }
   } catch (error) {
     console.warn(
-      "Manual clawback error:",
-      formatError(error, "requestManualClawback"),
+      "checkClawbackEligibility error:",
+      formatError(error, "checkClawbackEligibility"),
     );
-    return {
-      didWork: false,
-      error: error.message,
-      response: false,
-    };
+    return { didWork: false, error: error.message, response: false };
   }
 };
 
 export const checkClawbackStatus = async (mnemonic, internalRequestId) => {
   try {
     const client = getFlashnetClient(mnemonic);
-    console.log("client", client);
     const status = await client.checkClawbackStatus({ internalRequestId });
 
     return {
@@ -1368,79 +1074,46 @@ export const requestBatchClawback = async (mnemonic, transferIds, poolId) => {
   try {
     const client = getFlashnetClient(mnemonic);
     const result = await client.clawbackMultiple(transferIds, poolId);
-
-    return {
-      didWork: true,
-      result,
-    };
+    return { didWork: true, result };
   } catch (error) {
     console.warn(
       "Batch clawback error:",
       formatError(error, "requestBatchClawback"),
     );
-    return {
-      didWork: false,
-      error: error.message,
-    };
+    return { didWork: false, error: error.message };
   }
 };
 
-export const listClawbackableTransfers = async (
-  mnemonic,
-  limit = 100,
-  offset,
-) => {
+export const listClawbackableTransfers = async (mnemonic, limit = 100) => {
   try {
     const client = getFlashnetClient(mnemonic);
-    const resposne = await client.listClawbackableTransfers({ limit, offset });
-
-    return {
-      didWork: true,
-      resposne: resposne,
-    };
+    const response = await client.listClawbackableTransfers({ limit });
+    return { didWork: true, response };
   } catch (error) {
     console.warn(
-      "Check clawback status error:",
-      formatError(error, "checkClawbackStatus"),
+      "listClawbackableTransfers error:",
+      formatError(error, "listClawbackableTransfers"),
     );
-    return {
-      didWork: false,
-      error: error.message,
-      details: formatError(error, "checkClawbackStatus"),
-    };
+    return { didWork: false, error: error.message };
   }
 };
 
-// Export all functions
-export default {
-  // Pool functions
-  findBestPool,
-  getPoolDetails,
-  listAllPools,
+export const calculateSwapOutput = async (mnemonic, params) => {
+  return await simulateSwap(mnemonic, params);
+};
 
-  // Swap functions
-  simulateSwap,
-  executeSwap,
-  swapBitcoinToToken,
-  swapTokenToBitcoin,
-
-  // Lightning functions
-  getLightningPaymentQuote,
-  payLightningWithToken,
-
-  // History functions
-  getUserSwapHistory,
-
-  // Utility functions
-  // calculateSwapOutput,
-  // checkSwapViability,
-  // getCurrentPrice,
-  handleFlashnetError,
-  satsToDollars,
-  dollarsToSats,
-
-  // Manual recovery functions
-  requestManualClawback,
-  checkClawbackStatus,
-  requestBatchClawback,
+export const getCurrentPrice = async (mnemonic, poolId) => {
+  try {
+    const poolResult = await getPoolDetails(mnemonic, poolId);
+    if (!poolResult.didWork) throw new Error("Failed to get pool details");
+    return {
+      didWork: true,
+      price: poolResult.marketData.currentPrice,
+      priceChange24h: poolResult.marketData.priceChange24h,
+      volume24h: poolResult.marketData.volume24h,
+      tvl: poolResult.marketData.tvl,
+    };
+  } catch (error) {
+    return { didWork: false, error: error.message };
+  }
 };

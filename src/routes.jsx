@@ -76,12 +76,14 @@ const pages = {
   SettingsContentIndex: lazy(
     () => import("./pages/settings/settingsItem/settingsItem.jsx"),
   ),
+  SettingsHub: lazy(() => import("./pages/settingsHub/index.jsx")),
   SettingsHome: lazy(() => import("./pages/settings/settings.jsx")),
   ViewMnemoinc: lazy(() => import("./pages/viewkey/viewKey.jsx")),
   RestoreWallet: lazy(() => import("./pages/restoreWallet/restoreWallet.jsx")),
   ViewAllTxsPage: lazy(() => import("./pages/viewAllTx/viewAllTxPage.jsx")),
   Contacts: lazy(() => import("./pages/contacts/contacts.jsx")),
   Store: lazy(() => import("./pages/store/store.jsx")),
+  StoreItem: lazy(() => import("./pages/store/storeItem/storeItem.jsx")),
   ConfirmPayment: lazy(
     () => import("./pages/confirmPayment/confirmPaymentScreen.jsx"),
   ),
@@ -130,11 +132,17 @@ export const routeGroups = {
 
   // Slide left animation - typically for settings/navigation
   [ANIMATIONS.SLIDE_LEFT]: [
+    { path: "/settingsHub", component: pages.SettingsHub, useSafeArea: true },
     { path: "/settings", component: pages.SettingsHome, useSafeArea: true },
     {
       path: "/settings-item",
       component: pages.SettingsContentIndex,
       useSafeArea: false,
+    },
+    {
+      path: "/store-item",
+      component: pages.StoreItem,
+      useSafeArea: true,
     },
     {
       path: "/settings-item/SparkSettingsPage",

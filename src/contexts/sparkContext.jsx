@@ -1126,7 +1126,7 @@ const SparkWalletProvider = ({ children, navigate }) => {
     console.log(accountMnemoinc, "acc me");
 
     const network =
-      import.meta.env.MODE === "development" ? "REGTEST" : "MAINNET";
+      import.meta.env.VITE_MODE === "development" ? "REGTEST" : "MAINNET";
 
     const { didWork, error } = await initWallet({
       setSparkInformation,

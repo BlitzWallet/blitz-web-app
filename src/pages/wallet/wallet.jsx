@@ -10,8 +10,16 @@ import useThemeColors from "../../hooks/useThemeColors";
 import SafeAreaComponent from "../../components/safeAreaContainer";
 import LRC20Assets from "./components/lrc20Assets";
 import { useOverlay } from "../../contexts/overlayContext";
+import { useSpark } from "../../contexts/sparkContext";
+import ThemeText from "../../components/themeText/themeText";
+import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 export default function WalletHome() {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { sparkInformation } = useSpark();
   const { openOverlay } = useOverlay();
   const { masterInfoObject } = useGlobalContextProvider();
   const { backgroundColor, backgroundOffset } = useThemeColors();
@@ -48,9 +56,31 @@ export default function WalletHome() {
         </div>
 
         <div style={{ background: backgroundOffset }} className="txsContainer">
-          <p style={{ color: textColor }} className="header">
-            Recent activity
-          </p>
+          {sparkInformation.transactions.length > 1 && (
+            <div
+              className="viewAllContainer"
+              onClick={() => navigate("/viewAllTransactions")}
+            >
+              <ThemeText
+                textContent={t("wallet.homeLightning.home.activity")}
+              />
+              <div
+                style={{
+                  opacity: 0.5,
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <ThemeText
+                  textStyles={{ fontSize: ".8rem" }}
+                  textContent={t("settings.hub.viewAll")}
+                />
+                <ChevronRight size={15} color={textColor} />
+              </div>
+            </div>
+          )}
+
           <TransactionContanier frompage={"home"} />
         </div>
       </div>

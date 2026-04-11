@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import ThemeText from "../../components/themeText/themeText";
@@ -27,6 +27,7 @@ import { useOverlay } from "../../contexts/overlayContext";
 import { useImageCache } from "../../contexts/imageCacheContext";
 import { useGlobalContacts } from "../../contexts/globalContacts";
 import copyToClipboard from "../../functions/copyToClipboard";
+import { useAuth } from "../../contexts/authContext";
 
 const PREFERENCES = [
   {
@@ -149,8 +150,11 @@ export default function SettingsIndex() {
   const { t } = useTranslation();
   const { openOverlay } = useOverlay();
   const { cache } = useImageCache();
+  const { deleteWallet } = useAuth();
   const location = useLocation();
   const props = location.state || {};
+  const queryParams = new URLSearchParams(location.search);
+  const confirmed = queryParams.get("confirmed");
   const isDoomsday = props.isDoomsday;
   const { theme, darkModeType } = useThemeContext();
   const { globalContactsInformation } = useGlobalContacts();
@@ -164,6 +168,16 @@ export default function SettingsIndex() {
   const myProfileImage = masterInfoObject?.profileImage;
   const myContact = globalContactsInformation?.myProfile;
   console.log(globalContactsInformation);
+
+  useEffect(() => {
+    if (!confirmed) return;
+    deleteWallet();
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  }, [confirmed]);
+
+  console.log(location, "test", confirmed, "test");
 
   const settingsElements = useMemo(() => {
     return settignsList.map((section, sectionIndex) => {
@@ -260,99 +274,9 @@ export default function SettingsIndex() {
 
   return (
     <div className="global-container">
-      <CustomSettingsNavBar
-        showLeftImage={!isDoomsday}
-        LeftImageIcon={Upload}
-        text={!isDoomsday ? "Profile" : "Settings"}
-        leftImageFunction={() => {
-          navigator.share?.({
-            title: "Share Contact",
-            url: `https://blitzwalletapp.com/u/${myContact?.uniqueName}`,
-          });
-        }}
-      />
+      <CustomSettingsNavBar text={"Settings"} />
 
       <div className="settings-container">
-        {!isDoomsday && (
-          <div
-            style={{ borderBottomColor: backgroundOffset }}
-            className="profile-container"
-          >
-            <div
-              style={{ backgroundColor: backgroundOffset }}
-              className="profile-image"
-            >
-              <ContactProfileImage
-                updated={cache[masterInfoObject?.uuid]?.updated}
-                uri={cache[masterInfoObject?.uuid]?.localUri}
-                theme={theme}
-                darkModeType={darkModeType}
-              />
-            </div>
-
-            <ThemeText
-              textContent={myContact?.name || "Anonymous"}
-              textStyles={{
-                opacity: myContact?.name ? 0.5 : 0.8,
-                marginBottom: 0,
-              }}
-            />
-            <div
-              onClick={() =>
-                copyToClipboard(myContact?.uniqueName, openOverlay, location)
-              }
-              style={{ cursor: "pointer" }}
-            >
-              <ThemeText
-                textStyles={{ margin: 0, marginBottom: 40 }}
-                textContent={`@${myContact?.uniqueName}`}
-                className="profile-unique-name"
-              />
-            </div>
-
-            <div className="button-container">
-              <div
-                style={{
-                  borderColor: backgroundOffset,
-                }}
-                className="button"
-                onClick={() =>
-                  navigate(`/settings-item`, {
-                    state: { for: "edit contact profile" },
-                  })
-                }
-              >
-                <Edit
-                  color={theme ? Colors.dark.text : Colors.light.text}
-                  size={20}
-                />
-                <ThemeText
-                  className={"profileActionBTNText"}
-                  textContent="Edit Profile"
-                />
-              </div>
-
-              <div
-                style={{
-                  borderColor: backgroundOffset,
-                }}
-                className="button"
-                onClick={() => navigate("/profile-qr")}
-              >
-                <ScanLine
-                  color={theme ? Colors.dark.text : Colors.light.text}
-                  size={20}
-                />
-
-                <ThemeText
-                  className={"profileActionBTNText"}
-                  textContent="Show QR"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {settingsElements}
 
         {isDoomsday && (

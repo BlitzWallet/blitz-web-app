@@ -7,24 +7,41 @@ import React, {
 } from "react";
 
 import Storage from "../functions/localStorage";
-import { CUSTODY_ACCOUNTS_STORAGE_KEY } from "../constants";
+import {
+  CUSTODY_ACCOUNTS_STORAGE_KEY,
+  MAX_DERIVED_ACCOUNTS,
+} from "../constants";
 import { decryptMnemonic, encryptMnemonic } from "../functions/handleMnemonic";
 import { useKeysContext } from "./keysContext";
 import { useGlobalContextProvider } from "./masterInfoObject";
+import { useAppStatus } from "./appStatus";
+import { useTranslation } from "react-i18next";
+import { deriveAccountMnemonic } from "../functions/accounts/derivedAccounts";
+import customUUID from "../functions/customUUID";
+import isValidMnemonic from "../functions/isValidMnemonic";
 
+export const MAIN_ACCOUNT_UUID = "MW09xd09d8f0a9sf2n332";
+export const NWC_ACCOUNT_UUID = "NWC038rsd0f8234ajsf";
 // Create a context for the WebView ref
 const ActiveCustodyAccount = createContext(null);
 
 export const ActiveCustodyAccountProvider = ({ children }) => {
-  const { masterInfoObject } = useGlobalContextProvider();
+  const { masterInfoObject, toggleMasterInfoObject } =
+    useGlobalContextProvider();
+  const { didGetToHomepage } = useAppStatus();
+  const { t } = useTranslation();
   const [custodyAccounts, setCustodyAccounts] = useState([]);
   const [isUsingNostr, setIsUsingNostr] = useState(false);
   const { accountMnemoinc } = useKeysContext();
   const [nostrSeed, setNostrSeed] = useState("");
+  const [activeDerivedMnemonic, setActiveDerivedMnemonic] = useState(null);
   const hasSessionReset = useRef(false);
+  const hasAutoRestoreCheckRun = useRef(false);
   const selectedAltAccount = custodyAccounts.filter((item) => item.isActive);
   const didSelectAltAccount = !!selectedAltAccount.length;
+  const isInitialRender = useRef(true);
   const enabledNWC = masterInfoObject.didViewNWCMessage;
+  const currentPins = masterInfoObject.pinnedAccounts || [];
 
   // useEffect(() => {
   //   if (nostrSeed.length || !enabledNWC) return;
@@ -45,7 +62,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
         const accoutList = Storage.getItem(CUSTODY_ACCOUNTS_STORAGE_KEY) || [];
 
         const decryptedList = accoutList.map((item) =>
-          JSON.parse(decryptMnemonic(item, accountMnemoinc))
+          JSON.parse(decryptMnemonic(item, accountMnemoinc)),
         );
 
         setCustodyAccounts(decryptedList);
@@ -67,7 +84,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
     async function clearActiveAccountsOnSessionStart() {
       try {
         const hasActiveAccounts = custodyAccounts.some(
-          (account) => account.isActive
+          (account) => account.isActive,
         );
 
         if (hasActiveAccounts) {
@@ -80,7 +97,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
 
           Storage.setItem(
             CUSTODY_ACCOUNTS_STORAGE_KEY,
-            encriptAccountsList(clearedAccounts)
+            encriptAccountsList(clearedAccounts),
           );
 
           setCustodyAccounts(clearedAccounts);
@@ -98,7 +115,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
 
   const encriptAccountsList = (custodyAccounts) => {
     return custodyAccounts.map((item) =>
-      encryptMnemonic(JSON.stringify(item), accountMnemoinc)
+      encryptMnemonic(JSON.stringify(item), accountMnemoinc),
     );
   };
 
@@ -108,10 +125,18 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
       let newAccounts = accountInformation.filter((accounts) => {
         return accounts.uuid !== account.uuid;
       });
+      const isPinned = currentPins.includes(account.uuid);
+
+      if (isPinned) {
+        // clear from pinned list
+        toggleMasterInfoObject({
+          pinnedAccounts: currentPins.filter((id) => id !== account.uuid),
+        });
+      }
       //   clear spark information here too. Delte txs from database, reove listeners
       Storage.setItem(
         CUSTODY_ACCOUNTS_STORAGE_KEY,
-        encriptAccountsList(newAccounts)
+        encriptAccountsList(newAccounts),
       );
 
       setCustodyAccounts(newAccounts);
@@ -130,7 +155,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
       console.log(savedAccountInformation);
       Storage.setItem(
         CUSTODY_ACCOUNTS_STORAGE_KEY,
-        encriptAccountsList(savedAccountInformation)
+        encriptAccountsList(savedAccountInformation),
       );
 
       setCustodyAccounts(savedAccountInformation);
@@ -152,7 +177,7 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
 
       Storage.setItem(
         CUSTODY_ACCOUNTS_STORAGE_KEY,
-        encriptAccountsList(newAccounts)
+        encriptAccountsList(newAccounts),
       );
 
       setCustodyAccounts(newAccounts);
@@ -172,6 +197,15 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
         } else return { ...accounts, isActive: false };
       });
 
+      if (account.isActive && typeof account.derivationIndex === "number") {
+        const derivedMnemonic = await deriveAccountMnemonic(
+          accountMnemoinc,
+          account.derivationIndex,
+        );
+        setActiveDerivedMnemonic(derivedMnemonic);
+      } else {
+        setActiveDerivedMnemonic(null);
+      }
       setCustodyAccounts(newAccounts);
       return { didWork: true };
     } catch (err) {
@@ -180,9 +214,261 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
     }
   };
 
+  const createDerivedAccount = async (accountName) => {
+    try {
+      const nextCloudIndex = masterInfoObject.nextAccountDerivationIndex || 3;
+
+      const nextIndex = nextCloudIndex + 1;
+
+      // Enforce hard cap to prevent overlap with gifts range (starts at index 1000)
+      if (nextIndex >= MAX_DERIVED_ACCOUNTS) {
+        return {
+          didWork: false,
+          error: `Maximum of ${MAX_DERIVED_ACCOUNTS} accounts reached. Please delete unused accounts.`,
+        };
+      }
+
+      // Don't store the mnemonic, just metadata
+      const accountInfo = {
+        uuid: customUUID(),
+        name: accountName,
+        derivationIndex: nextIndex,
+        dateCreated: Date.now(),
+        isActive: false,
+        accountType: "derived",
+        profileEmoji: "",
+      };
+
+      await createAccount(accountInfo);
+
+      // Update masterInfoObject with new index (automatically syncs to Firebase)
+      await toggleMasterInfoObject({
+        nextAccountDerivationIndex: nextIndex,
+      });
+
+      return { didWork: true };
+    } catch (err) {
+      console.log("Create derived account error", err);
+      return { didWork: false, error: err.message };
+    }
+  };
+
+  const createImportedAccount = async (accountName, importedSeed) => {
+    try {
+      if (!importedSeed || typeof importedSeed !== "string") {
+        return { didWork: false, error: "Invalid seed provided" };
+      }
+
+      const words = importedSeed
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean);
+      if (words.length !== 12 || !isValidMnemonic(words)) {
+        return {
+          didWork: false,
+          error: "Seed must be a valid 12-word recovery phrase",
+        };
+      }
+
+      const accountInfo = {
+        uuid: customUUID(),
+        name: accountName,
+        mnemoinc: words.join(" "),
+        dateCreated: Date.now(),
+        isActive: false,
+        accountType: "imported",
+        profileEmoji: "",
+      };
+
+      await createAccount(accountInfo);
+      // NO cloud backup for imported accounts (contains sensitive seed)
+      return { didWork: true };
+    } catch (err) {
+      console.log("Create imported account error", err);
+      return { didWork: false, error: err.message };
+    }
+  };
+
+  const restoreDerivedAccount = async (accountName, derivationIndex) => {
+    try {
+      // Validation #1: Type check
+      if (
+        typeof derivationIndex !== "number" ||
+        !Number.isInteger(derivationIndex)
+      ) {
+        return {
+          didWork: false,
+          error: "Derivation index must be a whole number",
+        };
+      }
+
+      // Validation #2: Range check (minimum)
+      if (derivationIndex < 3) {
+        return {
+          didWork: false,
+          error:
+            "Derivation index must be 3 or higher (indices 0-2 are reserved)",
+        };
+      }
+
+      // Validation #3: Range check (maximum - gifts boundary)
+      if (derivationIndex >= MAX_DERIVED_ACCOUNTS) {
+        return {
+          didWork: false,
+          error: `Derivation index must be less than ${MAX_DERIVED_ACCOUNTS} (gift wallet range)`,
+        };
+      }
+
+      // Validation #4: Check against nextAccountDerivationIndex
+      const nextCloudIndex = masterInfoObject.nextAccountDerivationIndex || 3;
+      if (derivationIndex > nextCloudIndex) {
+        return {
+          didWork: false,
+          error: `Cannot restore index ${derivationIndex}. Highest created account is ${
+            nextCloudIndex - 1
+          }`,
+        };
+      }
+
+      // Validation #5: Check if account already exists (idempotency)
+      const existingAccount = custodyAccounts.find(
+        (acc) => acc.derivationIndex === derivationIndex,
+      );
+      if (existingAccount) {
+        return {
+          didWork: false,
+          error: `Account at index ${derivationIndex} already exists: "${existingAccount.name}"`,
+        };
+      }
+
+      // Create account with EXACT same structure as auto-restore
+      const accountInfo = {
+        uuid: customUUID(),
+        name: accountName,
+        derivationIndex: derivationIndex,
+        dateCreated: Date.now(),
+        isActive: false,
+        accountType: "derived",
+        profileEmoji: "",
+      };
+
+      await createAccount(accountInfo);
+
+      // CRITICAL: Do NOT update nextAccountDerivationIndex
+      // This is a restoration of an existing index, not a new sequential account
+
+      return { didWork: true };
+    } catch (err) {
+      console.log("Restore derived account error", err);
+      return { didWork: false, error: err.message };
+    }
+  };
+
+  const getAccountMnemonic = async (account) => {
+    try {
+      if (!account) throw new Error("No account provided");
+      // For derived accounts, re-derive on demand from main seed
+      if (account.derivationIndex !== undefined) {
+        const derivedMnemonic = await deriveAccountMnemonic(
+          accountMnemoinc,
+          account.derivationIndex,
+        );
+        return derivedMnemonic;
+      }
+      // For imported accounts, return stored mnemonic
+      return account.mnemoinc;
+    } catch (err) {
+      console.log("Get account mnemonic error", err);
+      throw err;
+    }
+  };
+
+  const restoreDerivedAccountsFromCloud = async () => {
+    try {
+      // masterInfoObject is already loaded from Firebase by GlobalContextProvider
+      const nextIndex = Number(
+        masterInfoObject.nextAccountDerivationIndex || 3,
+      );
+
+      if (!nextIndex || nextIndex === 0) {
+        console.log("No derived accounts to restore");
+        return { didWork: true, accountsRestored: 0 };
+      }
+
+      const existingDerivedIndexes = new Set(
+        custodyAccounts
+          .map((account) => account.derivationIndex)
+          .filter((index) => typeof index === "number"),
+      );
+
+      const accountsToRestore = [];
+      for (let i = 4; i <= nextIndex; i++) {
+        if (existingDerivedIndexes.has(i)) continue;
+        accountsToRestore.push({
+          uuid: customUUID(),
+          name: t("accountCard.fallbackAccountName", { index: i }),
+          derivationIndex: i,
+          dateCreated: Date.now(),
+          accountType: "derived",
+          isActive: false,
+          profileEmoji: "",
+        });
+      }
+
+      if (accountsToRestore.length) {
+        const mergedAccounts = [...custodyAccounts, ...accountsToRestore];
+        Storage.setItem(
+          CUSTODY_ACCOUNTS_STORAGE_KEY,
+          encriptAccountsList(mergedAccounts),
+        );
+        setCustodyAccounts(mergedAccounts);
+      }
+
+      console.log(`Restored ${accountsToRestore.length} derived account(s)`);
+      return { didWork: true, accountsRestored: accountsToRestore.length };
+    } catch (err) {
+      console.log("Restore derived accounts error", err);
+      return { didWork: false, error: err.message };
+    }
+  };
+
+  useEffect(() => {
+    async function restoreIfNeeded() {
+      const cloudIndex = masterInfoObject?.nextAccountDerivationIndex;
+      const hasRunRestore = Storage.getItem("hasRunAutoRestore");
+
+      if (hasAutoRestoreCheckRun.current) return;
+      if (!accountMnemoinc) return;
+      if (cloudIndex === undefined) return;
+      if (Number(cloudIndex) <= 0) return;
+      if (!didGetToHomepage) return;
+      if (hasRunRestore) return;
+
+      if (custodyAccounts.length > 0) {
+        hasAutoRestoreCheckRun.current = true;
+        Storage.setItem("hasRunAutoRestore", true);
+        return;
+      }
+
+      console.log("Running auto-restore of derived accounts from cloud...");
+      hasAutoRestoreCheckRun.current = true;
+      Storage.setItem("hasRunAutoRestore", true);
+      await restoreDerivedAccountsFromCloud();
+    }
+
+    restoreIfNeeded();
+  }, [accountMnemoinc, custodyAccounts, masterInfoObject, didGetToHomepage]);
+
   const currentWalletMnemoinc = useMemo(() => {
     if (didSelectAltAccount) {
-      return selectedAltAccount[0].mnemoinc;
+      const activeAccount = selectedAltAccount[0];
+      // For derived accounts, we'll need to derive the mnemonic
+      // But for backwards compatibility, check if mnemoinc exists first
+      if (activeAccount.mnemoinc) {
+        return activeAccount.mnemoinc; // Imported account
+      }
+      return activeDerivedMnemonic || accountMnemoinc;
     } else if (isUsingNostr) {
       return nostrSeed;
     } else {
@@ -194,9 +480,52 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
     didSelectAltAccount,
     isUsingNostr,
     nostrSeed,
+    activeDerivedMnemonic,
   ]);
 
   const isUsingAltAccount = currentWalletMnemoinc !== accountMnemoinc;
+
+  const custodyAccountsList = useMemo(() => {
+    return enabledNWC
+      ? [
+          {
+            name: t("settings.accounts.mainWalletPlace"),
+            mnemoinc: accountMnemoinc,
+            accountType: "main",
+            uuid: MAIN_ACCOUNT_UUID,
+          },
+          {
+            name: t("settings.accounts.nwcWalletPlace"),
+            mnemoinc: nostrSeed,
+            accountType: "nwc",
+            uuid: NWC_ACCOUNT_UUID,
+          },
+          ...custodyAccounts,
+        ]
+      : [
+          {
+            name: t("settings.accounts.mainWalletPlace"),
+            mnemoinc: accountMnemoinc,
+            accountType: "main",
+            uuid: MAIN_ACCOUNT_UUID,
+          },
+          ...custodyAccounts,
+        ];
+  }, [accountMnemoinc, custodyAccounts, enabledNWC, nostrSeed, t]);
+
+  const activeAccount = useMemo(() => {
+    const activeAltAccount = selectedAltAccount[0];
+    return custodyAccountsList.find((account) => {
+      const isMainWallet = account.uuid === MAIN_ACCOUNT_UUID;
+      const isNWC = account.uuid === NWC_ACCOUNT_UUID;
+      const isActive = isNWC
+        ? isUsingNostr
+        : isMainWallet
+          ? !activeAltAccount && !isUsingNostr
+          : activeAltAccount?.uuid === account.uuid;
+      return isActive;
+    });
+  }, [custodyAccountsList, isUsingNostr, selectedAltAccount]);
 
   return (
     <ActiveCustodyAccount.Provider
@@ -206,12 +535,19 @@ export const ActiveCustodyAccountProvider = ({ children }) => {
         createAccount,
         updateAccount,
         updateAccountCacheOnly,
+        createDerivedAccount,
+        createImportedAccount,
+        restoreDerivedAccount,
+        getAccountMnemonic,
+        restoreDerivedAccountsFromCloud,
         selectedAltAccount,
         isUsingAltAccount,
         currentWalletMnemoinc,
         toggleIsUsingNostr,
         isUsingNostr,
         nostrSeed,
+        activeAccount,
+        custodyAccountsList,
       }}
     >
       {children}

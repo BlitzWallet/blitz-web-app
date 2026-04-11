@@ -1,39 +1,31 @@
 import { getDataFromCollection } from "../../db";
-import fetchBackend from "../../db/handleBackend";
 import { auth, initializeFirebase } from "../../db/initializeFirebase";
 import { sendDataToDB } from "../../db/interactionManager";
 import { MIN_CHANNEL_OPEN_FEE, QUICK_PAY_STORAGE_KEY } from "../constants";
 import { generateRandomContact } from "./contacts";
-import { generateBitcoinKeyPair } from "./ecdh";
+
 import { fetchLocalStorageItems } from "./initializeUserSettingsHelpers";
 import Storage from "./localStorage";
 import {
   getCurrentDateFormatted,
   getDateXDaysAgo,
-  isNewDaySince,
 } from "./rotateAddressDateChecker";
-import { getPublicKey, privateKeyFromSeedWords } from "./seed";
-
 export default async function initializeUserSettings({
-  mnemoinc,
-  toggleContactsPrivateKey,
   setMasterInfoObject,
   toggleGlobalContactsInformation,
   toggleGlobalAppDataInformation,
+  toggleMasterInfoObject,
   preloadedData,
   setPreLoadedUserData,
+  privateKey,
+  publicKey,
 }) {
   try {
     let needsToUpdate = false;
     let tempObject = {};
 
-    const privateKey = mnemoinc ? privateKeyFromSeedWords(mnemoinc) : null;
-    const publicKey = privateKey ? getPublicKey(privateKey) : null;
-
-    if (!privateKey || !publicKey) throw Error("Failed to retrieve keys");
-
     const [
-      initResponse,
+      _,
       // pastExploreData,
       // savedNWCData,
     ] = await Promise.all([
@@ -94,8 +86,6 @@ export default async function initializeUserSettings({
 
     if (blitzStoredData === null) throw Error("Failed to retrive");
     blitzStoredData = blitzStoredData || {};
-
-    toggleContactsPrivateKey(privateKey);
 
     const generatedUniqueName = blitzStoredData?.contacts?.uniqueName
       ? ""

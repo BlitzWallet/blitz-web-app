@@ -9,6 +9,7 @@ import ThemeText from "../themeText/themeText";
 import {
   BITCOIN_SAT_TEXT,
   BITCOIN_SATS_ICON,
+  CUSTOM_TOKEN_CURRENCY_OPTIONS,
   HIDDEN_BALANCE_TEXT,
   TOKEN_TICKER_MAX_LENGTH,
 } from "../../constants";
@@ -26,14 +27,27 @@ export default function FormattedSatText({
   useCustomLabel = false,
   customLabel = "",
   useMillionDenomination = false,
+  useSpaces = true,
   useSizing = false,
+  forceCurrency = null,
+  forceFiatStats = null,
 }) {
   const { masterInfoObject } = useGlobalContextProvider();
-  const { fiatStats } = useNodeContext();
+  const { fiatStats: globalFiatStats } = useNodeContext();
+
+  const showCustomCurrencyLabel = CUSTOM_TOKEN_CURRENCY_OPTIONS.find(
+    (item) => item.token === customLabel,
+  );
+
+  const fiatStats = forceFiatStats || globalFiatStats;
 
   const localBalanceDenomination =
     globalBalanceDenomination || masterInfoObject.userBalanceDenomination;
-  const currencyText = (fiatStats.coin || "USD").toUpperCase();
+  const currencyText = forceCurrency
+    ? forceCurrency
+    : showCustomCurrencyLabel
+      ? showCustomCurrencyLabel.currency
+      : masterInfoObject.fiatCurrency || "USD";
 
   const formattedBalance = useMemo(
     () =>
@@ -44,9 +58,9 @@ export default function FormattedSatText({
               balance,
               localBalanceDenomination,
               localBalanceDenomination === "fiat" ? 2 : 0,
-              fiatStats
+              fiatStats,
             ),
-            useMillionDenomination
+            useMillionDenomination,
           ),
     [
       balance,
@@ -54,7 +68,7 @@ export default function FormattedSatText({
       localBalanceDenomination,
       fiatStats,
       useMillionDenomination,
-    ]
+    ],
   );
 
   const currencyOptions = useMemo(
@@ -63,7 +77,7 @@ export default function FormattedSatText({
         amount: formattedBalance,
         code: currencyText,
       }),
-    [formattedBalance, currencyText]
+    [formattedBalance, currencyText],
   );
 
   const isSymbolInFront = currencyOptions[3];
@@ -144,7 +158,7 @@ export default function FormattedSatText({
       renderText(formatBalanceAmount(balance, useMillionDenomination)),
       renderText(
         ` ${customLabel?.toUpperCase()?.slice(0, TOKEN_TICKER_MAX_LENGTH)}`,
-        { marginLeft: 5 }
+        { marginLeft: 5 },
       ),
       backText && renderText(backText, { marginLeft: 5 }),
     ];

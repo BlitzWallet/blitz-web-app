@@ -109,13 +109,11 @@
     "onLower": "attivo",
     "offLower": "disattivo"
   },
-
   "languages": {
     "english": "English",
     "spanish": "Español",
     "italian": "Italiano"
   },
-
   "weekdays": {
     "Mon": "Lunedì",
     "Tue": "Martedì",
@@ -125,7 +123,6 @@
     "Sat": "Sabato",
     "Sun": "Domenica"
   },
-
   "months": {
     "Jan": "Gennaio",
     "Feb": "Febbraio",
@@ -140,7 +137,6 @@
     "Nov": "Novembre",
     "Dec": "Dicembre"
   },
-
   "timeLabels": {
     "minute": "minuto",
     "minutes": "minuti",
@@ -155,7 +151,6 @@
     "monthly": "Mensile",
     "yearly": "Annuale"
   },
-
   "transactionLabelText": {
     "notSent": "Pagamento non inviato",
     "txTime_just_now": "Adesso",
@@ -180,7 +175,6 @@
     "memo": "Memo",
     "roostockSwap": "Roostock per Spark Swap"
   },
-
   "createAccount": {
     "chooseLanguage": {
       "title": "Scegli la lingua"
@@ -245,7 +239,6 @@
       "btn": "Ho capito"
     }
   },
-
   "adminLogin": {
     "pinPage": {
       "isBiometricEnabledConfirmAction": "Poiché le impostazioni biometriche sono attivate, non puoi utilizzare il metodo di accesso predefinito con PIN. Vuoi terminare il tuo account?",
@@ -254,7 +247,6 @@
       "attemptsText": "{{attempts}} tentativi rimasti"
     }
   },
-
   "apps": {
     "appList": {
       "AI": "IA",
@@ -361,14 +353,12 @@
         "price": "Prezzo: ",
         "fee": "Commissione: "
       },
-
       "switchModel": {
         "inputLabel": "Input: {{amount}}/M",
         "outputLabel": "Output: {{amount}}/M",
         "chooseModel": "Scegli il modello",
         "noModels": "Nessun modello corrisponde a quel nome. Controlla l'ortografia o prova un nome diverso."
       },
-
       "exampleSearchCards": {
         "title": "Esempi di ricerche",
         "examples": [
@@ -674,7 +664,6 @@
           }
         ]
       },
-
       "saveChat": {
         "errorMessage": "Spiacenti, non è stato possibile salvare la conversazione."
       }
@@ -692,7 +681,6 @@
         "price": "Prezzo: ",
         "fee": "Commissione: "
       },
-
       "createAccount": {
         "title": "Offerto da",
         "saveEmail": "Non hai un’email salvata. Salva un’email per velocizzare il checkout.",
@@ -732,7 +720,6 @@
         "customCopyMessage": "Email di assistenza copiata"
       }
     },
-
     "sms4sats": {
       "home": {
         "pageDescription": "Invia e ricevi messaggi SMS senza rivelare il tuo numero di telefono personale.",
@@ -745,7 +732,6 @@
         "invalidNumber": "Non è un numero di telefono valido",
         "receiveTitle": "Conferma ricezione"
       },
-
       "sendPage": {
         "startingSendingMessage": "Creazione dell'ordine di invio",
         "phoneNumberInputDescription": "Inserisci il numero di telefono",
@@ -774,7 +760,8 @@
         "refundedOrder": "L'ordine è stato rimborsato, i fondi torneranno automaticamente nel tuo portafoglio dopo 21 minuti.",
         "reclaimComplete": "Rety completato. Se non viene generato alcun codice, verrà automaticamente rimborsato dopo 21 minuti.",
         "noCode": "Nessun codice",
-        "rateLimitError": "Troppe richieste. Puoi fare solo 5 richieste ogni 30 secondi. Per favore, aspettati prima di riprovare."
+        "rateLimitError": "Troppe richieste. Puoi fare solo 5 richieste ogni 30 secondi. Per favore, aspettati prima di riprovare.",
+        "noPurchasesTitle": "Non hai ancora inviato o ricevuto messaggi SMS. Una volta che lo fai, appariranno qui."
       },
       "receivePage": {
         "paymentMemo": "Negozio - Ricezione SMS",
@@ -822,9 +809,9 @@
       "noBuisMessage": "Non abbiamo trovato risultati corrispondenti alla tua ricerca.",
       "visitWebsite": "Visita il sito web",
       "addListing": "Aggiungi Negozio"
-    }
+    },
+    "noPurchaseTitle": "Nessun Acquisto"
   },
-
   "wallet": {
     "halfModal": {
       "images": "Dall'Immagine",
@@ -872,7 +859,6 @@
         "format": "Scegli Rete",
         "infoMessage": "Gli importi personalizzati non sono supportati nei pagamenti Spark o Rootstock."
       },
-
       "switchReceiveOptionPage": {
         "title": "Scegli Rete",
         "actionBTN": "Mostra {{action}}",
@@ -914,7 +900,6 @@
         "LnurlwithDrawlSuccess": "Prelievo di successo! Il tuo pagamento è in arrivo.",
         "invoiceDetails": "Caricamento dei dettagli"
       },
-
       "errorScreen": {
         "ok": "OK",
         "title": "Messaggio di errore"
@@ -924,7 +909,6 @@
         "backTextToAmount": "{{amount}}",
         "tenMinutes": "{{numMins}} minuti"
       },
-
       "selectLRC20Token": {
         "title": "Seleziona Token",
         "searchPlaceholder": "Nome token...",
@@ -952,7 +936,6 @@
         "see_all_txs": "Vedi tutte le transazioni",
         "no_transaction_history": "Invia o ricevi una transazione per visualizzarla qui"
       },
-
       "lrc20Assets": {
         "actionText": "token {{action}}",
         "tokensSearchPlaceholder": "Cerca token...",
@@ -981,7 +964,6 @@
       "loadingMessage": "Caricamento delle transazioni salvate"
     }
   },
-
   "contacts": {
     "contactsPage": {
       "searchContactsPlaceholder": "Cerca contatti aggiunti",
@@ -999,7 +981,6 @@
       "noProfilesFound": "Nessun profilo corrisponde a questa ricerca",
       "startTypingMessage": "Cerca per LNURL (ad es. name@service.com) o nome utente Blitz."
     },
-
     "expandedContactPage": {
       "loadingContactError": "Impossibile caricare il contatto, riprova.",
       "requestLNURLError": "Puoi richiedere denaro solo dai contatti Blitz, non dagli indirizzi LNURL.",
@@ -1025,7 +1006,6 @@
       "unableToSaveError": "Impossibile salvare l'immagine del profilo, riprova.",
       "deleteProfileImageError": "Impossibile eliminare l'immagine del profilo, riprova."
     },
-
     "sendAndRequestPage": {
       "descriptionPlaceholder": "Descrizione del pagamento",
       "profileMessage": "Stai pagando {{name}}",
@@ -1083,7 +1063,6 @@
       }
     }
   },
-
   "settings": {
     "about": {
       "header1": "Software",
@@ -1163,7 +1142,6 @@
       "crashreporting": "report dei crash",
       "descriptionText": "I dati dei crash ci aiutano a migliorare la stabilità e le prestazioni della nostra applicazione.\n\nQuando si verifica un crash, le informazioni sul dispositivo che vengono registrate automaticamente includono:\n\n• Sistema Operativo: versione OS, orientamento del dispositivo e stato del jailbreak\n• Dettagli Dispositivo: Modello, orientamento e RAM disponibile\n• Informazioni Crash: Data del crash e versione dell'app"
     },
-
     "accounts": {
       "inputPlaceholder": "Nome account",
       "buttonCTA": "Scambia Fondi"
@@ -1189,7 +1167,6 @@
       "sliderTitle": "{{switchType}} BTKN",
       "sliderDesc": "BTKN è il token nativo di Spark. Abilitando BTKN puoi inviare e ricevere token sulla rete Spark.\n\nBlitz è un wallet focalizzato su Bitcoin. Non promuoviamo né endoriamo l'uso di token. Questa funzione esiste perché crediamo che gli utenti debbano avere la libertà di usare la tecnologia che vogliono usare.\n\nBlitz applica anche una commissione del {{fee}} a tutte le transazioni token, con il 20% di quella commissione donata a supporto dello sviluppo open-source di Bitcoin."
     },
-
     "viewSwapsHome": {
       "swaps": "Scambi",
       "selectionTitle": "Scegli rete",
@@ -1197,12 +1174,10 @@
       "rootstock": "Rootstock",
       "pageTitle": "Scambi {{type}}"
     },
-
     "viewRoostockSwaps": {
       "loadingMessage": "Caricamento degli scambi Rootstock salvati",
       "noSwapsMessage": "Non hai scambi Rootstock salvati"
     },
-
     "rootstockSwapInfo": {
       "title": "Submarine Swap",
       "id": "ID",
@@ -1213,7 +1188,6 @@
       "invoice": "Fattura",
       "refundSwap": "Rimborsa scambio"
     },
-
     "viewAllLiquidSwaps": {
       "rescanComplete": "Riscansione completa",
       "swapStartedMessage": "Lo swap è iniziato. Potrebbero volerci 10–20 secondi prima che il pagamento appaia.",
@@ -1257,7 +1231,6 @@
       "percent": "Percentuale",
       "noLimit": "Nessun limite"
     },
-
     "nip5": {
       "noNameError": "Il nome non può essere vuoto.",
       "noPubKey": "La chiave pubblica non può essere vuota.",
@@ -1303,7 +1276,6 @@
         "createConnection": "",
         "connectionName": ""
       },
-
       "hasNoAccounts": {
         "wanringMessage": "Per inviare soldi dal tuo wallet Nostr Connect, dovrai prima aggiungere fondi—ricevendo soldi o trasferendoli dal tuo wallet principale.\n\nPuoi trasferire fondi dal tuo wallet principale a NWC nella pagina impostazioni account."
       },
@@ -1428,7 +1400,6 @@
       }
     }
   },
-
   "screens": {
     "inAccount": {
       "appStore": {
@@ -1439,7 +1410,6 @@
         "callToAction": "C'è qualcosa che desideri qui?",
         "featuredApps": "C'è qualcosa che desideri qui?"
       },
-
       "confirmTxPage": {
         "failedToSend": "Invio fallito",
         "confirmMessage": "{{direction}} con successo",
@@ -1457,7 +1427,6 @@
         "timeLeft": "({{time}} rimasto)",
         "title": "Download Blitz"
       },
-
       "loadingScreen": {
         "loadingMessage1": "Non chiudere l'app",
         "loadingMessage2": "Stiamo configurando tutto",
@@ -1467,14 +1436,12 @@
         "liquidWalletError": "Le informazioni del wallet non sono state impostate correttamente, riprova.",
         "liquidWalletError2": "Non siamo riusciti a configurare il tuo wallet. Riprova."
       },
-
       "receiveBtcPage": {
         "onchainFeeMessage": "I pagamenti on-chain hanno una commissione di rete e una commissione Spark dello 0,1%.\n\nSe invii soldi a te stesso, pagherai la commissione di rete due volte — una per inviarli e una per reclamarli.\n\nSe qualcun altro ti invia fondi, pagherai la commissione di rete una sola volta per reclamarli.",
         "liquidFeeMessage": "I pagamenti Liquid devono essere convertiti in Spark.\n\nQuesto processo include una commissione di blocco di circa {{fee}}, una commissione di prelievo di circa {{claimFee}} e una commissione di servizio dello 0,1% da Boltz basata sull'importo che stai inviando.",
         "rootstockFeeMessage": "I pagamenti in Rootstock devono essere convertiti in Spark. Questo processo include una commissione di blocco di circa {{fee}} e una commissione di servizio dello 0,1% da parte di Boltz, calcolata sull’importo che stai inviando.",
         "generatingInvoice": "Generazione Fattura"
       },
-
       "settingsContent": {
         "about": "Informazioni",
         "language": "Lingua",
@@ -1516,7 +1483,6 @@
       "viewAllTxPage": {
         "title": "Transazioni"
       },
-
       "lrc20HalfModal": {
         "title": "Cerca Token",
         "searchPlaceholder": "Nome token...",
@@ -1530,12 +1496,10 @@
       }
     }
   },
-
   "toastmessages": {
     "confirmCopy": "Copiato negli appunti",
     "failedCopy": "Impossibile copiare"
   },
-
   "errormessages": {
     "nointernet": "Riconnettiti a Internet per usare questa funzione",
     "genericError": "Si è verificato un errore inatteso",
@@ -1586,7 +1550,6 @@
     "receivedRootstock": "Pagamento Rootstock ricevuto: il tuo scambio sta iniziando. Potrebbe volerci fino a un minuto, quindi tieni l'app aperta.",
     "receivedLiquid": "Pagamento Liquid ricevuto: il tuo scambio sta iniziando. Potrebbe volerci fino a un minuto, quindi tieni l'app aperta."
   },
-
   "loadingScreen": {
     "message1": "Non chiudere l'app",
     "message2": "Stiamo configurando tutto",
@@ -1598,11 +1561,9 @@
       "depositLabel": "Pagamento indirizzo deposito"
     }
   },
-
   "swapMessages": {
     "liquid": "Scambio da Liquid a Spark"
   },
-
   "tabs": {
     "home": "Portafoglio",
     "appStore": "Negozio",

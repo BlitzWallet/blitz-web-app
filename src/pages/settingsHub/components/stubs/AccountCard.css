@@ -1,0 +1,68 @@
+.account-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 4px;
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  gap: 10px;
+  box-sizing: border-box;
+  transition: opacity 0.15s;
+}
+
+.account-card:active {
+  opacity: 0.7;
+}
+
+.account-card__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.account-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.account-card__name {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.account-card__active-badge {
+  font-size: 11px;
+  color: #0375F6;
+  opacity: 0.8;
+}
+
+.account-card__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #0375F6;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

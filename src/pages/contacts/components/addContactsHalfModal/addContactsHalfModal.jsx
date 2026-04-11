@@ -19,7 +19,7 @@ import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoad
 export default function AddContactsModal({ onClose, params }) {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState(
-    params.startingSearchValue || ""
+    params.startingSearchValue || "",
   );
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
@@ -60,7 +60,7 @@ export default function AddContactsModal({ onClose, params }) {
     }
 
     const searchTerm = term.replace(/@/g, "");
-    if (searchTerm && VALID_USERNAME_REGEX.test(searchTerm)) {
+    if (searchTerm) {
       const results = await searchUsers(searchTerm);
       const newUsers = (
         await Promise.all(
@@ -84,7 +84,7 @@ export default function AddContactsModal({ onClose, params }) {
 
             if (!responseData) return savedContact;
             else return { ...savedContact, ...responseData };
-          })
+          }),
         )
       ).filter(Boolean);
 
@@ -196,8 +196,8 @@ export default function AddContactsModal({ onClose, params }) {
               {isSearching && searchInput.length > 0
                 ? ""
                 : searchInput.length > 0 && searchInput !== "@"
-                ? "No profiles found"
-                : "Search by LNURL (e.g. name@service.com) or Blitz username"}
+                  ? "No profiles found"
+                  : "Search by LNURL (e.g. name@service.com) or Blitz username"}
             </p>
           )}
         </div>

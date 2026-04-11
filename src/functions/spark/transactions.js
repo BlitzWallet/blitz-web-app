@@ -7,28 +7,44 @@ export const LIGHTNING_REQUEST_IDS_TABLE_NAME = "LIGHTNING_REQUEST_IDS";
 export const SPARK_REQUEST_IDS_TABLE_NAME = "SPARK_REQUEST_IDS";
 export const sparkTransactionsEventEmitter = new EventEmitter();
 export const SPARK_TX_UPDATE_ENVENT_NAME = "UPDATE_SPARK_STATE";
+
 export const HANDLE_FLASHNET_AUTO_SWAP = "HANDLE_FLASHNET_AUTO_SWAP";
 export const flashnetAutoSwapsEventListener = new EventEmitter();
+
 let bulkUpdateTransactionQueue = [];
 let isProcessingBulkUpdate = false;
 
-let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 2, {
-  upgrade(db) {
-    if (!db.objectStoreNames.contains(SPARK_TRANSACTIONS_TABLE_NAME)) {
-      const txStore = db.createObjectStore(SPARK_TRANSACTIONS_TABLE_NAME, {
-        keyPath: "sparkID",
-      });
-      txStore.createIndex("paymentStatus", "paymentStatus");
+export let dbPromise = openDB(SPARK_TRANSACTIONS_DATABASE_NAME, 5, {
+  upgrade(db, oldVersion) {
+    console.log(db, oldVersion, "upgrading spark transactions database");
+    // Runs for fresh installs or users on v1
+    if (oldVersion < 2) {
+      if (!db.objectStoreNames.contains(SPARK_TRANSACTIONS_TABLE_NAME)) {
+        const txStore = db.createObjectStore(SPARK_TRANSACTIONS_TABLE_NAME, {
+          keyPath: "sparkID",
+        });
+        txStore.createIndex("paymentStatus", "paymentStatus");
+      }
+      if (!db.objectStoreNames.contains(LIGHTNING_REQUEST_IDS_TABLE_NAME)) {
+        db.createObjectStore(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
+          keyPath: "sparkID",
+        });
+      }
+      if (!db.objectStoreNames.contains(SPARK_REQUEST_IDS_TABLE_NAME)) {
+        db.createObjectStore(SPARK_REQUEST_IDS_TABLE_NAME, {
+          keyPath: "sparkID",
+        });
+      }
     }
-    if (!db.objectStoreNames.contains(LIGHTNING_REQUEST_IDS_TABLE_NAME)) {
-      db.createObjectStore(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
-        keyPath: "sparkID",
-      });
-    }
-    if (!db.objectStoreNames.contains(SPARK_REQUEST_IDS_TABLE_NAME)) {
-      db.createObjectStore(SPARK_REQUEST_IDS_TABLE_NAME, {
-        keyPath: "sparkID",
-      });
+
+    // Runs for everyone upgrading from v2, and fresh installs (oldVersion=0 < 3)
+    if (oldVersion < 5) {
+      if (!db.objectStoreNames.contains("account_balance_snapshots")) {
+        const snapStore = db.createObjectStore("account_balance_snapshots", {
+          keyPath: "identityPubKey",
+        });
+        snapStore.createIndex("updatedAt", "updatedAt");
+      }
     }
   },
 });
@@ -560,7 +576,10 @@ export const bulkUpdateSparkTransactions = async (transactions, ...data) => {
               paymentType: processedTx.paymentType,
               accountId: processedTx.accountId,
               // Ensure new transactions store details as a JSON string
-              details: JSON.stringify(processedTx.details),
+              details: JSON.stringify({
+                ...processedTx.details,
+                dateAddedToDb: Date.now(),
+              }),
             };
 
             await store.add(newTx);
@@ -603,7 +622,7 @@ export const addSingleSparkTransaction = async (tx) => {
       paymentStatus: tx.paymentStatus,
       paymentType: tx.paymentType ?? "unknown",
       accountId: tx.accountId ?? "unknown",
-      details: JSON.stringify(tx.details),
+      details: JSON.stringify({ ...tx.details, dateAddedToDb: Date.now() }),
     });
 
     handleEventEmitterPost(

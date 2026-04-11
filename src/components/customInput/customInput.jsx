@@ -13,6 +13,7 @@ export default function CustomInput({
   multiline = false,
   ref,
   maxLength,
+  type = "text",
 }) {
   const commonProps = {
     value,
@@ -37,7 +38,7 @@ export default function CustomInput({
       {multiline ? (
         <textarea {...commonProps} />
       ) : (
-        <input type="text" {...commonProps} />
+        <input type={type} {...commonProps} />
       )}
     </div>
   );

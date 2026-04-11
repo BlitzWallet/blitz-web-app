@@ -11,7 +11,10 @@ import {
   or,
   orderBy,
   query,
+  runTransaction,
+  serverTimestamp,
   setDoc,
+  Timestamp,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -558,5 +561,178 @@ export async function reloadGiftsOnDomesday(uuid) {
   } catch (e) {
     console.error("Error fetching gifts by creator:", e);
     return [];
+  }
+}
+
+export async function addPoolToDatabase(poolData) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzPools", poolData.poolId);
+    await setDoc(docRef, poolData, { merge: false });
+    console.log("Pool added with ID:", poolData.poolId);
+    return true;
+  } catch (e) {
+    console.error("Error adding pool to database:", e);
+    return false;
+  }
+}
+
+export async function updatePoolInDatabase(poolData) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzPools", poolData.poolId);
+    await setDoc(docRef, poolData, { merge: true });
+    console.log("Pool updated with ID:", poolData.poolId);
+    return true;
+  } catch (e) {
+    console.error("Error updating pool in database:", e);
+
+    return false;
+  }
+}
+
+export async function getPoolFromDatabase(poolId) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzPools", poolId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+    return null;
+  } catch (e) {
+    console.error("Error fetching pool from database:", e);
+
+    return null;
+  }
+}
+
+export async function getPoolsByCreator(creatorUUID) {
+  try {
+    const db = getFirestore();
+    const q = query(
+      collection(db, "blitzPools"),
+      where("creatorUUID", "==", creatorUUID),
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => doc.data());
+  } catch (e) {
+    console.error("Error fetching pools by creator:", e);
+
+    return [];
+  }
+}
+
+export async function deletePoolFromDatabase(poolId) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzPools", poolId);
+    await deleteDoc(docRef);
+    console.log("Pool deleted:", poolId);
+    return true;
+  } catch (e) {
+    console.error("Error deleting pool:", e);
+
+    return false;
+  }
+}
+
+export async function getPoolContributions(poolId) {
+  try {
+    const db = getFirestore();
+    const contribRef = collection(db, "blitzPools", poolId, "contributions");
+    const q = query(contribRef, orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (e) {
+    console.error("Error fetching contributions:", e);
+
+    return [];
+  }
+}
+
+export async function addContributionWithTransaction(
+  poolId,
+  contribution,
+  amount,
+) {
+  const db = getFirestore();
+  const poolRef = doc(db, "blitzPools", poolId);
+  const contribRef = doc(collection(db, "blitzPools", poolId, "contributions"));
+
+  try {
+    await runTransaction(db, async (tx) => {
+      // REQUIRED read
+      const poolSnap = await tx.get(poolRef);
+      if (!poolSnap.exists()) {
+        throw new Error("Pool does not exist");
+      }
+
+      const poolData = poolSnap.data();
+
+      tx.set(contribRef, {
+        ...contribution,
+        contributionId: contribution.contributionId,
+        poolId,
+        createdAt: serverTimestamp(),
+      });
+
+      tx.update(poolRef, {
+        currentAmount: poolData.currentAmount + amount,
+        contributorCount: poolData.contributorCount + 1,
+        lastContributionAt: serverTimestamp(),
+      });
+    });
+
+    console.log("Pool contribution transaction committed:", poolId);
+    return true;
+  } catch (e) {
+    console.error("Contribution transaction failed:", e);
+
+    return false;
+  }
+}
+
+export async function getPoolContributionsSince(poolId, afterTimestampObj) {
+  try {
+    const db = getFirestore();
+    const contribRef = collection(db, "blitzPools", poolId, "contributions");
+    let afterTs = new Timestamp(0, 0);
+    try {
+      afterTs = new Timestamp(
+        afterTimestampObj.seconds,
+        afterTimestampObj.nanos ?? 0,
+      );
+    } catch (err) {
+      console.log(err);
+    }
+
+    const q = query(
+      contribRef,
+      where("createdAt", ">", afterTs),
+      orderBy("createdAt", "desc"),
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.error("Error fetching contributions since timestamp:", e);
+
+    return [];
+  }
+}
+
+export async function getPayLinkDoc(payLinkId) {
+  try {
+    const db = getFirestore();
+    const docRef = doc(db, "blitzPaylinks", payLinkId);
+    const snapshot = await getDoc(docRef);
+    if (!snapshot.exists())
+      return { didWork: false, error: "Paylink not found" };
+    return { didWork: true, data: snapshot.data() };
+  } catch (e) {
+    console.error("Error fetching paylink:", e);
+    return { didWork: false, error: e.message };
   }
 }

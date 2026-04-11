@@ -48,7 +48,6 @@ const getWallet = (mnemonic) => {
 export const getFlashnetClient = (mnemonic) => {
   const hash = getMnemonicHash(mnemonic);
   const client = flashnetClients[hash];
-  console.log("client", client);
   if (!client) {
     throw new Error("Flashnet client not initialized");
   }
