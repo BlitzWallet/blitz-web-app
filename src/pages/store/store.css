@@ -62,8 +62,8 @@
 }
 
 .giftsOverview-emptyIcon {
-  font-size: 56px;
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .giftsOverview-emptyTitle {

@@ -29,7 +29,7 @@ export const functions = getFunctions(app);
 // Uses globalThis flag to survive Vite HMR re-execution.
 // Set MODE=development in .env to enable.
 if (
-  import.meta.env.VITE_MODE === "development" &&
+  import.meta.env.MODE === "development" &&
   !globalThis.__emulatorsConnected
 ) {
   globalThis.__emulatorsConnected = true;
@@ -42,6 +42,8 @@ let initializationPromise = null;
 let lastInitializedKey = null;
 
 export async function initializeFirebase(publicKey, privateKey) {
+  // firebase.firestore.setLogLevel("debug");
+
   const cacheKey = publicKey;
   try {
     if (initializationPromise && lastInitializedKey === cacheKey) {

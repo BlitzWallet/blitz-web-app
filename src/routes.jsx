@@ -211,6 +211,7 @@ export const routeGroups = {
       path: "/claim-gift",
       component: pages.ClaimGift,
       useSafeArea: true,
+      extraProps: (setValue) => ({ setValue }),
     },
   ],
 

@@ -5,7 +5,7 @@ import Lottie from "lottie-react";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useKeysContext } from "../../contexts/keysContext";
-import { useGifts } from "../../contexts/giftsContext";
+import { useGifts } from "../../contexts/giftContext";
 import { useSpark } from "../../contexts/sparkContext";
 import {
   STARTING_INDEX_FOR_GIFTS_DERIVE,
@@ -87,7 +87,7 @@ function getSparkBalanceAmount(result, denomination) {
   return toNum(result.balance);
 }
 
-export default function ClaimGiftScreen() {
+export default function ClaimGiftScreen({ setValue }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -98,7 +98,8 @@ export default function ClaimGiftScreen() {
   const { poolInfoRef } = useFlashnet();
   const { accountMnemoinc } = useKeysContext();
   const { sparkInformation } = useSpark();
-  const { updateGiftState, refreshGifts } = useGifts();
+  const { updateGiftList } = useGifts();
+  // const { updateGiftState, refreshGifts } = useGifts();
 
   const {
     claimType = "claim",
@@ -164,6 +165,7 @@ export default function ClaimGiftScreen() {
       giftWalletMnemonic = await deriveSparkGiftMnemonic(
         accountMnemoinc,
         savedGift.giftNum,
+        getSparkDefaultAccountNumber(),
       );
     } else {
       giftWalletMnemonic = await deriveKeyFromMnemonic(
@@ -385,8 +387,8 @@ export default function ClaimGiftScreen() {
         if (claimType === "reclaim" && !expertMode && giftDetails.uuid) {
           await deleteGift(giftDetails.uuid);
           await updateGiftLocal(giftDetails.uuid, { state: "Reclaimed" });
-          updateGiftState(giftDetails.uuid, { state: "Reclaimed" });
-          refreshGifts();
+          await updateGiftList();
+          // refreshGifts();
         }
 
         throw new Error(
@@ -417,8 +419,7 @@ export default function ClaimGiftScreen() {
       denomination,
       giftDetails.uuid,
       t,
-      updateGiftState,
-      refreshGifts,
+      updateGiftList,
     ],
   );
 
@@ -484,6 +485,7 @@ export default function ClaimGiftScreen() {
         await deleteGift(giftDetails.uuid);
         if (claimType === "reclaim") {
           await updateGiftLocal(giftDetails.uuid, { state: "Reclaimed" });
+          await updateGiftList();
         }
       }
     },
@@ -495,6 +497,7 @@ export default function ClaimGiftScreen() {
       poolInfoRef,
       sparkInformation.identityPubKey,
       t,
+      updateGiftList,
     ],
   );
 
@@ -550,12 +553,12 @@ export default function ClaimGiftScreen() {
         fromBalance,
       );
 
-      if (!expertMode && giftDetails.uuid && claimType === "claim") {
-        await updateGiftLocal(giftDetails.uuid, { state: "Claimed" });
-        updateGiftState(giftDetails.uuid, { state: "Claimed" });
-      }
+      // if (!expertMode && giftDetails.uuid && claimType === "claim") {
+      //   await updateGiftLocal(giftDetails.uuid, { state: "Claimed" });
+      //   // updateGiftState(giftDetails.uuid, { state: "Claimed" });
+      // }
 
-      refreshGifts();
+      // refreshGifts();
       setDidClaim(true);
     } catch (err) {
       console.log("Error claiming gift:", err);
@@ -577,8 +580,8 @@ export default function ClaimGiftScreen() {
     denomination,
     claimType,
     expertMode,
-    refreshGifts,
-    updateGiftState,
+    // refreshGifts,
+    // updateGiftState,
     handleError,
   ]);
 
@@ -677,7 +680,10 @@ export default function ClaimGiftScreen() {
           />
           <div className="claimGift-successButtonWrap">
             <CustomButton
-              actionFunction={() => navigate("/wallet", { replace: true })}
+              actionFunction={() => {
+                setValue?.(1);
+                navigate("/wallet", { replace: true });
+              }}
               textContent={t("constants.done")}
               buttonStyles={{ width: "auto" }}
             />

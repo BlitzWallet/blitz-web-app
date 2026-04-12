@@ -1,5 +1,6 @@
 function createGiftUrl(giftId, randomSecret) {
-  const secretBase64 = randomSecret
+  // Uint8Array/Buffers do not support .toString("base64"); that yields "1,2,3..." for TypedArrays.
+  const secretBase64 = Buffer.from(randomSecret)
     .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -15,11 +16,22 @@ function createGiftUrl(giftId, randomSecret) {
 function parseGiftUrl(url) {
   let match = url.match(/\/gift\/([^#]+)#(.+)/);
   if (match) {
-    const [, giftId, secretBase64] = match;
-    const paddedSecret = secretBase64
+    const [, giftId, secretFragment] = match;
+    const trimmed = secretFragment.trim();
+
+    // Legacy bug: fragment was comma-separated byte decimals instead of base64url.
+    if (/^\d+(,\d+)*$/.test(trimmed)) {
+      const bytes = trimmed.split(",").map((s) => Number(s));
+      if (bytes.every((b) => Number.isInteger(b) && b >= 0 && b <= 255)) {
+        const secret = Buffer.from(bytes).toString("hex");
+        return { giftId, secret };
+      }
+    }
+
+    const paddedSecret = trimmed
       .replace(/-/g, "+")
       .replace(/_/g, "/")
-      .padEnd(secretBase64.length + ((4 - (secretBase64.length % 4)) % 4), "=");
+      .padEnd(trimmed.length + ((4 - (trimmed.length % 4)) % 4), "=");
 
     const secret = Buffer.from(paddedSecret, "base64").toString("hex");
     return { giftId, secret };

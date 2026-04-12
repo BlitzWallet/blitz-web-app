@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useThemeContext } from "../../contexts/themeContext";
 import { useKeysContext } from "../../contexts/keysContext";
-import { useGifts } from "../../contexts/giftsContext";
+import { useGifts } from "../../contexts/giftContext";
 import { useSpark } from "../../contexts/sparkContext";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 
@@ -462,6 +462,7 @@ export default function CreateGift() {
       const giftWalletMnemoinc = await deriveSparkGiftMnemonic(
         accountMnemoinc,
         currentDeriveIndex,
+        getSparkDefaultAccountNumber(),
       );
 
       console.log("giftWalletMnemoinc", giftWalletMnemoinc);

@@ -101,7 +101,11 @@ export default function GiftConfirmation({
           {/* Header */}
           <div className="giftConfirmation-header">
             <div className="giftConfirmation-lottie">
-              <Lottie animationData={confirmTxAnimation} loop={false} autoplay />
+              <Lottie
+                animationData={confirmTxAnimation}
+                loop={false}
+                autoplay
+              />
             </div>
 
             <div className="giftConfirmation-title">Gift created</div>
@@ -136,9 +140,9 @@ export default function GiftConfirmation({
               className="giftConfirmation-cardHeader"
               style={{ borderBottomColor: backgroundColor }}
             >
-              <span className="text-lg" aria-hidden="true">
+              {/* <span className="text-lg" aria-hidden="true">
                 🎁
-              </span>
+              </span> */}
               <div className="giftConfirmation-cardHeaderText">Details</div>
             </div>
 
@@ -154,11 +158,7 @@ export default function GiftConfirmation({
               ) : null}
 
               {expiration ? (
-                <Row
-                  label="Expires"
-                  value={String(expiration)}
-                  mutedValue
-                />
+                <Row label="Expires" value={String(expiration)} mutedValue />
               ) : null}
             </div>
           </div>
