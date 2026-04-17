@@ -7,8 +7,10 @@ import useThemeColors from "../../../../hooks/useThemeColors";
 import { formatTimeRemaining } from "../../../../functions/gift/formatTimeRemaining";
 import FormattedSatText from "../../../../components/formattedSatText/formattedSatText";
 import ThemeText from "../../../../components/themeText/themeText";
-import { Share, RotateCcw } from "lucide-react";
+import { Copy, RotateCcw, Share } from "lucide-react";
 import "./giftCardItem.css";
+import { ICONS } from "../../../../constants";
+import ThemeImage from "../../../../components/ThemeImage/themeImage";
 
 export default function GiftCardItem({ item, from }) {
   const { theme, darkModeType } = useThemeContext();
@@ -101,9 +103,14 @@ export default function GiftCardItem({ item, from }) {
       data-expired={isExpired ? "true" : undefined}
     >
       <div className="giftCardItem-icon" style={{ backgroundColor: iconBg }}>
-        <span className="giftCardItem-iconText">
-          {denomination === "USD" ? "$" : "₿"}
-        </span>
+        <ThemeImage
+          icon={denomination === "USD" ? ICONS.dollarIcon : ICONS.bitcoinIcon}
+          className="giftCardItem-iconImage"
+          styles={{ width: 20, height: 20 }}
+          alt={
+            denomination === "USD" ? "Dollar gift icon" : "Bitcoin gift icon"
+          }
+        />
       </div>
 
       <div className="giftCardItem-middle">
@@ -113,7 +120,7 @@ export default function GiftCardItem({ item, from }) {
         />
         <div className="giftCardItem-statusRow" style={{ color: textColor }}>
           {description ? (
-            <>
+            <div className="giftCardItem-combinedStatus">
               <span className="giftCardItem-statusText giftCardItem-muted">
                 {formattedNumber}
               </span>
@@ -130,7 +137,7 @@ export default function GiftCardItem({ item, from }) {
                   </span>
                 </>
               )}
-            </>
+            </div>
           ) : (
             statusText && (
               <span className="giftCardItem-statusText giftCardItem-muted">
@@ -144,22 +151,24 @@ export default function GiftCardItem({ item, from }) {
       <div className="giftCardItem-right">
         <FormattedSatText
           balance={amount || 0}
-          styles={{ color: textColor, fontWeight: 600, fontSize: "0.85rem" }}
+          // styles={{ color: textColor, fontWeight: 600, fontSize: "0.85rem" }}
         />
         {shouldShowActions && (
-          <button
-            type="button"
-            className="giftCardItem-actionIcon"
-            style={{ backgroundColor: actionButtonBg }}
-            onClick={handleAction}
-            aria-label={isExpired ? "Reclaim gift" : "Share gift link"}
-          >
-            {isExpired ? (
-              <RotateCcw size={18} strokeWidth={2} color={textColor} />
-            ) : (
-              <Share size={18} strokeWidth={2} color={textColor} />
-            )}
-          </button>
+          <div className="giftCardItem-actionsContainer">
+            <button
+              type="button"
+              className="giftCardItem-actionIcon"
+              style={{ backgroundColor: actionButtonBg }}
+              onClick={handleAction}
+              aria-label={isExpired ? "Reclaim gift" : "Share gift link"}
+            >
+              {isExpired ? (
+                <RotateCcw size={18} strokeWidth={2} color={textColor} />
+              ) : (
+                <Share size={18} strokeWidth={2} color={textColor} />
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>

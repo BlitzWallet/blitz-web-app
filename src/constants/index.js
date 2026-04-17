@@ -1,5 +1,6 @@
 import { SATSPERBITCOIN } from "./math";
 import { HIDDEN_OPACITY, INSET_WINDOW_WIDTH, WINDOWWIDTH } from "./theme";
+import * as ICONS from "./icons";
 
 const WEBSITE_REGEX =
   /^(https?:\/\/|www\.)[a-z\d]([a-z\d-]*[a-z\d])*(\.[a-z]{2,})+/i;
@@ -140,7 +141,7 @@ export {
   //   FONT,
   //   SIZES,
   //   SHADOWS,
-  //   ICONS,
+  ICONS,
   //   CENTER,
   //   BTN,
   //   Background,

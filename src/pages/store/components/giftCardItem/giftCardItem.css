@@ -1,10 +1,12 @@
 .giftCardItem {
   display: flex;
   align-items: center;
-  gap: 14px;
+  width: 100%;
+  gap: 12px;
   padding: 14px 16px;
   border-radius: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
   box-sizing: border-box;
   cursor: pointer;
   transition:
@@ -27,9 +29,9 @@
 }
 
 .giftCardItem-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 22px;
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,11 +39,9 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-.giftCardItem-iconText {
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1;
+.giftCardItem-iconImage {
+  width: 20px;
+  height: 20px;
 }
 
 .giftCardItem-middle {
@@ -50,9 +50,9 @@
 }
 
 .giftCardItem-desc {
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin: 0 0 4px;
+  font-size: 0.95rem;
+  /* font-weight: 500; */
+  margin: 0 0 2px;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
@@ -62,12 +62,19 @@
 .giftCardItem-statusRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 6px;
+  gap: 6px;
+}
+
+.giftCardItem-combinedStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .giftCardItem-statusText {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 400;
   line-height: 1.3;
 }
@@ -84,13 +91,20 @@
 .giftCardItem-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
+.giftCardItem-actionsContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .giftCardItem-actionIcon {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
   border-radius: 8px;
   border: none;
   display: flex;
