@@ -97,6 +97,7 @@ const pages = {
   ),
   ClaimGift: lazy(() => import("./pages/claimGift/claimGift.jsx")),
   ReclaimGift: lazy(() => import("./pages/reclaimGift/reclaimGift.jsx")),
+  GiftsHome: lazy(() => import("./pages/giftsHome/giftsHome.jsx")),
 };
 
 // Route configuration grouped by animation type
@@ -106,7 +107,8 @@ export const routeGroups = {
     { path: "/", component: pages.Home, useSafeArea: true },
     { path: "/wallet", component: pages.WalletHome, useSafeArea: false },
     { path: "/contacts", component: pages.Contacts, useSafeArea: true },
-    { path: "/gift", component: pages.Store, useSafeArea: true },
+    { path: "/store", component: pages.Store, useSafeArea: true },
+    { path: "/gift", component: pages.GiftsHome, useSafeArea: true },
     {
       path: "/chooseContactListPage",
       component: pages.ChooseContactListPage,
@@ -234,4 +236,4 @@ export const routeGroups = {
 };
 
 // Routes that should show bottom tabs
-export const bottomTabRoutes = ["/wallet", "/contacts", "/gift"];
+export const bottomTabRoutes = ["/wallet", "/contacts", "/store"];

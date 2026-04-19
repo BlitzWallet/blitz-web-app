@@ -9,7 +9,7 @@ import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
 import EditLNURLContactOnReceivePage from "./components/editLNURLOnReceive";
 import LRC20TokenInformation from "../../functions/lrc20/lrc20TokenDataHalfModal";
 import AddContactsModal from "../contacts/components/addContactsHalfModal/addContactsHalfModal";
-import ClaimGiftHalfModal from "../store/components/claimGiftHalfModal/claimGiftHalfModal";
+import ClaimGiftHalfModal from "../giftsHome/components/claimGiftHalfModal/claimGiftHalfModal";
 
 export default function CustomHalfModal({
   onClose,

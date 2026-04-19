@@ -32,7 +32,7 @@ const INITIAL_WIDGET_ORDER = [
   // { id: "accounts", type: "accounts" },
   // { id: "savings", type: "savings" },
   // { id: "pools", type: "pools" },
-  // { id: "gifts", type: "gifts" },
+  { id: "gifts", type: "gifts" },
   // { id: "accumulation", type: "accumulation" },
   // { id: "point-of-sale", type: "point-of-sale" },
 ];
@@ -217,7 +217,7 @@ export default function SettingsHub() {
                 return (
                   <GiftsPreview
                     key={item.id}
-                    onPress={() => navigate("/settings")}
+                    onPress={() => navigate("/gift")}
                   />
                 );
               case "accumulation":

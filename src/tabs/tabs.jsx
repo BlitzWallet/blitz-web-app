@@ -1,5 +1,5 @@
 import { BottomNavigation, BottomNavigationAction } from "@mui/material";
-import { Home, Users, Gift } from "lucide-react";
+import { Home, Users, Gift, Store } from "lucide-react";
 import { useMemo, useState } from "react";
 import useThemeColors from "../hooks/useThemeColors";
 import { useThemeContext } from "../contexts/themeContext";
@@ -9,6 +9,7 @@ const TabsIcon = ({ value, icon, activeColor, iconValue }) => {
     contacts: Users,
     wallet: Home,
     gift: Gift,
+    store: Store,
   };
 
   const Icon = iconMap[icon];
@@ -137,11 +138,11 @@ export default function BottomTabs({ setValue, value, Link }) {
                 activeColor={activeColor}
                 value={value}
                 iconValue={2}
-                icon="gift"
+                icon="store"
               />
             }
             component={Link}
-            to="/gift"
+            to="/store"
           />
         </BottomNavigation>
       </div>
