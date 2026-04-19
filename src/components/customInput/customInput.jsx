@@ -10,6 +10,7 @@ export default function CustomInput({
   containerStyles = {},
   onFocus,
   onBlur,
+  onKeyDown,
   multiline = false,
   ref,
   maxLength,
@@ -22,6 +23,7 @@ export default function CustomInput({
     className: `description-input ${textInputClassName}`,
     onFocus: () => onFocus?.(true),
     onBlur: () => onBlur?.(false),
+    onKeyDown,
     style: {
       ...customInputStyles,
       resize: "none",

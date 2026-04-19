@@ -1,6 +1,7 @@
 import React, {
   createContext,
   useContext,
+  useReducer,
   useEffect,
   useMemo,
   useRef,
@@ -11,9 +12,11 @@ import {
   findBestPool,
   USD_ASSET_ADDRESS,
   swapBitcoinToToken,
+  getUserSwapHistory,
   minFlashnetSwapAmounts,
   checkClawbackEligibility,
   requestManualClawback,
+  dollarsToSats,
   currentPriceAinBToPriceDollars,
   addActiveSwap,
   removeActiveSwap,
@@ -21,11 +24,16 @@ import {
   completeSwapConfirmation,
   retryPendingSwapConfirmations,
   SEND_AMOUNT_INCREASE_BUFFER,
-  listClawbackableTransfers,
 } from "../functions/spark/flashnet";
 import { useAppStatus } from "./appStatus";
 import { useSpark } from "./sparkContext";
 import { useActiveCustodyAccount } from "./activeAccount";
+import {
+  getSingleTxDetails,
+  getSparkPaymentStatus,
+  initializeFlashnet,
+} from "../functions/spark";
+import { USDB_TOKEN_ID } from "../constants";
 import {
   bulkUpdateSparkTransactions,
   deleteUnpaidSparkLightningTransaction,
@@ -41,13 +49,10 @@ import {
   setFlashnetTransfer,
 } from "../functions/spark/handleFlashnetTransferIds";
 import { useToast } from "./toastManager";
+import { decode } from "bolt11";
 import { useAuth } from "./authContext";
-import Storage from "../functions/localStorage";
-import {
-  getSingleTxDetails,
-  getSparkPaymentStatus,
-  initializeFlashnet,
-} from "../functions/spark";
+import { listClawbackableTransfers } from "../functions/spark/flashnet";
+import { getLocalStorageItem, setLocalStorageItem } from "../functions";
 
 const FlashnetContext = createContext(null);
 const MAX_SWAP_RETRIES = 10;
@@ -56,21 +61,13 @@ export function FlashnetProvider({ children }) {
   const { showToast } = useToast();
   const { currentWalletMnemoinc } = useActiveCustodyAccount();
   const { appState } = useAppStatus();
-  const { sparkInformation, setSparkInformation } = useSpark();
-  const { authState } = useAuth();
-
-  // Use walletKey as auth reset signal (null on logout/delete)
-  const authResetkey = authState.walletKey;
-
+  const { sparkInformation, sparkInfoRef, setSparkInformation } = useSpark();
   const [poolInfo, setPoolInfo] = useState({});
   const [swapLimits, setSwapLimits] = useState({ usd: 1.03, bitcoin: 1030 });
   const swapLimitsRef = useRef(swapLimits);
   const poolInfoRef = useRef({});
   const poolIntervalRef = useRef(null);
   const currentWalletMnemoincRef = useRef(currentWalletMnemoinc);
-
-  // Local sparkInfoRef synced with sparkInformation
-  const sparkInfoRef = useRef(sparkInformation);
 
   const triggeredSwapsRef = useRef(new Set());
 
@@ -80,6 +77,7 @@ export function FlashnetProvider({ children }) {
 
   const flashnetRetryIntervalRef = useRef(null);
   const flashnetRetryDelayRef = useRef(5_000);
+  const { authResetkey } = useAuth();
   const authResetKeyRef = useRef(authResetkey);
 
   const REFUND_MONITOR_INTERVAL = 25_000;
@@ -101,12 +99,8 @@ export function FlashnetProvider({ children }) {
     swapLimitsRef.current = swapLimits;
   }, [swapLimits]);
 
-  useEffect(() => {
-    sparkInfoRef.current = sparkInformation;
-  }, [sparkInformation]);
-
-  const togglePoolInfo = (info) => {
-    setPoolInfo(info);
+  const togglePoolInfo = (poolInfo) => {
+    setPoolInfo(poolInfo);
   };
 
   const refreshPool = async () => {
@@ -119,15 +113,32 @@ export function FlashnetProvider({ children }) {
       USD_ASSET_ADDRESS,
     );
 
+    console.log("result", result);
+
     if (result?.didWork && result.pool) {
-      Storage.setItem("swapPoolInfo", JSON.stringify(result.pool));
+      setLocalStorageItem("swapPoolInfo", JSON.stringify(result.pool));
       setPoolInfo(result.pool);
     }
   };
 
   useEffect(() => {
-    function loadSavedPoolInfo() {
-      const savedPoolInfo = JSON.parse(Storage.getItem("swapPoolInfo"));
+    async function loadSavedPoolInfo() {
+      let raw = null;
+
+      try {
+        raw = await getLocalStorageItem("swapPoolInfo");
+        console.log("raw", raw);
+      } catch (e) {
+        console.warn("[Flashnet] Failed to read swapPoolInfo from storage:", e);
+      }
+
+      let savedPoolInfo = null;
+      try {
+        savedPoolInfo = raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        console.warn("[Flashnet] swapPoolInfo was not valid JSON:", e);
+      }
+
       console.log("saved pool info", savedPoolInfo);
       if (savedPoolInfo) {
         setPoolInfo(savedPoolInfo);
@@ -150,9 +161,11 @@ export function FlashnetProvider({ children }) {
       currentWalletMnemoincRef.current &&
       poolInfo?.lpPublicKey
     ) {
+      // Delay to ensure everything is initialized
       const capturedAuthKey = authResetKeyRef.current;
 
       retryTimeoutRef.current = setTimeout(() => {
+        // Check if auth has changed before executing
         if (capturedAuthKey !== authResetKeyRef.current) {
           console.log("[Flashnet] Auth changed, skipping retry confirmations");
           return;
@@ -194,11 +207,12 @@ export function FlashnetProvider({ children }) {
         lastSwapAttempt: Date.now(),
       });
 
+      // Get the lightning request
       const lightningRequest =
         await getSingleSparkLightningRequest(sparkRequestID);
 
       console.log(
-        "found saved lightning request invoice for",
+        "found saved lightning requset invoice for",
         lightningRequest,
       );
 
@@ -211,6 +225,7 @@ export function FlashnetProvider({ children }) {
         return;
       }
 
+      // Check if we have the finalSparkID
       if (!lightningRequest.details?.finalSparkID) {
         console.error("No finalSparkID found in lightning request");
         triggeredSwapsRef.current.delete(sparkRequestID);
@@ -220,6 +235,7 @@ export function FlashnetProvider({ children }) {
         return;
       }
 
+      // Get the transaction details
       const txDetails = await getSingleTxDetails(
         currentWalletMnemoincRef.current,
         lightningRequest.details.finalSparkID,
@@ -236,9 +252,11 @@ export function FlashnetProvider({ children }) {
 
       const status = getSparkPaymentStatus(txDetails.status);
 
+      // Check if payment is settled
       if (status !== "completed") {
         console.log("Payment not yet settled, status:", status);
 
+        // Retry logic
         if (retryCount < MAX_RETRIES) {
           setTimeout(() => {
             triggeredSwapsRef.current.delete(sparkRequestID);
@@ -258,6 +276,7 @@ export function FlashnetProvider({ children }) {
       const userRequest = txDetails.userRequest;
       const invoice = userRequest ? userRequest.invoice?.encodedInvoice : "";
 
+      // Get the amount in sats
       const amountSats = txDetails.totalValue;
 
       if (
@@ -282,6 +301,7 @@ export function FlashnetProvider({ children }) {
         return;
       }
 
+      // Check if we have pool info
       const currentPoolInfo = poolInfoRef.current;
       if (!currentPoolInfo || !currentPoolInfo.lpPublicKey) {
         console.error("Pool info not available");
@@ -302,6 +322,7 @@ export function FlashnetProvider({ children }) {
         swapAmount: amountSats,
       });
 
+      // Execute the swap
       const result = await swapBitcoinToToken(
         currentWalletMnemoincRef.current,
         {
@@ -349,6 +370,7 @@ export function FlashnetProvider({ children }) {
           removeActiveSwap(sparkRequestID);
         }
 
+        // Mark as failed but not executing, so it can be retried
         await updateSparkTransactionDetails(sparkRequestID, {
           swapExecuting: false,
         });
@@ -360,6 +382,7 @@ export function FlashnetProvider({ children }) {
       if (outboundTransferId) {
         removeActiveSwap(outboundTransferId);
       }
+      // Mark as failed but not executing
       try {
         await updateSparkTransactionDetails(sparkRequestID, {
           swapExecuting: false,
@@ -372,12 +395,20 @@ export function FlashnetProvider({ children }) {
     }
   };
 
+  // Monitor for stuck/failed swaps that need retry
   const runPendingSwapsMonitor = async () => {
     try {
       if (appState !== "active") return;
       if (!sparkInformation.didConnectToFlashnet) return;
       if (!currentWalletMnemoincRef.current) return;
       if (!poolInfoRef.current?.lpPublicKey) return;
+
+      // (Web optional) avoid background work
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      )
+        return;
 
       console.log("[Pending Swaps Monitor] Checking for stuck swaps...");
 
@@ -396,6 +427,7 @@ export function FlashnetProvider({ children }) {
         const details = swapRequest.details || {};
         const finalSparkID = details.finalSparkID;
 
+        // Skip if already in our triggered set (currently processing)
         if (triggeredSwapsRef.current.has(sparkID)) {
           console.log(
             `[Pending Swaps Monitor] Swap ${sparkID} already processing`,
@@ -403,9 +435,10 @@ export function FlashnetProvider({ children }) {
           continue;
         }
 
+        // Handle payments already swapped but have not been removed from db yet
         if (details.completedSwaptoUSD || isFlashnetTransfer(finalSparkID)) {
           console.warn(
-            "[Pending Swaps Monitor] Blocking already completed swaps",
+            `[Pending Swaps Monitor] Blocking already completed swaps`,
           );
           continue;
         }
@@ -416,8 +449,10 @@ export function FlashnetProvider({ children }) {
             `[Pending Swaps Monitor] Swap ${sparkID} exceeded max retries (${MAX_SWAP_RETRIES}), cleaning up`,
           );
 
+          // Delete the lightning request
           await deleteUnpaidSparkLightningTransaction(sparkID);
 
+          // Update the final transaction to remove swap flags if it exists
           if (finalSparkID) {
             const tx = {
               id: finalSparkID,
@@ -434,10 +469,11 @@ export function FlashnetProvider({ children }) {
           continue;
         }
 
+        // Handle swaps marked as executing (potential orphaned state from app closure)
         if (details.swapExecuting) {
           const lastAttempt = details.lastSwapAttempt || 0;
           const timeSinceAttempt = Date.now() - lastAttempt;
-          const EXECUTION_TIMEOUT = 2 * 60 * 1000;
+          const EXECUTION_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
           console.log(
             `[Pending Swaps Monitor] Swap ${sparkID} marked as executing`,
@@ -454,6 +490,7 @@ export function FlashnetProvider({ children }) {
             continue;
           }
 
+          // If it's been executing for too long, it's orphaned - reset and retry
           if (timeSinceAttempt > EXECUTION_TIMEOUT) {
             console.log(
               `[Pending Swaps Monitor] Swap ${sparkID} execution timeout, resetting and retrying`,
@@ -463,6 +500,7 @@ export function FlashnetProvider({ children }) {
               swapRetryCount: currentRetries + 1,
             });
           } else {
+            // Still within execution window, skip for now
             console.log(
               `[Pending Swaps Monitor] Swap ${sparkID} still within execution window`,
             );
@@ -476,8 +514,10 @@ export function FlashnetProvider({ children }) {
 
         console.log(`[Pending Swaps Monitor] Retrying swap ${sparkID}`);
 
+        // Trigger the swap
         handleAutoSwap(sparkID);
 
+        // Add delay between retries to avoid overwhelming the system
         await new Promise((res) => setTimeout(res, 1000));
       }
     } catch (err) {
@@ -490,9 +530,10 @@ export function FlashnetProvider({ children }) {
 
     const capturedAuthKey = authResetKeyRef.current;
 
-    runPendingSwapsMonitor();
+    runPendingSwapsMonitor(); // immediate pass
 
     swapMonitorIntervalRef.current = setInterval(async () => {
+      // Check if auth has changed
       if (capturedAuthKey !== authResetKeyRef.current) {
         console.log("[Pending Swaps Monitor] Auth changed, stopping monitor");
         stopPendingSwapsMonitor();
@@ -512,9 +553,17 @@ export function FlashnetProvider({ children }) {
 
   const runRefundMonitor = async () => {
     try {
+      // Hard guards — never trust effects alone
       if (appState !== "active") return;
       if (!sparkInformation.didConnectToFlashnet) return;
       if (!currentWalletMnemoincRef.current) return;
+
+      // (Web optional) avoid background work
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      )
+        return;
 
       const refundableTransfers = await listClawbackableTransfers(
         currentWalletMnemoincRef.current,
@@ -566,6 +615,7 @@ export function FlashnetProvider({ children }) {
     const capturedAuthKey = authResetKeyRef.current;
 
     refundMonitorIntervalRef.current = setInterval(async () => {
+      // Check if auth has changed
       if (capturedAuthKey !== authResetKeyRef.current) {
         console.log("[Refund Monitor] Auth changed, stopping monitor");
         stopRefundMonitor();
@@ -620,6 +670,7 @@ export function FlashnetProvider({ children }) {
       const capturedAuthKey = authResetKeyRef.current;
 
       refundMonitorTimeout = setTimeout(() => {
+        // Check if auth has changed before executing
         if (capturedAuthKey !== authResetKeyRef.current) {
           console.log("[Refund Monitor] Auth changed, skipping initial run");
           return;
@@ -641,8 +692,8 @@ export function FlashnetProvider({ children }) {
   }, [appState, sparkInformation.didConnectToFlashnet]);
 
   useEffect(() => {
-    const INITIAL_RETRY_DELAY = 5_000;
-    const MAX_RETRY_DELAY = 120_000;
+    const INITIAL_RETRY_DELAY = 5_000; // 5 seconds
+    const MAX_RETRY_DELAY = 120_000; // 2 minutes
 
     const attemptFlashnetConnection = async () => {
       try {
@@ -667,6 +718,7 @@ export function FlashnetProvider({ children }) {
               didConnectToFlashnet: true,
             }));
 
+            // Reset delay on success
             flashnetRetryDelayRef.current = INITIAL_RETRY_DELAY;
 
             if (flashnetRetryIntervalRef.current) {
@@ -680,6 +732,7 @@ export function FlashnetProvider({ children }) {
               }s...`,
             );
 
+            // Schedule next retry with exponential backoff
             if (flashnetRetryIntervalRef.current) {
               clearTimeout(flashnetRetryIntervalRef.current);
             }
@@ -687,6 +740,7 @@ export function FlashnetProvider({ children }) {
             const capturedAuthKey = authResetKeyRef.current;
 
             flashnetRetryIntervalRef.current = setTimeout(() => {
+              // Check if auth has changed
               if (capturedAuthKey !== authResetKeyRef.current) {
                 console.log("[Flashnet Retry] Auth changed, aborting retry");
                 return;
@@ -694,6 +748,7 @@ export function FlashnetProvider({ children }) {
               attemptFlashnetConnection();
             }, flashnetRetryDelayRef.current);
 
+            // Double the delay for next time, capped at MAX_RETRY_DELAY
             flashnetRetryDelayRef.current = Math.min(
               flashnetRetryDelayRef.current * 2,
               MAX_RETRY_DELAY,
@@ -703,6 +758,7 @@ export function FlashnetProvider({ children }) {
       } catch (error) {
         console.error("[Flashnet Retry] Error during initialization:", error);
 
+        // Schedule retry on error as well
         if (flashnetRetryIntervalRef.current) {
           clearTimeout(flashnetRetryIntervalRef.current);
         }
@@ -710,6 +766,7 @@ export function FlashnetProvider({ children }) {
         const capturedAuthKey = authResetKeyRef.current;
 
         flashnetRetryIntervalRef.current = setTimeout(() => {
+          // Check if auth has changed
           if (capturedAuthKey !== authResetKeyRef.current) {
             console.log(
               "[Flashnet Retry] Auth changed, aborting retry after error",
@@ -731,14 +788,19 @@ export function FlashnetProvider({ children }) {
       !sparkInformation.didConnectToFlashnet &&
       appState === "active"
     ) {
+      // Reset delay when starting fresh
       flashnetRetryDelayRef.current = INITIAL_RETRY_DELAY;
+
+      // Immediate first attempt
       attemptFlashnetConnection();
     } else {
+      // Clean up timeout if conditions no longer met
       if (flashnetRetryIntervalRef.current) {
         clearTimeout(flashnetRetryIntervalRef.current);
         flashnetRetryIntervalRef.current = null;
       }
 
+      // Reset delay when stopping
       flashnetRetryDelayRef.current = INITIAL_RETRY_DELAY;
     }
 
@@ -755,17 +817,21 @@ export function FlashnetProvider({ children }) {
   ]);
 
   useEffect(() => {
+    // Stop any existing interval first
     if (poolIntervalRef.current) {
       clearInterval(poolIntervalRef.current);
       poolIntervalRef.current = null;
     }
 
+    // Only start polling when conditions are correct
     if (!sparkInformation.didConnectToFlashnet) return;
     if (appState !== "active") return;
 
+    // Start interval
     const capturedAuthKey = authResetKeyRef.current;
 
     poolIntervalRef.current = setInterval(() => {
+      // Check if auth has changed
       if (capturedAuthKey !== authResetKeyRef.current) {
         console.log("[Pool Refresh] Auth changed, stopping refresh");
         if (poolIntervalRef.current) {
@@ -778,7 +844,9 @@ export function FlashnetProvider({ children }) {
       refreshPool();
     }, 30_000);
 
+    // Run immediately on activation
     const refreshPoolTimeout = setTimeout(() => {
+      // Check if auth has changed
       if (capturedAuthKey !== authResetKeyRef.current) {
         console.log("[Pool Refresh] Auth changed, skipping initial refresh");
         return;
@@ -801,7 +869,7 @@ export function FlashnetProvider({ children }) {
   useEffect(() => {
     if (!sparkInformation.didConnectToFlashnet) return;
     async function getLimits() {
-      const [usdLimits, bitcoinLimits] = await Promise.all([
+      const [usdLimits, bitconLimits] = await Promise.all([
         minFlashnetSwapAmounts(
           currentWalletMnemoincRef.current,
           USD_ASSET_ADDRESS,
@@ -811,7 +879,7 @@ export function FlashnetProvider({ children }) {
           BTC_ASSET_ADDRESS,
         ),
       ]);
-      if (usdLimits.didWork && bitcoinLimits.didWork) {
+      if (usdLimits.didWork && bitconLimits.didWork) {
         setSwapLimits({
           usd: parseFloat(
             (
@@ -820,7 +888,7 @@ export function FlashnetProvider({ children }) {
             ).toFixed(2),
           ),
           bitcoin: Math.round(
-            Number(bitcoinLimits.assetData) * SEND_AMOUNT_INCREASE_BUFFER,
+            Number(bitconLimits.assetData) * SEND_AMOUNT_INCREASE_BUFFER,
           ),
         });
       }
@@ -854,7 +922,10 @@ export function FlashnetProvider({ children }) {
       retryTimeoutRef.current = null;
     }
 
+    // Clear triggered swaps set
     triggeredSwapsRef.current.clear();
+
+    // Reset retry delay
     flashnetRetryDelayRef.current = 5_000;
   }, [authResetkey]);
 
@@ -866,7 +937,7 @@ export function FlashnetProvider({ children }) {
       swapLimits,
       swapUSDPriceDollars,
     };
-  }, [poolInfo, swapLimits, swapUSDPriceDollars]);
+  }, [poolInfo, togglePoolInfo, swapLimits, swapUSDPriceDollars]);
 
   return (
     <FlashnetContext.Provider value={contextValue}>

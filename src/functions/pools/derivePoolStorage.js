@@ -2,6 +2,7 @@ import {
   deriveSparkGiftMnemonic,
   deriveSparkIdentityKey,
   deriveSparkAddress,
+  getSparkDefaultAccountNumber,
 } from "../gift/deriveGiftWallet";
 
 /**
@@ -21,6 +22,7 @@ export async function derivePoolWallet(accountMnemonic, poolDerivationIndex) {
   const derived = await deriveSparkGiftMnemonic(
     accountMnemonic,
     poolDerivationIndex,
+    getSparkDefaultAccountNumber(),
   );
   if (!derived.success) {
     throw new Error(derived.error || "Failed to derive pool wallet mnemonic");

@@ -69,3 +69,72 @@ const Storage = {
 };
 
 export default Storage;
+
+// --- AsyncStorage-style API (RN parity): raw string values in window.localStorage ---
+// Use these for ports from React Native; keep default `Storage` for JSON-shaped helpers.
+
+export async function setLocalStorageItem(key, val) {
+  try {
+    if (typeof localStorage === "undefined") return false;
+    localStorage.setItem(key, val == null ? "" : String(val));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getLocalStorageItem(key) {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export async function removeLocalStorageItem(key) {
+  try {
+    if (typeof localStorage === "undefined") return false;
+    localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function removeAllLocalData() {
+  try {
+    if (typeof localStorage === "undefined") return false;
+    localStorage.clear();
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+}
+
+export async function getAllLocalKeys() {
+  try {
+    if (typeof localStorage === "undefined") return [];
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k != null) keys.push(k);
+    }
+    return keys;
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
+}
+
+/** @returns {Promise<Array<[string, string | null]>>} */
+export async function getMultipleItems(itemsList) {
+  try {
+    if (typeof localStorage === "undefined") return [];
+    return itemsList.map((key) => [key, localStorage.getItem(key)]);
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
+}

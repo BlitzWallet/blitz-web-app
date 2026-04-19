@@ -1,8 +1,12 @@
-import { HDKey } from '@scure/bip32';
-import { entropyToMnemonic } from '@scure/bip39';
-import { wordlist } from '@scure/bip39/wordlists/english';
-import { mnemonicToSeedAsync } from '../nostrCompatability';
-import { bech32m } from 'bech32';
+import { HDKey } from "@scure/bip32";
+import { entropyToMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
+import { mnemonicToSeedAsync } from "../nostrCompatability";
+import { bech32m } from "bech32";
+
+export function getSparkDefaultAccountNumber() {
+  return import.meta.env.VITE_MODE === "development" ? 0 : 1;
+}
 
 /**
  * Derives a mnemonic for a Spark Wallet gift at a specific index
@@ -14,7 +18,7 @@ import { bech32m } from 'bech32';
 export async function deriveSparkGiftMnemonic(
   mnemonic,
   giftIndex = 0,
-  accountNumber = 1,
+  accountNumber,
 ) {
   try {
     // Derive the identity key for this gift using Spark's scheme
@@ -39,7 +43,7 @@ export async function deriveSparkGiftMnemonic(
       accountNumber, // The account number that Spark will use internally
     };
   } catch (err) {
-    console.log('derive spark gift mnemonic error:', err);
+    console.log("derive spark gift mnemonic error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -51,7 +55,10 @@ export async function deriveSparkGiftMnemonic(
  * @param {number} accountNumber - Spark's account number (default: 1)
  * @returns {Promise<Object>} Expected identity key information
  */
-export async function deriveSparkIdentityKey(sparkMnemonic, accountNumber = 1) {
+export async function deriveSparkIdentityKey(
+  sparkMnemonic,
+  accountNumber = getSparkDefaultAccountNumber(),
+) {
   try {
     // Spark internally derives: m/8797555'/accountNumber'/0'
     // Where accountNumber defaults to 1 for backwards compatibility
@@ -65,17 +72,17 @@ export async function deriveSparkIdentityKey(sparkMnemonic, accountNumber = 1) {
       success: true,
       privateKey: identityKey.privateKey,
       publicKey: identityKey.publicKey,
-      publicKeyHex: Buffer.from(identityKey.publicKey).toString('hex'),
+      publicKeyHex: Buffer.from(identityKey.publicKey).toString("hex"),
       chainCode: identityKey.chainCode,
       depth: identityKey.depth,
       index: identityKey.index,
       parentFingerprint: identityKey.parentFingerprint,
       derivationPath: derivationPath,
       accountNumber,
-      keyType: 'identity',
+      keyType: "identity",
     };
   } catch (err) {
-    console.log('derive spark identity key error:', err);
+    console.log("derive spark identity key error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -92,11 +99,17 @@ export function deriveSparkAddress(identityPublicKey) {
       identityPublicKey.length !== 33
     ) {
       throw new Error(
-        'identityPublicKey must be a 33-byte compressed Uint8Array',
+        "identityPublicKey must be a 33-byte compressed Uint8Array",
       );
     }
 
-    const hrp = 'spark';
+    let hrp;
+    if (import.meta.env.VITE_MODE === "development") {
+      hrp = "sparkrt";
+    } else {
+      hrp = "spark";
+    }
+
     const pubKeyLength = identityPublicKey.length; // 33 (0x21 in hex)
 
     // 1. Create the Protobuf-like payload
@@ -123,7 +136,7 @@ export function deriveSparkAddress(identityPublicKey) {
       address,
     };
   } catch (err) {
-    console.log('derive spark identity key error:', err);
+    console.log("derive spark identity key error:", err);
     return { success: false, error: err.message };
   }
 }

@@ -14,8 +14,15 @@ import {
   getSingleTxDetails,
   getSparkLightningPaymentStatus,
   initializeFlashnet,
+  // selectSparkRuntime,          // not used in web version
 } from ".";
+
 import i18next from "i18next";
+
+// These are mobile-specific (webview bridge). Kept only to avoid refactor churn if devs compare files.
+// In web build, you should NOT import/use them.
+// import { OPERATION_TYPES, sendWebViewRequestGlobal } from '../../../context-store/webViewContext';
+
 import {
   FLASHNET_ERROR_CODE_REGEX,
   FLASHNET_REFUND_REGEX,
@@ -33,8 +40,10 @@ import { decode } from "bolt11";
 // CONSTANTS
 // ============================================
 
+// Standard Bitcoin pubkey for pools (constant across Flashnet)
 export const BTC_ASSET_ADDRESS =
   "020202020202020202020202020202020202020202020202020202020202020202";
+
 export const USD_ASSET_ADDRESS =
   "3206c93b24a4d18ea19d0a9a213204af2c7e74a6d16c7535cc5d33eca4ad1eca";
 
@@ -49,6 +58,15 @@ export const INTEGRATOR_FEE = 0.01; // 1%
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
+const getIntegratorPublicKey = () => {
+  // Supports Vite / CRA / Node-like env injection patterns
+  return (
+    (typeof import.meta !== "undefined" &&
+      import.meta.env?.VITE_BLITZ_SPARK_PUBLICKEY) ||
+    (typeof process !== "undefined" && process.env?.BLITZ_SPARK_PUBLICKEY) ||
+    undefined
+  );
+};
 
 const formatError = (error, operation) => {
   if (isFlashnetError(error)) {
@@ -93,6 +111,9 @@ const formatError = (error, operation) => {
       actionHint: metadata.actionHint,
       isRetryable: metadata.isRetryable,
       recovery: metadata.recovery,
+      transferIds: metadata.transferIds,
+      clawbackAttempted: metadata.wasClawbackAttempted?.() || false,
+      fundsRecovered: metadata.wereAllTransfersRecovered?.() || false,
     };
   }
 
@@ -145,7 +166,6 @@ export const findBestPool = async (
         i18next.t("screens.inAccount.swapsPage.noPoolsFoundError", {
           tokenAAddress,
           tokenBAddress,
-          defaultValue: "No pools found",
         }),
       );
     }
@@ -193,7 +213,11 @@ export const getPoolDetails = async (mnemonic, poolId) => {
       "Get pool details error:",
       formatError(error, "getPoolDetails"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "getPoolDetails"),
+    };
   }
 };
 
@@ -217,7 +241,11 @@ export const listAllPools = async (mnemonic, filters = {}) => {
     };
   } catch (error) {
     console.warn("List pools error:", formatError(error, "listAllPools"));
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "listAllPools"),
+    };
   }
 };
 
@@ -225,15 +253,23 @@ export const minFlashnetSwapAmounts = async (mnemonic, assetHex) => {
   try {
     const client = getFlashnetClient(mnemonic);
     const minMap = await client.getMinAmountsMap();
+
     const assetData = minMap.get(assetHex.toLowerCase());
 
-    return { didWork: true, assetData };
+    return {
+      didWork: true,
+      assetData: assetData,
+    };
   } catch (error) {
     console.warn(
-      "minFlashnetSwapAmounts error:",
+      "List pools error:",
       formatError(error, "minFlashnetSwapAmounts"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "minFlashnetSwapAmounts"),
+    };
   }
 };
 
@@ -273,7 +309,11 @@ export const simulateSwap = async (
     };
   } catch (error) {
     console.warn("Simulate swap error:", formatError(error, "simulateSwap"));
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "simulateSwap"),
+    };
   }
 };
 
@@ -284,7 +324,7 @@ export const executeSwap = async (
     assetInAddress,
     assetOutAddress,
     amountIn,
-    minAmountOut,
+    minAmountOut, // Optional - will be calculated if not provided
     maxSlippageBps = DEFAULT_SLIPPAGE_BPS,
     integratorFeeRateBps = 100,
   },
@@ -292,6 +332,7 @@ export const executeSwap = async (
   try {
     const client = getFlashnetClient(mnemonic);
 
+    // Simulate first if minAmountOut not provided
     let calculatedMinOut = minAmountOut;
     if (!calculatedMinOut) {
       const simulation = await client.simulateSwap({
@@ -306,16 +347,16 @@ export const executeSwap = async (
         maxSlippageBps,
       );
     }
-    console.log({
-      poolId,
-      assetInAddress,
-      assetOutAddress,
-      amountIn: amountIn.toString(),
-      minAmountOut: calculatedMinOut.toString(),
-      maxSlippageBps,
-      integratorFeeRateBps,
-      integratorPublicKey: import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY,
-    });
+    // console.log({
+    //   poolId,
+    //   assetInAddress,
+    //   assetOutAddress,
+    //   amountIn: amountIn.toString(),
+    //   minAmountOut: calculatedMinOut.toString(),
+    //   maxSlippageBps,
+    //   integratorFeeRateBps,
+    //   integratorPublicKey: import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY,
+    // });
     const swap = await client.executeSwap({
       poolId,
       assetInAddress,
@@ -370,6 +411,7 @@ export const swapBitcoinToToken = async (
   },
 ) => {
   try {
+    // Find best pool if not provided
     let targetPoolId = poolId;
     if (!targetPoolId) {
       const poolResult = await findBestPool(
@@ -377,8 +419,9 @@ export const swapBitcoinToToken = async (
         BTC_ASSET_ADDRESS,
         tokenAddress,
       );
-      if (!poolResult.didWork)
+      if (!poolResult.didWork) {
         throw new Error("No suitable pool found for BTC/" + tokenAddress);
+      }
       targetPoolId = poolResult.pool.lpPublicKey;
     }
 
@@ -394,7 +437,11 @@ export const swapBitcoinToToken = async (
       "Swap BTC to token error:",
       formatError(error, "swapBitcoinToToken"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "swapBitcoinToToken"),
+    };
   }
 };
 
@@ -408,6 +455,7 @@ export const swapTokenToBitcoin = async (
   },
 ) => {
   try {
+    // Find best pool if not provided
     let targetPoolId = poolId;
     if (!targetPoolId) {
       const poolResult = await findBestPool(
@@ -415,8 +463,9 @@ export const swapTokenToBitcoin = async (
         tokenAddress,
         BTC_ASSET_ADDRESS,
       );
-      if (!poolResult.didWork)
+      if (!poolResult.didWork) {
         throw new Error("No suitable pool found for " + tokenAddress + "/BTC");
+      }
       targetPoolId = poolResult.pool.lpPublicKey;
     }
 
@@ -432,7 +481,11 @@ export const swapTokenToBitcoin = async (
       "Swap token to BTC error:",
       formatError(error, "swapTokenToBitcoin"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "swapTokenToBitcoin"),
+    };
   }
 };
 
@@ -477,7 +530,11 @@ export const getLightningPaymentQuote = async (
       "Get Lightning quote error:",
       formatError(error, "getLightningPaymentQuote"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "getLightningPaymentQuote"),
+    };
   }
 };
 
@@ -503,8 +560,10 @@ export const payLightningWithToken = async (
       rollbackOnFailure,
       useExistingBtcBalance,
       integratorFeeRateBps,
-      integratorPublicKey: import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY,
+      integratorPublicKey: getIntegratorPublicKey(),
     });
+
+    console.log("token lightning payment response:", result);
 
     if (result.success) {
       return {
@@ -524,7 +583,13 @@ export const payLightningWithToken = async (
       return {
         didWork: false,
         error: result.error,
-        result: { success: false, error: result.error },
+        result: {
+          success: false,
+          error: result.error,
+          poolId: result.poolId,
+          tokenAmountSpent: result.tokenAmountSpent,
+          btcAmountReceived: result.btcAmountReceived,
+        },
       };
     }
   } catch (error) {
@@ -532,7 +597,11 @@ export const payLightningWithToken = async (
       "Pay Lightning with token error:",
       formatError(error, "payLightningWithToken"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "payLightningWithToken"),
+    };
   }
 };
 
@@ -560,7 +629,12 @@ export const getUserSwapHistory = async (mnemonic, limit = 50, offset) => {
       "Get swap history error:",
       formatError(error, "getUserSwapHistory"),
     );
-    return { didWork: false, error: error.message, swaps: [] };
+    return {
+      didWork: false,
+      error: error.message,
+      swaps: [],
+      details: formatError(error, "getUserSwapHistory"),
+    };
   }
 };
 
@@ -660,20 +734,27 @@ export const completeSwapConfirmation = async (
         ""
       : lightningRequest?.description || "";
 
+    // Clear funding and ln payment from tx list
     setFlashnetTransfer(swap.inboundTransferId);
     setFlashnetTransfer(txDetails.id);
 
+    let paymentType;
+    if (import.meta.env.VITE_MODE === "development") {
+      paymentType = "sparkrt";
+    } else {
+      paymentType = "spark";
+    }
     const tx = {
       id: swap.outboundTransferId,
       paymentStatus: "completed",
-      paymentType: "spark",
+      paymentType: paymentType,
       accountId: sparkInfoRef.current.identityPubKey,
       details: {
         fee: realFeeAmount,
         totalFee: realFeeAmount,
         supportFee: 0,
         amount: parseFloat(result.swap.amountOut),
-        description,
+        description: description,
         address: sparkInfoRef.current.sparkAddress,
         time: Date.now(),
         createdAt: Date.now(),
@@ -688,7 +769,10 @@ export const completeSwapConfirmation = async (
 
     await bulkUpdateSparkTransactions([tx], "fullUpdate-tokens");
     removeActiveSwap(outboundTransferId);
+
     await removePendingSwapConfirmation(sparkRequestID);
+
+    console.log("[Swap Confirmation] Completed successfully");
     return true;
   } catch (err) {
     console.error("[Swap Confirmation] Error:", err);
@@ -932,7 +1016,11 @@ export const requestManualClawback = async (
       "Manual clawback error:",
       formatError(error, "requestManualClawback"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "requestManualClawback"),
+    };
   }
 };
 
@@ -971,10 +1059,14 @@ export const checkClawbackStatus = async (mnemonic, internalRequestId) => {
     };
   } catch (error) {
     console.warn(
-      "checkClawbackStatus error:",
+      "Check clawback status error:",
       formatError(error, "checkClawbackStatus"),
     );
-    return { didWork: false, error: error.message };
+    return {
+      didWork: false,
+      error: error.message,
+      details: formatError(error, "checkClawbackStatus"),
+    };
   }
 };
 

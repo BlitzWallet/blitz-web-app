@@ -1,0 +1,131 @@
+.giftsOverviewContainer {
+  --gifts-tab-bar-clearance: max(
+    16px,
+    calc(env(safe-area-inset-bottom, 0px) + 96px)
+  );
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 20px var(--gifts-tab-bar-clearance);
+  box-sizing: border-box;
+}
+
+.giftsOverview-nav {
+  flex-shrink: 0;
+}
+
+.giftsOverview-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.giftsOverview-section {
+  margin-bottom: 8px;
+}
+
+.giftsOverview-sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.giftsOverview-sectionTitle {
+  text-transform: capitalize;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.giftsOverview-reclaimLink {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.giftsOverview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+}
+
+.giftsOverview-emptyIcon {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.giftsOverview-emptyTitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.giftsOverview-emptyDesc {
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 20px;
+  max-width: 300px;
+}
+
+.giftsOverview-expiredEmpty {
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.giftsOverview-expiredEmptyText {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.giftsOverview-advancedLink {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.giftsOverview-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: 12px;
+  width: 100%;
+}
+
+.giftsOverview-actions .customButton {
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .giftsOverview-actions {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .giftsOverview-actions .customButton {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+}

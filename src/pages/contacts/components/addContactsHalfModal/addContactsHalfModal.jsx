@@ -1,19 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./style.css";
-import customUUID from "../../../../functions/customUUID";
-import useDebounce from "../../../../hooks/useDebounce";
-import { EMAIL_REGEX, VALID_USERNAME_REGEX } from "../../../../constants";
+import { useNavigate } from "react-router-dom";
+import { EMAIL_REGEX } from "../../../../constants";
 import { searchUsers } from "../../../../../db";
-import { getCachedProfileImage } from "../../../../functions/cachedImage";
 import ContactProfileImage from "../profileImage/profileImage";
 import { useThemeContext } from "../../../../contexts/themeContext";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeText from "../../../../components/themeText/themeText";
-import { useNavigate } from "react-router-dom";
-import CustomButton from "../../../../components/customButton/customButton";
 import { useTranslation } from "react-i18next";
-import CustomInput from "../../../../components/customInput/customInput";
 import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
+import CustomInput from "../../../../components/customInput/customInput";
+import CustomButton from "../../../../components/customButton/customButton";
+import { getCachedProfileImage } from "../../../../functions/cachedImage";
+import customUUID from "../../../../functions/customUUID";
+import useDebounce from "../../../../hooks/useDebounce";
 
 // Main Component
 export default function AddContactsModal({ onClose, params }) {
@@ -62,6 +62,7 @@ export default function AddContactsModal({ onClose, params }) {
     const searchTerm = term.replace(/@/g, "");
     if (searchTerm) {
       const results = await searchUsers(searchTerm);
+      console.log("results", results);
       const newUsers = (
         await Promise.all(
           results.map(async (savedContact) => {

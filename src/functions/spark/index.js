@@ -17,6 +17,7 @@ import {
 } from "../lrc20/cachedTokens";
 import Storage from "../localStorage";
 import { FlashnetClient } from "@flashnet/sdk";
+import { getSparkDefaultAccountNumber } from "../gift/deriveGiftWallet";
 
 export let sparkWallet = {};
 export let flashnetClients = {};
@@ -36,7 +37,7 @@ const getMnemonicHash = (mnemonic) => {
 const getWallet = (mnemonic) => {
   const hash = getMnemonicHash(mnemonic);
   const wallet = sparkWallet[hash];
-
+  console.log("wallet", wallet);
   if (!wallet) {
     throw new Error("sparkWallet not initialized");
   }
@@ -66,18 +67,30 @@ export const initializeSparkWallet = async (mnemonic) => {
     if (sparkWallet[hash]) {
       return { isConnected: true };
     }
+    const network =
+      import.meta.env.VITE_MODE === "development" ? "REGTEST" : "MAINNET";
 
+    console.log("import.meta.env.VITE_MODE", import.meta.env.VITE_MODE);
+    const accountNumber = getSparkDefaultAccountNumber();
+    console.log("accountNumber", accountNumber);
+    console.log("network", network);
+    console.log("mnemonic", mnemonic);
     const { wallet } = await SparkWallet.initialize({
       mnemonicOrSeed: mnemonic,
+      accountNumber,
       options: {
-        network: "MAINNET",
+        network: network,
         optimizationOptions: {
           multiplicity: 2,
         },
       },
     });
 
+    console.log("wallet", wallet);
+
     sparkWallet[hash] = wallet;
+
+    console.log("sparkWallet", sparkWallet[hash]);
     return { isConnected: true };
   } catch (err) {
     console.log("Initialize spark wallet error function", err);
@@ -88,7 +101,10 @@ export const initializeSparkWallet = async (mnemonic) => {
 export const initializeFlashnet = async (mnemonic) => {
   try {
     const wallet = await getWallet(mnemonic);
+    const isDev = import.meta.env.VITE_MODE === "development";
     const flashnetAPI = new FlashnetClient(wallet, {
+      sparkNetworkType: isDev ? "REGTEST" : "MAINNET",
+      clientEnvironment: isDev ? "regtest" : "mainnet",
       autoAuthenticate: true,
     });
     await flashnetAPI.initialize();

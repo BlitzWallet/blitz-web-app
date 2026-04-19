@@ -1,5 +1,5 @@
 import { BottomNavigation, BottomNavigationAction } from "@mui/material";
-import { Home, Users, Store } from "lucide-react";
+import { Home, Users, Gift, Store } from "lucide-react";
 import { useMemo, useState } from "react";
 import useThemeColors from "../hooks/useThemeColors";
 import { useThemeContext } from "../contexts/themeContext";
@@ -8,6 +8,7 @@ const TabsIcon = ({ value, icon, activeColor, iconValue }) => {
   const iconMap = {
     contacts: Users,
     wallet: Home,
+    gift: Gift,
     store: Store,
   };
 

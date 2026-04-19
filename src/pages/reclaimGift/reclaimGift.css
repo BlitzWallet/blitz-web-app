@@ -1,0 +1,290 @@
+.reclaimGift-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  /* Match createGift / mobile: horizontal 20px + bottom inset for home indicator */
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.reclaimGift-topBarSpacer {
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.reclaimGift-topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 0 16px;
+  flex-shrink: 0;
+}
+
+.reclaimGift-backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  width: 40px;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+/* Matches createGift-title — ThemeText in top bar */
+.reclaimGift-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.reclaimGift-scrollContent {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reclaimGift-centerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  /* Matches createGift-form padding-top (mobile GlobalThemeView) */
+  margin: 32px auto 0;
+  padding-bottom: 8px;
+}
+
+.reclaimGift-emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+/* Empty state: pin primary action to bottom (mobile pattern) */
+.reclaimGift-scrollContent:has(.reclaimGift-emptyState) {
+  display: flex;
+  flex-direction: column;
+}
+
+.reclaimGift-scrollContent:has(.reclaimGift-emptyState)
+  .reclaimGift-centerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reclaimGift-bottomButtonArea {
+  width: 100%;
+  max-width: 448px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.reclaimGift-claimButtonArea {
+  width: 100%;
+  max-width: 448px;
+  margin-top: 8px;
+}
+
+.reclaimGift-dropdownWrapper {
+  /* Spacing from input comes from .reclaimGift-formCard gap */
+  margin-top: 0;
+}
+
+/* Blue icon only — no filled circle (aligns with IconActionCircle / createGift hero) */
+.reclaimGift-iconAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.reclaimGift-mainTitle {
+  width: 100%;
+}
+
+.reclaimGift-mainDesc {
+  width: 100%;
+}
+
+.reclaimGift-formCard {
+  width: 100%;
+  /* Matches createGift-field */
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reclaimGift-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.reclaimGift-input::placeholder {
+  color: var(--reclaim-placeholder, rgba(0, 0, 0, 0.45));
+}
+
+.reclaimGift-input:focus {
+  border-color: #0375f6;
+}
+
+.reclaimGift-select {
+  width: 100%;
+  min-height: 50px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  cursor: pointer;
+  appearance: auto;
+}
+
+/* ThemeText + clickFunction (secondary text action) */
+.reclaimGift-advancedLink {
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.reclaimGift-advancedLink:hover {
+  opacity: 0.9;
+}
+
+/* Advanced mode */
+.reclaimGift-indexCard {
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  box-sizing: border-box;
+}
+
+.reclaimGift-indexLabel {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 4px;
+  color: #fff;
+}
+
+.reclaimGift-indexNumber {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+.reclaimGift-indexIconCircle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reclaimGift-indexIconEmoji {
+  font-size: 24px;
+}
+
+.reclaimGift-infoCard {
+  margin-top: 16px;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  box-sizing: border-box;
+}
+
+.reclaimGift-infoTitle {
+  font-weight: 500;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.reclaimGift-infoDesc {
+  font-size: 13px;
+  line-height: 20px;
+  opacity: 0.6;
+  margin: 0;
+}
+
+.reclaimGift-infoDescSpaced {
+  margin-top: 12px;
+}
+
+.reclaimGift-inputCard {
+  margin-top: 16px;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 448px;
+  width: 100%;
+  align-self: center;
+  box-sizing: border-box;
+}
+
+.reclaimGift-inputLabel {
+  font-weight: 500;
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.reclaimGift-errorBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.reclaimGift-errorIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.reclaimGift-errorText {
+  font-size: 13px;
+  color: #fff;
+  margin: 0;
+  flex-shrink: 1;
+  line-height: 18px;
+}

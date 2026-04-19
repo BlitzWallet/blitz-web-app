@@ -1,5 +1,6 @@
 import { SATSPERBITCOIN } from "./math";
 import { HIDDEN_OPACITY, INSET_WINDOW_WIDTH, WINDOWWIDTH } from "./theme";
+import * as ICONS from "./icons";
 
 const WEBSITE_REGEX =
   /^(https?:\/\/|www\.)[a-z\d]([a-z\d-]*[a-z\d])*(\.[a-z]{2,})+/i;
@@ -128,10 +129,11 @@ const TOKEN_TICKER_MAX_LENGTH = 10;
 const BACKGROUND_THRESHOLD_MS = 8 * 60 * 1000;
 const FORCE_RESET_SPAARK_STATE_MS = 6 * 60 * 1000;
 
-const DEFAULT_PAYMENT_EXPIRY_SEC = 60 * 60 * 12;
-
 const USDB_TOKEN_ID =
   "btkn1xgrvjwey5ngcagvap2dzzvsy4uk8ua9x69k82dwvt5e7ef9drm9qztux87";
+
+const DEFAULT_PAYMENT_EXPIRY_SEC = 60 * 60 * 12;
+
 const DEFAULT_GOAL_EMOJI = "🎯";
 
 export {
@@ -139,7 +141,7 @@ export {
   //   FONT,
   //   SIZES,
   //   SHADOWS,
-  //   ICONS,
+  ICONS,
   //   CENTER,
   //   BTN,
   //   Background,

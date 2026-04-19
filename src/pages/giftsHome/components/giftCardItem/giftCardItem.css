@@ -1,0 +1,125 @@
+.giftCardItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s ease;
+}
+
+.giftCardItem[data-expired="true"] {
+  opacity: 0.92;
+}
+
+.giftCardItem:active {
+  opacity: 0.88;
+  transform: scale(0.995);
+}
+
+.giftCardItem:focus-visible {
+  outline: 2px solid #0375f6;
+  outline-offset: 2px;
+}
+
+.giftCardItem-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.giftCardItem-iconImage {
+  width: 20px;
+  height: 20px;
+}
+
+.giftCardItem-middle {
+  flex: 1;
+  min-width: 0;
+}
+
+.giftCardItem-desc {
+  font-size: 0.95rem;
+  /* font-weight: 500; */
+  margin: 0 0 2px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.giftCardItem-statusRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.giftCardItem-combinedStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.giftCardItem-statusText {
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.giftCardItem-muted {
+  opacity: 0.55;
+}
+
+.giftCardItem-dot {
+  opacity: 0.35;
+  user-select: none;
+}
+
+.giftCardItem-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.giftCardItem-actionsContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.giftCardItem-actionIcon {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.giftCardItem-actionIcon:active {
+  opacity: 0.75;
+}
+
+.giftCardItem-actionIcon:focus-visible {
+  outline: 2px solid #0375f6;
+  outline-offset: 2px;
+}

@@ -72,6 +72,8 @@ export function LiquidEventProvider({ children }) {
     </LiquidEventContext.Provider>
   );
 }
+
+
 export const useLiquidEvent = () => {
   return useContext(LiquidEventContext); // Use the correct context
 };

@@ -27,6 +27,7 @@ import {
   deriveSparkGiftMnemonic,
   deriveSparkIdentityKey,
   deriveSparkAddress,
+  getSparkDefaultAccountNumber,
 } from "../functions/gift/deriveGiftWallet";
 import { useKeysContext } from "./keysContext";
 import { useAppStatus } from "./appStatus";
@@ -115,13 +116,17 @@ export function SavingsProvider({ children }) {
       const step1 = await deriveSparkGiftMnemonic(
         accountMnemoinc,
         STARTING_INDEX_FOR_SAVINGS_DERIVE,
+        getSparkDefaultAccountNumber(),
       );
 
       if (!step1?.success) {
         throw new Error(step1?.error);
       }
 
-      const step2 = await deriveSparkIdentityKey(step1.derivedMnemonic, 1);
+      const step2 = await deriveSparkIdentityKey(
+        step1.derivedMnemonic,
+        getSparkDefaultAccountNumber(),
+      );
 
       if (!step2?.success) {
         throw new Error(step2?.error);

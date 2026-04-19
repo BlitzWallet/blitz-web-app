@@ -1,6 +1,7 @@
 import BackArrow from "../backArrow/backArrow";
 import ThemeText from "../themeText/themeText";
 import "./navbar.css";
+
 export default function PageNavBar({ text = "", textClassName, showWhite }) {
   return (
     <div className="pageNavBar">

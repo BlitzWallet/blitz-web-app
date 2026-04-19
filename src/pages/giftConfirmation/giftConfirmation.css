@@ -1,0 +1,232 @@
+/* Mirrors React Native GiftConfirmation StyleSheet (layout + spacing only). */
+
+.giftConfirmation-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.giftConfirmation-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.giftConfirmation-scrollInner {
+  width: 90%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 24px;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+.giftConfirmation-topBar {
+  width: 90%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.giftConfirmation-shareBtn {
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  background: transparent;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.giftConfirmation-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.giftConfirmation-lottie {
+  width: 100px;
+  height: 100px;
+}
+
+.giftConfirmation-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.giftConfirmation-subtitle {
+  opacity: 0.8;
+  text-align: center;
+  max-width: 320px;
+  line-height: 22px;
+  font-size: 0.875rem;
+}
+
+.giftConfirmation-qrCard {
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.giftConfirmation-qrBtn {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.giftConfirmation-qrWrap {
+  width: 250px;
+  height: 250px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.giftConfirmation-card {
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.giftConfirmation-cardHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.giftConfirmation-cardHeaderText {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.giftConfirmation-detailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.giftConfirmation-detailRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+}
+
+.giftConfirmation-detailMuted {
+  opacity: 0.8;
+}
+
+.giftConfirmation-detailDescription {
+  flex-shrink: 1;
+  max-width: 60%;
+  text-align: right;
+  word-break: break-word;
+}
+
+.giftConfirmation-inputLabel {
+  margin-bottom: 12px;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.giftConfirmation-inputRow {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.giftConfirmation-linkContainer {
+  flex: 1;
+  min-width: 0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 0.8125rem;
+}
+
+.giftConfirmation-linkText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.giftConfirmation-copyButton {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: transparent;
+}
+
+.giftConfirmation-bottomButtons {
+  width: 90%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: 16px;
+  padding-right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.giftConfirmation-btnPrimary {
+  width: 100%;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.giftConfirmation-btnSecondary {
+  width: 100%;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: unset;
+}

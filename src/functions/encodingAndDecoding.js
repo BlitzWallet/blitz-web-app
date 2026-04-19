@@ -30,13 +30,13 @@ async function encryptMessage(privkey, pubkey, text) {
       sharedX,
       { name: "AES-CBC" },
       false,
-      ["encrypt"]
+      ["encrypt"],
     );
 
     const encryptedBuffer = await crypto.subtle.encrypt(
       { name: "AES-CBC", iv: iv },
       key,
-      textBuffer
+      textBuffer,
     );
 
     const encryptedMessage = Buffer.from(encryptedBuffer).toString("base64");
@@ -58,7 +58,7 @@ async function decryptMessage(privkey, pubkey, encryptedText) {
     const iv = new Uint8Array(
       atob(ivStr)
         .split("")
-        .map((c) => c.charCodeAt(0))
+        .map((c) => c.charCodeAt(0)),
     );
 
     const encryptedData = encryptedText.split("?iv=")[0];
@@ -70,13 +70,13 @@ async function decryptMessage(privkey, pubkey, encryptedText) {
       sharedX,
       { name: "AES-CBC" },
       false,
-      ["decrypt"]
+      ["decrypt"],
     );
 
     const decryptedBuffer = await crypto.subtle.decrypt(
       { name: "AES-CBC", iv: iv },
       key,
-      encryptedBuffer
+      encryptedBuffer,
     );
 
     const decoder = new TextDecoder();

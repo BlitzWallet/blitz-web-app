@@ -267,6 +267,97 @@ export const addSingleUnpaidSparkLightningTransaction = async (tx) => {
   }
 };
 
+/** Parse `details` from a lightning request row (string JSON or object). */
+function parseLightningRowDetails(row) {
+  const d = row?.details;
+  if (d == null || d === "") return {};
+  if (typeof d === "object") return { ...d };
+  try {
+    return JSON.parse(d);
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * IndexedDB equivalent of RN SQLite pending auto-swaps query.
+ * Rows need finalSparkID, optional performSwaptoUSD (null/1 = eligible; 0/false = skip),
+ * and incomplete completedSwaptoUSD (null/0/false = still pending).
+ */
+export const getPendingAutoSwaps = async () => {
+  try {
+    await dbPromise;
+    const db = await dbPromise;
+    const all = await db.getAll(LIGHTNING_REQUEST_IDS_TABLE_NAME);
+
+    const filtered = all.filter((row) => {
+      const details = parseLightningRowDetails(row);
+      if (!details.finalSparkID) return false;
+      if (
+        details.performSwaptoUSD === 0 ||
+        details.performSwaptoUSD === false
+      ) {
+        return false;
+      }
+      if (
+        details.completedSwaptoUSD === 1 ||
+        details.completedSwaptoUSD === true
+      ) {
+        return false;
+      }
+      return true;
+    });
+
+    return filtered.map((row) => ({
+      ...row,
+      details: parseLightningRowDetails(row),
+    }));
+  } catch (error) {
+    console.error("Error fetching pending auto swaps:", error);
+    return [];
+  }
+};
+
+export const getSingleSparkLightningRequest = async (sparkID) => {
+  try {
+    const db = await dbPromise;
+    const row = await db.get(LIGHTNING_REQUEST_IDS_TABLE_NAME, sparkID);
+    if (!row) return null;
+    return {
+      ...row,
+      details: parseLightningRowDetails(row),
+    };
+  } catch (err) {
+    console.error("getSingleSparkLightningRequest error:", err);
+    return null;
+  }
+};
+
+/** Merge fields into the lightning request `details` JSON (RN parity). */
+export const updateSparkTransactionDetails = async (
+  sparkID,
+  partialDetails,
+) => {
+  try {
+    if (!sparkID || !partialDetails || typeof partialDetails !== "object") {
+      return false;
+    }
+    const db = await dbPromise;
+    const row = await db.get(LIGHTNING_REQUEST_IDS_TABLE_NAME, sparkID);
+    if (!row) return false;
+    const parsed = parseLightningRowDetails(row);
+    const merged = { ...parsed, ...partialDetails };
+    await db.put(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
+      ...row,
+      details: JSON.stringify(merged),
+    });
+    return true;
+  } catch (err) {
+    console.error("updateSparkTransactionDetails error:", err);
+    return false;
+  }
+};
+
 // export const updateSingleSparkTransaction = async (sparkID, updates) => {
 //   try {
 //     const db = await dbPromise;
@@ -544,118 +635,6 @@ export const addSingleSparkTransaction = async (tx) => {
   } catch (err) {
     console.error("addSingleSparkTransaction error:", err);
     return false;
-  }
-};
-
-export const updateSparkTransactionDetails = async (
-  sparkRequestID,
-  newDetails,
-) => {
-  if (!sparkRequestID || typeof newDetails !== "object") {
-    console.error("Invalid arguments passed to updateSparkTransactionDetails");
-    return false;
-  }
-
-  try {
-    const db = await dbPromise;
-
-    const existing = await db.get(
-      LIGHTNING_REQUEST_IDS_TABLE_NAME,
-      sparkRequestID,
-    );
-
-    if (!existing) {
-      console.error("Transaction not found for sparkID:", sparkRequestID);
-      return false;
-    }
-
-    let existingDetails = {};
-    try {
-      existingDetails = existing.details
-        ? typeof existing.details === "string"
-          ? JSON.parse(existing.details)
-          : existing.details
-        : {};
-    } catch {
-      console.warn("Failed to parse existing details JSON, resetting it");
-    }
-
-    const mergedDetails = { ...existingDetails, ...newDetails };
-
-    await db.put(LIGHTNING_REQUEST_IDS_TABLE_NAME, {
-      ...existing,
-      details: JSON.stringify(mergedDetails),
-    });
-
-    if (newDetails.performSwaptoUSD) {
-      flashnetAutoSwapsEventListener.emit(
-        HANDLE_FLASHNET_AUTO_SWAP,
-        sparkRequestID,
-      );
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Error updating spark transaction details:", error);
-    return false;
-  }
-};
-
-export const getSingleSparkLightningRequest = async (sparkRequestID) => {
-  if (!sparkRequestID) {
-    console.error("Invalid sparkRequestID provided");
-    return null;
-  }
-
-  try {
-    const db = await dbPromise;
-    const row = await db.get(LIGHTNING_REQUEST_IDS_TABLE_NAME, sparkRequestID);
-
-    if (!row) {
-      console.error("Lightning request not found for sparkID:", sparkRequestID);
-      return null;
-    }
-
-    if (row.details) {
-      try {
-        row.details =
-          typeof row.details === "string"
-            ? JSON.parse(row.details)
-            : row.details;
-      } catch (error) {
-        console.warn("Failed to parse request details JSON");
-      }
-    }
-
-    return row;
-  } catch (error) {
-    console.error("Error fetching single lightning request:", error);
-    return null;
-  }
-};
-
-export const getPendingAutoSwaps = async () => {
-  try {
-    const db = await dbPromise;
-
-    const all = await db.getAll(LIGHTNING_REQUEST_IDS_TABLE_NAME);
-
-    return all
-      .map((row) => ({
-        ...row,
-        details: JSON.parse(row.details),
-      }))
-      .filter(
-        (row) =>
-          row.details.finalSparkID != null &&
-          (row.details.performSwaptoUSD === 1 ||
-            row.details.performSwaptoUSD === true ||
-            row.details.performSwaptoUSD == null) &&
-          !row.details.completedSwaptoUSD,
-      );
-  } catch (error) {
-    console.error("Error fetching pending auto swaps:", error);
-    return [];
   }
 };
 

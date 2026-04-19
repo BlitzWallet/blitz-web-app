@@ -7,7 +7,8 @@ import questionMarkSVG from "../assets/icons/questionMarkSVG.svg";
 import rootstockLogo from "../assets/icons/rootstockLogo.png";
 import sparkAsteriskWhite from "../assets/icons/SparkAsteriskWhite.png";
 import userIcon from "../assets/icons/user.png";
-
+import dollarIcon from "../assets/icons/dollarIcon.png";
+import bitcoinIcon from "../assets/icons/bitcoinIcon.png";
 export {
   questionMarkSVG,
   userIcon,
@@ -18,4 +19,6 @@ export {
   rootstockLogo,
   botanixReceiveOption,
   sparkAsteriskWhite,
+  dollarIcon,
+  bitcoinIcon,
 };

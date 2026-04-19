@@ -9,6 +9,7 @@ import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
 import EditLNURLContactOnReceivePage from "./components/editLNURLOnReceive";
 import LRC20TokenInformation from "../../functions/lrc20/lrc20TokenDataHalfModal";
 import AddContactsModal from "../contacts/components/addContactsHalfModal/addContactsHalfModal";
+import ClaimGiftHalfModal from "../giftsHome/components/claimGiftHalfModal/claimGiftHalfModal";
 
 export default function CustomHalfModal({
   onClose,
@@ -96,6 +97,8 @@ export default function CustomHalfModal({
             params={params}
           />
         );
+      case "claimGiftHalfModal":
+        return <ClaimGiftHalfModal onClose={handleClose} />;
       case "confirmSMS":
         return <div>Confirm SMS: {params?.message}</div>;
       default:

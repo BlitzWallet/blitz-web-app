@@ -12,16 +12,19 @@ export default function CustomButton({
   useLoading,
   buttonClassName,
   textClassName,
+  disabled,
 }) {
   const { theme, darkModeType } = useThemeContext();
   return (
     <button
+      type="button"
+      disabled={disabled}
       onClick={() => {
-        if (!actionFunction) return;
+        if (disabled || !actionFunction) return;
         actionFunction();
       }}
       style={{ backgroundColor: Colors.dark.text, ...buttonStyles }}
-      className={`customButton ${buttonClassName}`}
+      className={`customButton ${buttonClassName || ""}`}
     >
       {useLoading ? (
         <FullLoadingScreen

@@ -15,6 +15,7 @@ export async function initWallet({
   setSparkInformation,
   // toggleGlobalContactsInformation,
   // globalContactsInformation,
+  network,
   mnemonic,
   hasRestoreCompleted = true,
   identityPubKey,

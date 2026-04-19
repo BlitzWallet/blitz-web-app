@@ -28,6 +28,21 @@ export default function Camera() {
   const cameraPermissions = useCameraPermission();
   console.log(cameraPermissions, "test");
 
+  const handleScannedData = (data) => {
+    if (location.state?.fromPage === "addContact") {
+      navigate(location.state?.returnPath || "/contacts", {
+        replace: true,
+        state: {
+          openAddContactModal: true,
+          startingSearchValue: data,
+          scannedContactData: data,
+        },
+      });
+      return;
+    }
+    navigate("/send", { state: { btcAddress: data } });
+  };
+
   useEffect(() => {
     if (pauseCamera || didScan.current || !videoRef.current) return;
 
@@ -43,7 +58,7 @@ export default function Camera() {
         scanner.stop();
 
         setPauseCamera(true);
-        navigate("/send", { state: { btcAddress: data } });
+        handleScannedData(data);
       },
       {
         returnDetailedScanResult: true,
@@ -76,7 +91,7 @@ export default function Camera() {
     setPauseCamera(true);
     const data = await getDataFromClipboard();
     console.log("result from paste option", data);
-    navigate("/send", { state: { btcAddress: data } });
+    handleScannedData(data);
   };
   const toggleFlashLight = async () => {
     try {
@@ -109,7 +124,7 @@ export default function Camera() {
         if (!data) return;
         if (didScan.current) return;
         didScan.current = true;
-        navigate("/send", { state: { btcAddress: data } });
+        handleScannedData(data);
 
         fileInput.removeEventListener("change", fileListener);
       })

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./SplashScreen.css";
+import "./splashScreen.css";
 import { updateBlitzAnimationData } from "../../functions/lottieViewColorTransformers";
 import blizBLogo from "../../assets/BlitzAnimation.json";
 import { useThemeContext } from "../../contexts/themeContext";

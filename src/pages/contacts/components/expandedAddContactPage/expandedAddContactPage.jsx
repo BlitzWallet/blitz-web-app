@@ -10,7 +10,7 @@ import { useExpandedNavbar } from "../../utils/useExpandedNavbar";
 import ContactProfileImage from "../profileImage/profileImage";
 import { useLocation, useNavigate } from "react-router-dom";
 import AddContactPage from "../addContactPage/addContactPage";
-import ExpandedContactsPage from "../ExpandedContactsPage/ExpandedContactsPage";
+import ExpandedContactsPage from "../ExpandedContactsPage/expandedContactsPage";
 
 // Memoized shared header component
 const SharedHeader = memo(
@@ -39,7 +39,7 @@ const SharedHeader = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 // Memoized navbar
@@ -92,7 +92,7 @@ const MemoizedNavBar = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 export default function ExpandedAddContactsPage({ route }) {
@@ -107,7 +107,7 @@ export default function ExpandedAddContactsPage({ route }) {
   const location = useLocation();
   const props = location.state;
   console.log(props, location);
-  const newContact = props;
+  const newContact = props?.newContact || props;
 
   useEffect(() => {
     refreshCacheObject();
@@ -120,7 +120,7 @@ export default function ExpandedAddContactsPage({ route }) {
         (contact.uuid === newContact?.uuid && contact.isAdded) ||
         (contact.isLNURL &&
           contact.receiveAddress.toLowerCase() ===
-            newContact.receiveAddress?.toLowerCase())
+            newContact.receiveAddress?.toLowerCase()),
     );
   }, [decodedAddedContacts, newContact]);
 

@@ -1,9 +1,14 @@
+// web/context-store/userBalanceContext.js
+// Web version (ReactJS) aligned 1:1 with the mobile file:
+// https://github.com/BlitzWallet/BlitzWallet/blob/main/context-store/userBalanceContext.js
+
 import React, { createContext, useMemo } from "react";
+
 import { useSpark } from "./sparkContext";
 import { useFlashnet } from "./flashnetContext";
-import { dollarsToSats } from "../functions/spark/flashnet";
 import { USDB_TOKEN_ID } from "../constants";
 import { formatTokensNumber } from "../functions/lrc20/formatTokensBalance";
+import { dollarsToSats } from "../functions/spark/flashnet";
 
 const UserBalanceContext = createContext(null);
 

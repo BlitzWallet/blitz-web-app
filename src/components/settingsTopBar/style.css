@@ -1,0 +1,102 @@
+.cstb-topbar {
+  width: 100%;
+  position: relative;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  min-height: 30px;
+  margin-bottom: 10px;
+}
+
+/* Left back button (absolute like RN version) */
+.cstb-backButton {
+  position: absolute;
+  left: 0;
+  z-index: 1;
+
+  border: none;
+  background: transparent;
+  padding: 6px;
+
+  cursor: pointer;
+  line-height: 0;
+}
+
+.cstb-backButton:focus {
+  outline: 2px solid rgba(0, 0, 0, 0.2);
+  outline-offset: 2px;
+}
+
+.cstb-backArrow {
+  font-size: 18px;
+  line-height: 18px;
+}
+
+/* Center title (with ellipsis like numberOfLines=1 + tail) */
+.cstb-title {
+  width: calc(95% - 60px);
+  margin: 0 auto;
+
+  text-align: center;
+  font-size: 18px; /* map from SIZES.large */
+  font-weight: 500;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right area (absolute like RN version) */
+.cstb-rightWrap {
+  position: absolute;
+  right: 0;
+  z-index: 1;
+}
+
+.cstb-rightButton {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.cstb-rightImage {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.cstb-rightIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Badge */
+.cstb-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.5px solid #1e88e5;
+  background: #1e88e5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+}
+
+.cstb-badgeText {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}

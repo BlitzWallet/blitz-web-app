@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+import i18n from "i18next";
 
 export function formatTimeRemaining(expireTime) {
   const now = Date.now();
@@ -6,7 +6,7 @@ export function formatTimeRemaining(expireTime) {
 
   if (diff <= 0) {
     return {
-      string: i18n.t('screens.inAccount.giftPages.expired'),
+      string: i18n.t("screens.inAccount.giftPages.expired"),
       time: diff,
     };
   }
@@ -17,7 +17,7 @@ export function formatTimeRemaining(expireTime) {
 
   if (days > 0) {
     return {
-      string: i18n.t('screens.inAccount.giftPages.timeLeft.days', {
+      string: i18n.t("screens.inAccount.giftPages.timeLeft.days", {
         count: days,
       }),
       time: diff,
@@ -26,7 +26,7 @@ export function formatTimeRemaining(expireTime) {
 
   if (hours > 0) {
     return {
-      string: i18n.t('screens.inAccount.giftPages.timeLeft.hours', {
+      string: i18n.t("screens.inAccount.giftPages.timeLeft.hours", {
         count: hours,
       }),
       time: diff,
@@ -35,7 +35,7 @@ export function formatTimeRemaining(expireTime) {
 
   if (minutes > 0) {
     return {
-      string: i18n.t('screens.inAccount.giftPages.timeLeft.minutes', {
+      string: i18n.t("screens.inAccount.giftPages.timeLeft.minutes", {
         count: minutes,
       }),
       time: diff,
@@ -43,7 +43,7 @@ export function formatTimeRemaining(expireTime) {
   }
 
   return {
-    string: i18n.t('screens.inAccount.giftPages.lessThanMin'),
+    string: i18n.t("screens.inAccount.giftPages.lessThanMin"),
     time: diff,
   };
 }

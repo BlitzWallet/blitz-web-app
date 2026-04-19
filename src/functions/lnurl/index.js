@@ -52,3 +52,15 @@ export function formatLightningAddress(url) {
     throw new Error(`Invalid URL or unable to parse: ${error.message}`);
   }
 }
+
+const BLITZ_CONTACT_DOMAINS = [
+  "blitzwalletapp.com",
+  "blitzwallet.app",
+  "blitz-wallet.com",
+];
+
+export function isBlitzLNURLAddress(value = "") {
+  const [username, domain] = value.split("@");
+  if (!username || !domain) return false;
+  return BLITZ_CONTACT_DOMAINS.includes(domain.toLowerCase());
+}

@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
-import { useSparkWallet } from "../../../context-store/sparkContext";
+import { useSpark } from "../../contexts/sparkContext";
 import { ThemeText } from "../CustomElements";
 import CustomSearchInput from "../CustomElements/searchInput";
 import { CENTER, SIZES } from "../../constants";
@@ -17,7 +17,7 @@ export default function LRC20AssetSelectorHalfModal({
   slideHeight,
 }) {
   const { t } = useTranslation();
-  const { sparkInformation } = useSparkWallet();
+  const { sparkInformation } = useSpark();
   const assetsAvailable = Object.entries(sparkInformation.tokens);
 
   const [searchInput, setSearchInput] = useState("");
@@ -35,7 +35,7 @@ export default function LRC20AssetSelectorHalfModal({
       { selectedLRC20Asset: token },
       {
         merge: true,
-      }
+      },
     );
   };
 
@@ -71,7 +71,7 @@ export default function LRC20AssetSelectorHalfModal({
         />
         <CustomSearchInput
           placeholderText={t(
-            "screens.inAccount.lrc20HalfModal.searchPlaceholder"
+            "screens.inAccount.lrc20HalfModal.searchPlaceholder",
           )}
           setInputText={handleSearch}
           inputText={searchInput}
@@ -138,7 +138,7 @@ export default function LRC20AssetSelectorHalfModal({
               ? details?.balance
               : formatTokensNumber(
                   details?.balance,
-                  details?.tokenMetadata?.decimals
+                  details?.tokenMetadata?.decimals,
                 )
           }
           useCustomLabel={details?.tokenMetadata?.tokenTicker !== "Bitcoin"}
