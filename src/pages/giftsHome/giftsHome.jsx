@@ -8,13 +8,14 @@ import { useOverlay } from "../../contexts/overlayContext";
 import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
 import { Gift } from "lucide-react";
 import WalletNavBar from "../wallet/components/nav/nav";
-import GiftCardItem from "./components/giftCardItem/giftCardItem";
+// import GiftCardItem from "./components/giftCardItem/giftCardItem";
 import "./giftsHome.css";
 import ThemeText from "../../components/themeText/themeText";
 import CustomButton from "../../components/customButton/customButton";
 import CustomSettingsNavBar from "../../components/customSettingsNavbar";
 import CustomSettingsTopBar from "../../components/settingsTopBar/settingsTopBar";
 import { t } from "i18next";
+import GiftCardItem from "./components/giftCardItem/giftCardItem";
 
 export default function GiftsHome() {
   const navigate = useNavigate();
@@ -44,6 +45,8 @@ export default function GiftsHome() {
     });
   }, [giftsArray]);
 
+  console.log(giftsArray);
+
   const hasAnyGifts = giftsArray.length > 0;
   const hasActiveGifts = activeGifts.length > 0;
   const hasExpiredGifts = expiredGiftsArray.length > 0;
@@ -72,7 +75,9 @@ export default function GiftsHome() {
               className="giftsOverview-sectionTitle"
               textStyles={{ opacity: 0.8 }}
             />
+            {console.log(activeGifts)}
             {activeGifts.map((gift) => (
+              // console.log(gift);
               <GiftCardItem key={gift.uuid} item={gift} from="overview" />
             ))}
           </div>

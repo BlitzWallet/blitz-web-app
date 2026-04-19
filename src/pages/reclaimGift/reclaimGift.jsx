@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
-import { useGifts } from "../../contexts/giftsContext";
+// import { useGifts } from "../../contexts/giftsContext";
 
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import CustomButton from "../../components/customButton/customButton";
 import ThemeText from "../../components/themeText/themeText";
 
 import "./reclaimGift.css";
+import { useGifts } from "../../contexts/giftContext";
 
 const PRIMARY_BLUE = Colors.constants.blue;
 
@@ -49,9 +50,7 @@ export default function ReclaimGift() {
 
   const selectValue = useMemo(() => {
     if (!enteredLink) return "";
-    return dropdownData.some((o) => o.value === enteredLink)
-      ? enteredLink
-      : "";
+    return dropdownData.some((o) => o.value === enteredLink) ? enteredLink : "";
   }, [enteredLink, dropdownData]);
 
   function handleClaimGift() {
@@ -83,7 +82,12 @@ export default function ReclaimGift() {
         onClick={() => navigate(-1)}
         aria-label={t("constants.back")}
       >
-        <ArrowLeft size={24} strokeWidth={2.25} aria-hidden color={PRIMARY_BLUE} />
+        <ArrowLeft
+          size={24}
+          strokeWidth={2.25}
+          aria-hidden
+          color={PRIMARY_BLUE}
+        />
       </button>
       <ThemeText
         className="reclaimGift-title"
@@ -268,9 +272,7 @@ export default function ReclaimGift() {
           <div className="reclaimGift-claimButtonArea">
             <CustomButton
               actionFunction={handleClaimGift}
-              textContent={t(
-                "screens.inAccount.giftPages.reclaimPage.button",
-              )}
+              textContent={t("screens.inAccount.giftPages.reclaimPage.button")}
               disabled={!enteredLink}
               buttonStyles={{ width: "100%", maxWidth: 448 }}
             />

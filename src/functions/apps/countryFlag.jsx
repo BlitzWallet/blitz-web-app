@@ -1,4 +1,4 @@
-import "flag-icons/css/flag-icons.min.css";
+// import "flag-icons/css/flag-icons.min.css";
 const COUNTRY_LIST = [
   { code: "AD", name: "Andorra" },
   { code: "AE", name: "United Arab Emirates" },
