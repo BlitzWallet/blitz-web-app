@@ -178,7 +178,7 @@ export const GlobalContactsList = ({ children }) => {
         toggleGlobalContactsInformation(
           {
             myProfile: { ...latestInfo.myProfile },
-            addedContacts: encryptMessage(
+            addedContacts: await encryptMessage(
               contactsPrivateKey,
               latestInfo.myProfile.uuid,
               JSON.stringify(latestDecoded.concat(trulyNewContacts)),

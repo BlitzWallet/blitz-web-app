@@ -19,7 +19,7 @@ export default function SendAndRequestBtns() {
           openOverlay({
             for: "halfModal",
             contentType: "HalfModalSendOptions",
-            params: {},
+            params: { sliderHeight: "80dvh" },
           })
         }
         className="buttonContainer buttonWhite"

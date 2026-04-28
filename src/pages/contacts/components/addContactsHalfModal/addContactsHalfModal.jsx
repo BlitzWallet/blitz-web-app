@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./style.css";
 import customUUID from "../../../../functions/customUUID";
 import useDebounce from "../../../../hooks/useDebounce";
-import { EMAIL_REGEX, VALID_USERNAME_REGEX } from "../../../../constants";
+import { EMAIL_REGEX } from "../../../../constants";
 import { searchUsers } from "../../../../../db";
 import { getCachedProfileImage } from "../../../../functions/cachedImage";
 import ContactProfileImage from "../profileImage/profileImage";
 import { useThemeContext } from "../../../../contexts/themeContext";
+import { useGlobalContacts } from "../../../../contexts/globalContacts";
 import useThemeColors from "../../../../hooks/useThemeColors";
 import ThemeText from "../../../../components/themeText/themeText";
 import { useNavigate } from "react-router-dom";
@@ -16,24 +17,18 @@ import CustomInput from "../../../../components/customInput/customInput";
 import FullLoadingScreen from "../../../../components/fullLoadingScreen/fullLoadingScreen";
 
 // Main Component
-export default function AddContactsModal({ onClose, params }) {
+export default function AddContactsModal({ onClose, onNavigateAway, params }) {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState(
     params.startingSearchValue || "",
   );
+  const { globalContactsInformation } = useGlobalContacts();
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isKeyboardActive, setIsKeyboardActive] = useState(false);
   const searchInputRef = useRef(null);
   const searchTrackerRef = useRef(null);
-  const didClickCamera = useRef(null);
   const { theme, darkModeType } = useThemeContext();
-
-  // Mock context values
-  const globalContactsInformation = {
-    myProfile: { uniqueName: "currentUser" },
-  };
 
   const isUsingLNURL =
     searchInput?.includes("@") && searchInput?.indexOf("@") !== 0;
@@ -135,11 +130,8 @@ export default function AddContactsModal({ onClose, params }) {
       uuid: customUUID(),
     };
 
-    console.log("Navigate to expanded page with LNURL:", newContact);
-
-    if (onClose) {
-      onClose();
-    }
+    if (onNavigateAway) onNavigateAway();
+    else if (onClose) onClose();
 
     navigate("/expandedAddContactsPage", {
       state: newContact,
@@ -149,7 +141,7 @@ export default function AddContactsModal({ onClose, params }) {
   return (
     <div className="modal-container">
       <div className="title-container">
-        <ThemeText className="title-text" textContent={"Add Contact"} />
+        <ThemeText className="title-text" textContent={t("contacts.editMyProfilePage.addContactBTN")} />
         {isSearching && (
           <FullLoadingScreen
             containerStyles={{ flex: 0 }}
@@ -161,7 +153,7 @@ export default function AddContactsModal({ onClose, params }) {
 
       <CustomInput
         ref={searchInputRef}
-        placeholder="Find a contact"
+        placeholder={t("contacts.addContactsHalfModal.searchPlaceholder")}
         containerStyles={{ maxWidth: "unset" }}
         onchange={handleSearch}
         value={searchInput}
@@ -171,7 +163,7 @@ export default function AddContactsModal({ onClose, params }) {
         <div className="lnurl-container">
           <ThemeText
             className="lnurl-text"
-            textContent={"Add Lightning Address:"}
+            textContent={t("contacts.addContactsHalfModal.lnurlAddMessage")}
           />
           <ThemeText className="lnurl-address" textContent={searchInput} />
           <CustomButton
@@ -189,6 +181,7 @@ export default function AddContactsModal({ onClose, params }) {
                 key={item.uniqueName}
                 savedContact={item}
                 onClose={onClose}
+                onNavigateAway={onNavigateAway}
               />
             ))
           ) : (
@@ -196,8 +189,8 @@ export default function AddContactsModal({ onClose, params }) {
               {isSearching && searchInput.length > 0
                 ? ""
                 : searchInput.length > 0 && searchInput !== "@"
-                  ? "No profiles found"
-                  : "Search by LNURL (e.g. name@service.com) or Blitz username"}
+                  ? t("contacts.addContactsHalfModal.noProfilesFound")
+                  : t("contacts.addContactsHalfModal.startTypingMessage")}
             </p>
           )}
         </div>
@@ -206,7 +199,7 @@ export default function AddContactsModal({ onClose, params }) {
   );
 }
 
-function ContactListItem({ savedContact, theme, darkModeType, onClose }) {
+function ContactListItem({ savedContact, theme, darkModeType, onClose, onNavigateAway }) {
   const { backgroundOffset } = useThemeColors();
   const navigate = useNavigate();
   const newContact = {
@@ -218,14 +211,9 @@ function ContactListItem({ savedContact, theme, darkModeType, onClose }) {
   };
 
   const handleClick = () => {
-    console.log("Navigate to expanded page with:", newContact);
-    if (onClose) {
-      onClose();
-    }
-
-    navigate("/expandedAddContactsPage", {
-      state: newContact,
-    });
+    if (onNavigateAway) onNavigateAway();
+    else if (onClose) onClose();
+    navigate("/expandedAddContactsPage", { state: newContact });
   };
 
   return (

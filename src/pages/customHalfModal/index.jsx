@@ -113,6 +113,7 @@ export default function CustomHalfModal({
           backgroundColor:
             theme && darkModeType ? backgroundOffset : backgroundColor,
           height: slideHeight,
+          maxHeight: "95dvh",
         }}
         onClick={(e) => e.stopPropagation()} // prevent backdrop close
       >
