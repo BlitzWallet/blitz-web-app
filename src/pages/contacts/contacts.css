@@ -148,7 +148,6 @@
   display: flex;
   align-items: center;
   width: 100%;
-  margin-bottom: 5px;
 }
 
 #contactsPage .contact-name-block {
@@ -198,6 +197,6 @@
 }
 
 #contactsPage .add-contact-text {
-  font-weight: 500;
+  font-weight: 400;
   margin: 0;
 }

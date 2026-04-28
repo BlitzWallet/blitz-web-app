@@ -1,0 +1,26 @@
+.noContentContainer {
+  display: flex;
+  flex: 1;
+  width: 90%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin: 0 auto;
+}
+.noContentContainer .emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.noContentContainer .emptySubtext {
+  font-size: 0.8rem;
+  opacity: 0.5;
+  margin: 0;
+  text-align: center;
+}
+
+.noContentContainer .emptyButton {
+  width: 100%;
+}

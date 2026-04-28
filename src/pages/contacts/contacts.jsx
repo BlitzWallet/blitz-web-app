@@ -25,6 +25,8 @@ import { ChevronRight, PlusIcon } from "lucide-react";
 import { createFormattedDate, formatMessage } from "./utils/utilityFunctions";
 import { formatDisplayName } from "./utils/formatListDisplayName";
 import { useOverlay } from "../../contexts/overlayContext";
+import { useNavigateToContact } from "./utils/navigateToExpandedContact";
+import NoContentScreen from "../../components/noContentScreen/noContentScreen";
 
 export default function Contacts() {
   const { openOverlay } = useOverlay();
@@ -95,49 +97,7 @@ export default function Contacts() {
     return giftCardsList && !!giftCardsList?.length;
   }, [giftCardsList]);
 
-  const navigateToExpandedContact = useCallback(
-    async (contact) => {
-      try {
-        if (!contact.isAdded) {
-          let newAddedContacts = [...decodedAddedContacts];
-          const indexOfContact = decodedAddedContacts.findIndex(
-            (obj) => obj.uuid === contact.uuid,
-          );
-
-          let newContact = newAddedContacts[indexOfContact];
-          newContact["isAdded"] = true;
-
-          toggleGlobalContactsInformation(
-            {
-              myProfile: { ...globalContactsInformation.myProfile },
-              addedContacts: await encryptMessage(
-                contactsPrivateKey,
-                publicKey,
-                JSON.stringify(newAddedContacts),
-              ),
-            },
-            true,
-          );
-        }
-        navigate("/expandedContactsPage", {
-          state: { uuid: contact.uuid },
-        });
-      } catch (err) {
-        console.log("error navigating to expanded contact", err);
-        navigate("/expandedContactsPage", {
-          state: { uuid: contact.uuid },
-        });
-      }
-    },
-    [
-      decodedAddedContacts,
-      globalContactsInformation,
-      toggleGlobalContactsInformation,
-      contactsPrivateKey,
-      publicKey,
-      navigate,
-    ],
-  );
+  const navigateToExpandedContact = useNavigateToContact();
 
   const pinnedContacts = useMemo(() => {
     return contactInfoList
@@ -289,7 +249,7 @@ export default function Contacts() {
           />
           {contactElements.length ? (
             contactElements
-          ) : (
+          ) : inputText.trim() ? (
             <div className="not-found-container">
               <ThemeText
                 className="not-found-username"
@@ -302,7 +262,6 @@ export default function Contacts() {
                 textContent={t("contacts.contactsPage.noContactSearch")}
               />
               <CustomButton
-                cl
                 actionFunction={() =>
                   openOverlay({
                     for: "halfModal",
@@ -315,38 +274,29 @@ export default function Contacts() {
                 textContent={t("constants.search")}
               />
             </div>
-          )}
+          ) : null}
         </div>
       ) : (
-        <div className="noContactsContainer">
-          <ThemeImage
-            icon={questionMarkSVG}
-            styles={{ width: "95%", maxWidth: 200, height: "auto" }}
-            alt="question mark to show no contact has been created"
-          />
-          <ThemeText
-            textStyles={{
-              width: "95%",
-              maxWidth: "300px",
-              textAlign: "center",
-            }}
-            textContent={
-              didEditProfile
-                ? "You have no contacts."
-                : "Edit your profile to begin using contacts."
-            }
-          />
-
-          <CustomButton
-            buttonStyles={
-              {
-                // ...CENTER,
-              }
-            }
-            actionFunction={handleButtonPress}
-            textContent={`${didEditProfile ? "Add contact" : "Edit profile"}`}
-          />
-        </div>
+        <NoContentScreen
+          iconName={didEditProfile ? "UsersRound" : "UserRoundPen"}
+          titleText={
+            didEditProfile
+              ? t("contacts.contactsPage.noContent.addContactstitle")
+              : t("contacts.contactsPage.noContent.editProfileTitle")
+          }
+          subTitleText={
+            didEditProfile
+              ? t("contacts.contactsPage.noContent.addContactsDescription")
+              : t("contacts.contactsPage.noContent.editProfileDescription")
+          }
+          showButton={true}
+          buttonFunction={handleButtonPress}
+          buttonText={
+            didEditProfile
+              ? t("contacts.contactsPage.addContactButton")
+              : t("contacts.contactsPage.editContactButton")
+          }
+        />
       )}
     </div>
   );
@@ -573,7 +523,7 @@ export const AddContactRowItem = memo(
               theme && darkModeType ? backgroundOffset : "#007bff",
           }}
         >
-          <PlusIcon size={25} color={Colors.dark.text} />
+          <PlusIcon size={20} color={Colors.dark.text} />
         </div>
         <div className="contact-content">
           <ThemeText
