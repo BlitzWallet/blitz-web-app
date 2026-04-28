@@ -17,7 +17,11 @@ import { handleCryptoQRAddress, isSupportedPNPQR } from "./getMerchantAddress";
 import hanndleLNURLAddress from "./handleLNURLAddress";
 import { parseInput, InputTypes } from "bitcoin-address-parser";
 import { receiveSparkLightningPayment } from "../spark";
-import { addDataToCollection, getSingleContact } from "../../../db";
+import {
+  addDataToCollection,
+  getPayLinkDoc,
+  getSingleContact,
+} from "../../../db";
 import { getCachedProfileImage } from "../cachedImage";
 import { decodeSparkInvoice } from "../spark/decodeInvoices";
 import { deriveSparkAddress } from "../gift/deriveGiftWallet";
@@ -57,6 +61,9 @@ export default async function decodeSendAddress(props) {
     conversionFiatStats,
     primaryDisplay,
   } = props;
+
+  let paylinkPublishFunc = null;
+  let resolvedBlitzContact = null;
 
   try {
     console.log(btcAdress, "testing");
