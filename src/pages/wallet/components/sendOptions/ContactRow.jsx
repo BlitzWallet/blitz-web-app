@@ -155,7 +155,13 @@ export default function ContactRow({
                   className="paymentIconCircle"
                   style={{ backgroundColor: btcCircleBg }}
                 >
-                  <Bitcoin size={18} color="white" />
+                  <img
+                    width={18}
+                    height={18}
+                    src={`/icons/bitcoinIcon.png`}
+                    alt="icon"
+                    className="icon-image"
+                  />
                 </div>
                 <ThemeText
                   textStyles={{ margin: 0, fontSize: "0.9rem" }}
@@ -174,7 +180,13 @@ export default function ContactRow({
                   className="paymentIconCircle"
                   style={{ backgroundColor: usdCircleBg }}
                 >
-                  <DollarSign size={18} color="white" />
+                  <img
+                    width={18}
+                    height={18}
+                    src={`/icons/dollarIcon.png`}
+                    alt="icon"
+                    className="icon-image"
+                  />
                 </div>
                 <ThemeText
                   textStyles={{ margin: 0, fontSize: "0.9rem" }}
@@ -182,7 +194,7 @@ export default function ContactRow({
                 />
               </button>
 
-              {!contact?.isLNURL && !HIDE_IN_APP_PURCHASE_ITEMS && (
+              {/* {!contact?.isLNURL && !HIDE_IN_APP_PURCHASE_ITEMS && (
                 <button
                   className="paymentOption"
                   style={{ backgroundColor: optionBg }}
@@ -201,7 +213,7 @@ export default function ContactRow({
                     textContent={t("constants.gift")}
                   />
                 </button>
-              )}
+              )} */}
             </div>
           </motion.div>
         )}
