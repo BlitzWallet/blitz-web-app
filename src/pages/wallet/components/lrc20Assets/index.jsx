@@ -16,6 +16,7 @@ import { useSpark } from "../../../../contexts/sparkContext";
 import { Colors } from "../../../../constants/theme";
 import { useOverlay } from "../../../../contexts/overlayContext";
 import { ArrowLeft } from "lucide-react";
+import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
 
 export default function LRC20Assets() {
   const { openOverlay } = useOverlay();
@@ -23,6 +24,7 @@ export default function LRC20Assets() {
   const { sparkInformation } = useSpark();
   const { textColor } = useThemeColors();
   const { t } = useTranslation();
+  const { masterInfoObject } = useGlobalContextProvider();
 
   const homepageBackgroundOffsetColor = useMemo(() => {
     return theme
@@ -56,7 +58,7 @@ export default function LRC20Assets() {
 
       const backgroundColor = stringToColorCrypto(
         tokenIdentifier,
-        theme && darkModeType ? "lightsout" : "light"
+        theme && darkModeType ? "lightsout" : "light",
       );
       const contrastColor = getContrastingTextColor(backgroundColor);
 
@@ -95,7 +97,7 @@ export default function LRC20Assets() {
               textStyles={{ opacity: 0.7, margin: 0 }}
               textContent={`${tokenIdentifier.slice(
                 0,
-                6
+                6,
               )}...${tokenIdentifier.slice(tokenIdentifier.length - 4)}`}
             />
           </div>
@@ -105,9 +107,10 @@ export default function LRC20Assets() {
             textContent={formatBalanceAmount(
               formatTokensNumber(
                 details?.balance,
-                details?.tokenMetadata?.decimals
+                details?.tokenMetadata?.decimals,
               ),
-              true
+              true,
+              masterInfoObject,
             )}
           />
         </div>
@@ -161,7 +164,7 @@ export default function LRC20Assets() {
                 setInputText={setSearchQuery}
                 containerStyles={{ marginBottom: 10 }}
                 placeholderText={t(
-                  "wallet.homeLightning.lrc20Assets.tokensSearchPlaceholder"
+                  "wallet.homeLightning.lrc20Assets.tokensSearchPlaceholder",
                 )}
               />
             )}

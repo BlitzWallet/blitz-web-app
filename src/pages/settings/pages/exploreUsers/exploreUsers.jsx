@@ -53,12 +53,12 @@ export default function ExploreUsers() {
 
   const min = data.reduce(
     (prev, current) => (current?.value < prev ? current.value : prev),
-    BLITZ_GOAL_USER_COUNT
+    BLITZ_GOAL_USER_COUNT,
   );
 
   const max = data.reduce(
     (prev, current) => (current?.value > prev ? current.value : prev),
-    0
+    0,
   );
 
   const totalYesterday = masterInfoObject.exploreData?.["day"]?.[1]?.value || 0;
@@ -68,9 +68,9 @@ export default function ExploreUsers() {
       findLargestByVisualWidth(
         Math.round(min * 0.95),
         Math.round(max * 1.05),
-        7
+        7,
       ),
-    [min, max]
+    [min, max],
   );
 
   const getChartData = () => {
@@ -81,17 +81,17 @@ export default function ExploreUsers() {
       const now = currentTime;
       if (timeFrame === "year") {
         label = `${new Date(
-          now - YEAR_IN_MILLS * Math.abs(6 - index)
+          now - YEAR_IN_MILLS * Math.abs(6 - index),
         ).getFullYear()}`;
       } else if (timeFrame === "month") {
         const dateIndex = new Date(
-          now - MONTH_IN_MILLS * Math.abs(6 - index)
+          now - MONTH_IN_MILLS * Math.abs(6 - index),
         ).getMonth();
         label = t(`months.${MONTH_GROUPING[dateIndex]}`).slice(0, 3);
       } else if (timeFrame === "day") {
         const now = currentTime - DAY_IN_MILLS;
         const dateIndex = new Date(
-          now - DAY_IN_MILLS * Math.abs(7 - index)
+          now - DAY_IN_MILLS * Math.abs(7 - index),
         ).getDay();
         label = t(`weekdays.${WEEK_OPTIONS[dateIndex]}`).slice(0, 3);
       } else {
@@ -100,7 +100,7 @@ export default function ExploreUsers() {
         const daysToSunday = 7 - (todayDay === 0 ? 7 : todayDay);
         const endOfWeek = new Date(now.getTime() + daysToSunday * DAY_IN_MILLS);
         const dateIndex = new Date(
-          endOfWeek - WEEK_IN_MILLS * Math.abs(6 - index)
+          endOfWeek - WEEK_IN_MILLS * Math.abs(6 - index),
         );
         const day = dateIndex.getDate();
         const month = dateIndex.getMonth() + 1;
@@ -147,7 +147,7 @@ export default function ExploreUsers() {
 
         const shouldLoadExporeDataResp = shouldLoadExploreData(
           pastExploreData,
-          currentTime
+          currentTime,
         );
 
         if (!shouldLoadExporeDataResp) {
@@ -159,7 +159,7 @@ export default function ExploreUsers() {
           "getTotalUserCount",
           { data: publicKey },
           contactsPrivateKey,
-          publicKey
+          publicKey,
         );
 
         if (freshExploreData) {
@@ -206,9 +206,9 @@ export default function ExploreUsers() {
         <div className="donwloadsRow">
           <DateCountdown getServerTime={getServerTime} />
           <ThemeText
-            textContent={`${formatBalanceAmount(max)} of ${formatBalanceAmount(
-              BLITZ_GOAL_USER_COUNT
-            )} (${((max / BLITZ_GOAL_USER_COUNT) * 100).toFixed(4)}%)`}
+            textContent={`${formatBalanceAmount(max, false, masterInfoObject)} of ${formatBalanceAmount(
+              BLITZ_GOAL_USER_COUNT,
+            )} (${(((max / BLITZ_GOAL_USER_COUNT) * 100).toFixed(4), false, masterInfoObject)}%)`}
           />
         </div>
         <div
@@ -232,11 +232,14 @@ export default function ExploreUsers() {
           />
           <ThemeText
             textContent={`${formatBalanceAmount(
-              totalYesterday
-            )} of ${formatBalanceAmount(BLITZ_GOAL_USER_COUNT)} (${(
-              (totalYesterday / BLITZ_GOAL_USER_COUNT) *
-              100
-            ).toFixed(4)}%)`}
+              totalYesterday,
+              false,
+              masterInfoObject,
+            )} of ${formatBalanceAmount(BLITZ_GOAL_USER_COUNT)} (${
+              (((totalYesterday / BLITZ_GOAL_USER_COUNT) * 100).toFixed(4),
+              false,
+              masterInfoObject)
+            }%)`}
           />
         </div>
       </div>
@@ -262,7 +265,7 @@ export default function ExploreUsers() {
               ticks: (() => {
                 const minVal = Math.round(min * 0.95);
                 const maxVal = Math.round(
-                  max * (timeFrame !== "day" ? 1.2 : 1.05)
+                  max * (timeFrame !== "day" ? 1.2 : 1.05),
                 );
                 const step = Math.round((maxVal - minVal) / 5);
                 return Array.from({ length: 6 }, (_, i) => minVal + step * i);

@@ -1,70 +1,94 @@
+import i18next from "i18next";
+
 export default function formatBalanceAmount(
   formattingAmount,
-  useMillionDenomination
+  useMillionDenomination,
+  masterInfoObject,
+  maxDecimals = 2,
 ) {
   try {
     if (!formattingAmount) {
       return "0";
     }
+
     const millionDemoniationSetting =
       useMillionDenomination !== undefined && useMillionDenomination;
 
-    const numericValue = parseFloat(
-      String(formattingAmount).replace(/[^\d.-]/g, "")
-    );
+    // Check if the input ends with a decimal point (for display purposes)
+    const inputStr = String(formattingAmount);
+    const hasTrailingDecimal = inputStr.trim().endsWith(".");
 
+    // Extract the decimal portion to count digits
+    const decimalMatch = inputStr.trim().match(/\.(\d+)$/);
+    const decimalDigits = decimalMatch ? decimalMatch[1].length : 0;
+
+    const numericValue = parseFloat(inputStr.replace(/[^\d.-]/g, ""));
+
+    if (isNaN(numericValue)) return "0";
+
+    const useSpaces = masterInfoObject?.thousandsSeperator === "space";
+
+    // MILLION / BILLION
     if (millionDemoniationSetting && Math.abs(numericValue) >= 1_000_000) {
       // Check if it should be formatted as billions (1,000M+ becomes 1B+)
-      if (Math.abs(numericValue) >= 1_000_000_000) {
-        const billions = numericValue / 1_000_000_000;
-        let formatted = billions.toFixed(1);
-        if (formatted.endsWith(".0")) {
-          formatted = formatted.slice(0, -2);
-        }
-        const [intPart, decPart] = formatted.split(".");
-        const spacedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-        return decPart ? `${spacedInt}.${decPart}B` : `${spacedInt}B`;
-      }
+      const unit =
+        Math.abs(numericValue) >= 1_000_000_000
+          ? { div: 1_000_000_000, suffix: "B" }
+          : { div: 1_000_000, suffix: "M" };
 
-      // Otherwise format as millions
-      const millions = numericValue / 1_000_000;
-      let formatted = millions.toFixed(1);
-
-      if (formatted.endsWith(".0")) {
-        formatted = formatted.slice(0, -2);
-      }
+      let formatted = (numericValue / unit.div).toFixed(1);
+      if (formatted.endsWith(".0")) formatted = formatted.slice(0, -2);
 
       const [intPart, decPart] = formatted.split(".");
-      const spacedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
-      return decPart ? `${spacedInt}.${decPart}M` : `${spacedInt}M`;
+      const grouped = useSpaces
+        ? intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+        : new Intl.NumberFormat()
+            .format(parseInt(intPart))
+            .replace(/[^\d]/g, "");
+
+      return decPart
+        ? `${grouped}.${decPart}${unit.suffix}`
+        : `${grouped}${unit.suffix}`;
     }
 
-    let amount = String(formattingAmount);
+    // SPACE MODE
+    if (useSpaces) {
+      const [intRaw, decRaw] = String(inputStr).split(".");
+      const grouped = intRaw.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
-    // Detect decimal separator: prioritize comma, then dot
-    let decimalSeparator = amount.includes(",")
-      ? ","
-      : amount.includes(".")
-      ? "."
-      : null;
+      if (decRaw) {
+        return `${grouped}.${decRaw.slice(0, maxDecimals)}`;
+      } else if (hasTrailingDecimal) {
+        return `${grouped}.`;
+      } else {
+        return grouped;
+      }
+    }
 
-    let [integerPart, decimalPart] = decimalSeparator
-      ? amount.split(decimalSeparator)
-      : [amount, null];
+    // LOCAL FORMAT
+    // Get the locale's decimal separator
+    const localeDecimalSeparator = new Intl.NumberFormat(
+      i18next.language || "en",
+    )
+      .format(1.1)
+      .charAt(1); // Gets the separator from "1.1" or "1,1"
 
-    // Format the integer part with a space as a thousands separator
-    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    // Set minimumFractionDigits based on actual decimal digits typed
+    // This preserves trailing zeros (e.g., .00 shows both zeros)
+    const minFractionDigits = Math.min(decimalDigits, maxDecimals);
 
-    // Rejoin with the decimal part if it exists
+    const formatted = new Intl.NumberFormat(i18next.language || "en", {
+      minimumFractionDigits: minFractionDigits,
+      maximumFractionDigits: maxDecimals,
+    }).format(numericValue);
 
-    const finalForm = decimalPart
-      ? `${integerPart}${decimalSeparator}${decimalPart}`
-      : decimalSeparator
-      ? `${integerPart}${decimalSeparator}`
-      : integerPart;
+    // If user is typing a decimal point, append the locale-appropriate separator
+    if (hasTrailingDecimal && !formatted.includes(localeDecimalSeparator)) {
+      return formatted + localeDecimalSeparator;
+    }
 
-    return finalForm;
+    return formatted;
   } catch (err) {
     console.log("format balance amount error", err);
     return "0";
