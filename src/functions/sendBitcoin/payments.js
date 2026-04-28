@@ -3,34 +3,49 @@ import { InputTypes } from "bitcoin-address-parser";
 export async function getLNAddressForLiquidPayment(
   paymentInfo,
   sendingValue,
-  description
+  description,
 ) {
-  let invoiceAddress;
+  let invoiceAddress = { pr: "", successAction: null };
   try {
-    if (
-      paymentInfo.type?.toLowerCase() === InputTypes.LNURL_PAY.toLowerCase()
-    ) {
-      const url = `${paymentInfo.data.callback}?amount=${sendingValue * 1000}${
-        paymentInfo?.data.commentAllowed
-          ? `&comment=${encodeURIComponent(
-              paymentInfo?.data?.message || description || ""
-            )}`
-          : ""
-      }`;
+    if (paymentInfo.type === InputTypes.LNURL_PAY) {
+      const callback = paymentInfo.data.callback;
+
+      const hasQueryParams = callback.includes("?");
+      const separator = hasQueryParams ? "&" : "?";
+
+      let url = `${callback}${separator}amount=${sendingValue * 1000}`;
+
+      if (paymentInfo?.data.commentAllowed) {
+        const comment = encodeURIComponent(
+          paymentInfo?.data?.message || description || "",
+        );
+        url += `&comment=${comment}`;
+      }
 
       console.log("Generated URL:", url);
+
       const response = await fetch(url);
 
-      const bolt11Invoice = (await response.json()).pr;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      invoiceAddress = bolt11Invoice;
+      const data = await response.json();
+
+      if (!data.pr) {
+        throw new Error("No invoice (pr) in response");
+      }
+
+      invoiceAddress = data;
     } else {
-      invoiceAddress = paymentInfo.data.invoice.bolt11;
+      invoiceAddress = {
+        pr: paymentInfo.data.invoice.bolt11,
+        successAction: null,
+      };
     }
   } catch (err) {
     console.log("get ln address for liquid payment error", err);
-    invoiceAddress = "";
+    invoiceAddress = { pr: "", successAction: null };
   }
-
   return invoiceAddress;
 }

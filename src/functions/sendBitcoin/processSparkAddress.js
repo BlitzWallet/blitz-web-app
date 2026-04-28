@@ -1,5 +1,14 @@
-import { SATSPERBITCOIN } from "../../constants";
+import { SATSPERBITCOIN, USDB_TOKEN_ID } from "../../constants";
+import { simulateSwap } from "../spark/flashnet";
 import { sparkPaymenWrapper } from "../spark/payments";
+import {
+  BTC_ASSET_ADDRESS,
+  convertToDecimals,
+  dollarsToSats,
+  INTEGRATOR_FEE,
+  satsToDollars,
+  USD_ASSET_ADDRESS,
+} from "../spark/swapAmountUtils";
 
 export default async function processSparkAddress(input, context) {
   const {
@@ -10,7 +19,28 @@ export default async function processSparkAddress(input, context) {
     fiatStats,
     seletctedToken,
     currentWalletMnemoinc,
+    sparkInformation,
+    t,
+    usablePaymentMethod,
+    bitcoinBalance,
+    dollarBalanceSat,
+    convertedSendAmount,
+    poolInfoRef,
+    swapLimits,
+    // usd_multiplier_coefiicent,
+    min_usd_swap_amount,
   } = context;
+
+  if (
+    input.address?.address?.toLowerCase() ===
+    sparkInformation.sparkAddress?.toLowerCase()
+  ) {
+    throw new Error(
+      t("wallet.sendPages.handlingAddressErrors.payingToSameAddress", {
+        addressType: "Spark",
+      }),
+    );
+  }
 
   const isLRC20 =
     seletctedToken?.tokenMetadata?.tokenTicker !== undefined &&
@@ -25,36 +55,286 @@ export default async function processSparkAddress(input, context) {
     addressInfo.message =
       enteredPaymentInfo.description || input?.address?.message || "";
     addressInfo.isBip21 = true;
+    if (enteredPaymentInfo.fromContacts) {
+      addressInfo.expectedReceive =
+        enteredPaymentInfo.endReceiveType === "USD" ? "tokens" : "sats";
+      addressInfo.expectedToken =
+        enteredPaymentInfo.endReceiveType === "USD" ? USDB_TOKEN_ID : null;
+    }
   }
+
+  const enteredAmount = enteredPaymentInfo.amount
+    ? enteredPaymentInfo.amount * 1000
+    : convertedSendAmount * 1000;
 
   const amountMsat = isLRC20
     ? addressInfo.amount || 0
-    : comingFromAccept
-    ? enteredPaymentInfo.amount * 1000
-    : addressInfo.amount * 1000;
+    : comingFromAccept || paymentInfo.sendAmount
+      ? enteredAmount
+      : addressInfo.amount * 1000;
+
+  const amountSat = Math.round(amountMsat / 1000);
+
   const fiatValue =
-    !!amountMsat &&
-    Number(amountMsat / 1000) / (SATSPERBITCOIN / (fiatStats?.value || 65000));
+    !!amountMsat && amountSat / (SATSPERBITCOIN / (fiatStats?.value || 65000));
 
-  if ((!paymentInfo.paymentFee || paymentInfo?.supportFee) && !!amountMsat) {
-    if (paymentInfo.paymentFee && paymentInfo.supportFee) {
-      addressInfo.paymentFee = paymentInfo.paymentFee;
-      addressInfo.supportFee = paymentInfo.supportFee;
+  let swapPaymentQuote = {};
+  let usdFeeResult = { fee: undefined, supportFee: undefined };
+
+  if (amountMsat) {
+    if (isLRC20) {
+      // no fee for token payments
+      addressInfo.paymentFee = 0;
+      addressInfo.supportFee = 0;
     } else {
-      const fee = await sparkPaymenWrapper({
-        getFee: true,
-        address: addressInfo.address,
-        paymentType: isLRC20 ? "lrc20" : "spark",
-        amountSats: Math.round(amountMsat / (isLRC20 ? 1 : 1000)),
-        masterInfoObject,
-        mnemonic: currentWalletMnemoinc,
-      });
-      if (!fee.didWork) throw new Error(fee.error);
+      // Determine which operations are needed
+      const needUsdPath =
+        usablePaymentMethod === "USD" ||
+        ((!usablePaymentMethod || usablePaymentMethod === "user-choice") &&
+          dollarBalanceSat >= amountSat);
+      const needBtcPath =
+        usablePaymentMethod === "BTC" ||
+        ((!usablePaymentMethod || usablePaymentMethod === "user-choice") &&
+          bitcoinBalance >= amountSat);
 
-      addressInfo.paymentFee = fee.fee;
-      addressInfo.supportFee = fee.supportFee;
+      // Determine if non-swap fallbacks are available
+      const canDoDirectBtcPayment =
+        needBtcPath &&
+        !(
+          addressInfo.expectedReceive === "tokens" &&
+          addressInfo.expectedToken === USDB_TOKEN_ID
+        );
+      const canDoDirectUsdPayment =
+        needUsdPath &&
+        addressInfo.expectedReceive === "tokens" &&
+        (!addressInfo.expectedToken ||
+          addressInfo.expectedToken === USDB_TOKEN_ID);
+      // Check if we have cached values
+      const hasCachedQuote =
+        typeof paymentInfo.swapPaymentQuote === "object" &&
+        Object.keys(paymentInfo.swapPaymentQuote).length;
+      const hasCachedFee = !!paymentInfo.paymentFee;
+
+      // Determine what operations each path needs
+      const usdNeedsSwap =
+        needUsdPath &&
+        !hasCachedQuote &&
+        !(
+          addressInfo.expectedReceive === "tokens" &&
+          (!addressInfo.expectedToken ||
+            addressInfo.expectedToken === USDB_TOKEN_ID)
+        ) &&
+        amountSat >= min_usd_swap_amount;
+
+      const btcNeedsSwap =
+        needBtcPath &&
+        !hasCachedQuote &&
+        addressInfo.expectedReceive === "tokens" &&
+        addressInfo.expectedToken === USDB_TOKEN_ID &&
+        amountSat >= swapLimits.bitcoin;
+
+      const btcNeedsFee =
+        needBtcPath &&
+        !hasCachedFee &&
+        !btcNeedsSwap &&
+        !(
+          addressInfo.expectedReceive === "tokens" &&
+          addressInfo.expectedToken === USDB_TOKEN_ID
+        );
+
+      // Build parallel operations
+      const promises = [];
+      const operations = { usdSwap: -1, btcSwap: -1, btcFee: -1 };
+
+      if (usdNeedsSwap) {
+        const amountToSendConversion = satsToDollars(
+          amountSat,
+          poolInfoRef.currentPriceAInB,
+        );
+        const usdBalanceConversion = satsToDollars(
+          dollarBalanceSat,
+          poolInfoRef.currentPriceAInB,
+        );
+        // Make sure with the 5% buffer we don't go over sending amount and cause a failure on our side
+        const maxAmount = Math.min(
+          amountToSendConversion,
+          usdBalanceConversion,
+        );
+
+        const usdAmount = Math.round(
+          convertToDecimals(maxAmount) * Math.pow(10, 6),
+        );
+
+        operations.usdSwap = promises.length;
+        promises.push(
+          simulateSwap(currentWalletMnemoinc, {
+            poolId: poolInfoRef.lpPublicKey,
+            assetInAddress: USD_ASSET_ADDRESS,
+            assetOutAddress: BTC_ASSET_ADDRESS,
+            amountIn: usdAmount,
+          }).then((result) => ({ type: "usdSwap", result, usdAmount })),
+        );
+      }
+
+      if (btcNeedsSwap) {
+        operations.btcSwap = promises.length;
+        promises.push(
+          simulateSwap(currentWalletMnemoinc, {
+            poolId: poolInfoRef.lpPublicKey,
+            assetInAddress: BTC_ASSET_ADDRESS,
+            assetOutAddress: USD_ASSET_ADDRESS,
+            amountIn: amountSat,
+          }).then((result) => ({
+            type: "btcSwap",
+            result,
+            satAmount: amountSat,
+          })),
+        );
+      }
+
+      if (btcNeedsFee) {
+        operations.btcFee = promises.length;
+        promises.push(
+          sparkPaymenWrapper({
+            getFee: true,
+            address: addressInfo.address,
+            paymentType: isLRC20 ? "lrc20" : "spark",
+            amountSats: Math.round(amountMsat / (isLRC20 ? 1 : 1000)),
+            masterInfoObject,
+            mnemonic: currentWalletMnemoinc,
+            sendWebViewRequest,
+          }).then((result) => ({ type: "btcFee", result })),
+        );
+      }
+
+      // Execute all operations in parallel
+      let results = {};
+      if (promises.length > 0) {
+        const parallelResults = await Promise.all(promises);
+        parallelResults.forEach((item) => {
+          results[item.type] = item;
+        });
+      }
+
+      // Process USD path
+      if (needUsdPath) {
+        // If we are using USD
+        if (
+          addressInfo.expectedReceive === "tokens" &&
+          (!addressInfo.expectedToken ||
+            addressInfo.expectedToken === USDB_TOKEN_ID)
+        ) {
+          usdFeeResult = { fee: 0, supportFee: 0 };
+        } else {
+          // If we need to swap from USD -> BTC
+          if (hasCachedQuote) {
+            swapPaymentQuote = paymentInfo.swapPaymentQuote;
+            usdFeeResult = {
+              fee: paymentInfo.usdPaymentFee ?? paymentInfo.paymentFee,
+              supportFee: paymentInfo.usdSupportFee ?? paymentInfo.supportFee,
+            };
+          } else if (results.usdSwap) {
+            const { result, usdAmount } = results.usdSwap;
+            // Only throw if USD swap failed AND we don't have a BTC fallback
+            if (!result.didWork && !canDoDirectBtcPayment)
+              throw new Error(result.error);
+
+            if (result.didWork) {
+              const fees = result.simulation.feePaidAssetIn;
+              const satFee = dollarsToSats(
+                fees / 1000000,
+                poolInfoRef.currentPriceAInB,
+              );
+
+              usdFeeResult = { fee: satFee, supportFee: 0 };
+              swapPaymentQuote = {
+                warn: parseFloat(result.simulation.priceImpact) > 3,
+                poolId: poolInfoRef.lpPublicKey,
+                assetInAddress: USD_ASSET_ADDRESS,
+                assetOutAddress: BTC_ASSET_ADDRESS,
+                amountIn: usdAmount,
+                satFee,
+                bitcoinBalance,
+                dollarBalanceSat,
+              };
+            }
+          }
+        }
+      }
+
+      // Process BTC path
+      if (needBtcPath) {
+        // If we need to swap from BTC -> USD
+        if (
+          addressInfo.expectedReceive === "tokens" &&
+          addressInfo.expectedToken === USDB_TOKEN_ID
+        ) {
+          if (hasCachedQuote) {
+            swapPaymentQuote = paymentInfo.swapPaymentQuote;
+            addressInfo.paymentFee = paymentInfo.paymentFee;
+            addressInfo.supportFee = paymentInfo.supportFee;
+          } else if (results.btcSwap) {
+            const { result, satAmount } = results.btcSwap;
+
+            // Only throw if BTC swap failed AND we don't have a USD fallback
+            if (!result.didWork && !canDoDirectUsdPayment)
+              throw new Error(result.error);
+
+            if (result.didWork) {
+              const fees = Number(result.simulation.feePaidAssetIn);
+              let satFee = dollarsToSats(
+                fees / Math.pow(10, 6),
+                poolInfoRef.currentPriceAInB,
+              );
+              satFee += satAmount * INTEGRATOR_FEE; //add blitz fee
+
+              addressInfo.paymentFee = Math.round(satFee);
+              addressInfo.supportFee = 0;
+              swapPaymentQuote = {
+                warn: parseFloat(result.simulation.priceImpact) > 3,
+                poolId: poolInfoRef.lpPublicKey,
+                assetInAddress: BTC_ASSET_ADDRESS,
+                assetOutAddress: USD_ASSET_ADDRESS,
+                amountIn: satAmount,
+                satFee: Math.round(satFee),
+                bitcoinBalance,
+                dollarBalanceSat,
+              };
+            }
+          }
+        } else {
+          // If we are just using BTC
+          if (hasCachedFee) {
+            addressInfo.paymentFee = paymentInfo.paymentFee;
+            addressInfo.supportFee = paymentInfo.supportFee;
+          } else if (results.btcFee) {
+            const { result } = results.btcFee;
+            if (!result.didWork) throw new Error(result.error);
+
+            addressInfo.paymentFee = result.fee;
+            addressInfo.supportFee = result.supportFee;
+          }
+        }
+      }
+
+      // If BTC path didn't run, use USD fee as the primary fee
+      if (!needBtcPath && usdFeeResult.fee !== undefined) {
+        addressInfo.paymentFee = usdFeeResult.fee;
+        addressInfo.supportFee = usdFeeResult.supportFee;
+      }
     }
   }
+
+  const canEditPayment = comingFromAccept ? false : !amountMsat;
+
+  const displayAmount =
+    enteredPaymentInfo?.fromContacts || comingFromAccept
+      ? enteredPaymentInfo.amount
+      : masterInfoObject.userBalanceDenomination != "fiat"
+        ? amountSat
+        : canEditPayment
+          ? fiatValue
+          : amountSat;
 
   return {
     data: addressInfo,
@@ -62,17 +342,11 @@ export default async function processSparkAddress(input, context) {
     paymentNetwork: "spark",
     paymentFee: addressInfo.paymentFee,
     supportFee: addressInfo.supportFee,
-    sendAmount: !amountMsat
-      ? ""
-      : isLRC20
-      ? amountMsat
-      : `${
-          masterInfoObject.userBalanceDenomination != "fiat"
-            ? `${Math.round(amountMsat / 1000)}`
-            : fiatValue < 0.01
-            ? ""
-            : `${fiatValue.toFixed(2)}`
-        }`,
-    canEditPayment: comingFromAccept ? false : !amountMsat,
+    usdPaymentFee: usdFeeResult.fee,
+    usdSupportFee: usdFeeResult.supportFee,
+    swapPaymentQuote,
+    sendAmount: !amountMsat ? "" : isLRC20 ? amountMsat : `${displayAmount}`,
+    canEditPayment,
+    amountSat: amountSat,
   };
 }

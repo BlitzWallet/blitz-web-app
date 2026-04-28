@@ -1,6 +1,13 @@
-import { SATSPERBITCOIN } from "../../constants";
-import { sparkPaymenWrapper } from "../spark/payments";
 import { InputTypes } from "bitcoin-address-parser";
+import hasAlredyPaidInvoice from "./hasPaid";
+
+import { sparkPaymenWrapper } from "../spark/payments";
+import {
+  dollarsToSats,
+  getLightningPaymentQuote,
+  USD_ASSET_ADDRESS,
+} from "../spark/flashnet";
+import { MIN_USD_BTC_LIGHTNING_SWAP, SATSPERBITCOIN } from "../../constants";
 
 export default async function processBolt11Invoice(input, context) {
   const {
@@ -11,60 +18,179 @@ export default async function processBolt11Invoice(input, context) {
     paymentInfo,
     currentWalletMnemoinc,
     t,
+    usablePaymentMethod,
+    bitcoinBalance,
+    dollarBalanceSat,
+    min_usd_swap_amount,
+    convertedSendAmount,
+    poolInfoRef,
   } = context;
 
   const currentTime = Math.floor(Date.now() / 1000);
   const expirationTime = input.data.timestamp + input.data.expiry;
   const isExpired = currentTime > expirationTime;
+  const isZeroAmountInvoice = !input.data.amountMsat;
   if (isExpired)
     throw new Error(
-      t("wallet.sendPages.handlingAddressErrors.expiredLightningInvoice")
+      t("wallet.sendPages.handlingAddressErrors.expiredLightningInvoice"),
     );
 
-  const amountMsat = comingFromAccept
-    ? enteredPaymentInfo.amount * 1000
-    : input.data.amountMsat || 0;
-  const fiatValue =
-    !!amountMsat &&
-    Number(amountMsat / 1000) / (SATSPERBITCOIN / (fiatStats?.value || 65000));
-  let fee = {};
-  if (amountMsat) {
-    if (paymentInfo.paymentFee && paymentInfo.supportFee) {
-      fee = {
-        fee: paymentInfo.paymentFee,
-        supportFee: paymentInfo.supportFee,
-      };
-    } else {
-      fee = await sparkPaymenWrapper({
-        getFee: true,
-        address: input.data.address,
-        amountSats: Math.round(amountMsat / 1000),
-        paymentType: "lightning",
-        masterInfoObject,
-        mnemonic: currentWalletMnemoinc,
-      });
+  if (!paymentInfo.paymentFee && !paymentInfo.supportFee) {
+    const didPay = await hasAlredyPaidInvoice({
+      scannedAddress: input.data.address,
+    });
 
-      if (!fee.didWork) throw new Error(fee.error);
+    if (didPay)
+      throw new Error(
+        t("wallet.sendPages.sendPaymentScreen.alreadyPaidInvoiceError"),
+      );
+  }
+
+  if (usablePaymentMethod === "USD" && isZeroAmountInvoice) {
+    throw new Error(
+      t("wallet.sendPages.sendPaymentScreen.zeroAmountInvoiceDollarPayments"),
+    );
+  }
+
+  const enteredAmount = enteredPaymentInfo.amount
+    ? enteredPaymentInfo.amount * 1000
+    : convertedSendAmount * 1000;
+
+  const amountMsat =
+    comingFromAccept || paymentInfo.sendAmount
+      ? enteredAmount
+      : input.data.amountMsat || 0;
+
+  const amountSat = Math.round(amountMsat / 1000);
+
+  const fiatValue =
+    !!amountMsat && amountSat / (SATSPERBITCOIN / (fiatStats?.value || 65000));
+  let fee = {};
+  let usdFee = {};
+  let swapPaymentQuote = {};
+
+  if (amountMsat) {
+    const needUsdFee =
+      (usablePaymentMethod === "USD" ||
+        ((!usablePaymentMethod || usablePaymentMethod === "user-choice") &&
+          dollarBalanceSat >= amountSat)) &&
+      amountSat >= MIN_USD_BTC_LIGHTNING_SWAP &&
+      !isZeroAmountInvoice;
+    const needBtcFee =
+      usablePaymentMethod === "BTC" ||
+      ((!usablePaymentMethod || usablePaymentMethod === "user-choice") &&
+        bitcoinBalance >= amountSat);
+
+    const hasUsdQuote =
+      typeof paymentInfo.swapPaymentQuote === "object" &&
+      Object.keys(paymentInfo.swapPaymentQuote).length;
+    const hasBtcFee = !!paymentInfo.paymentFee;
+
+    const promises = [];
+    let usdPromiseIndex = -1;
+    let btcPromiseIndex = -1;
+
+    if (needUsdFee && !hasUsdQuote) {
+      usdPromiseIndex = promises.length;
+      promises.push(
+        getLightningPaymentQuote(
+          currentWalletMnemoinc,
+          input.data.address,
+          USD_ASSET_ADDRESS,
+        ),
+      );
+    }
+
+    if (needBtcFee && !hasBtcFee) {
+      btcPromiseIndex = promises.length;
+      promises.push(
+        sparkPaymenWrapper({
+          getFee: true,
+          address: input.data.address,
+          amountSats: amountSat,
+          paymentType: !!input.data.usingSparkAddress ? "spark" : "lightning",
+          masterInfoObject,
+          mnemonic: currentWalletMnemoinc,
+          sendWebViewRequest,
+        }),
+      );
+    }
+
+    if (promises.length > 0) {
+      const results = await Promise.all(promises);
+
+      if (usdPromiseIndex !== -1) {
+        const paymentQuote = results[usdPromiseIndex];
+        if (!paymentQuote.didWork && !needBtcFee)
+          throw new Error(paymentQuote.error);
+        if (paymentQuote.didWork) {
+          swapPaymentQuote = {
+            ...paymentQuote.quote,
+            bitcoinBalance,
+            dollarBalanceSat,
+          };
+          const estimatedAmmFeeSat = Math.round(
+            dollarsToSats(
+              paymentQuote.quote.estimatedAmmFee / Math.pow(10, 6),
+              poolInfoRef.currentPriceAInB,
+            ),
+          );
+          usdFee = {
+            fee: paymentQuote.quote.fee + estimatedAmmFeeSat,
+            supportFee: 0,
+          };
+        }
+      }
+
+      if (btcPromiseIndex !== -1) {
+        const btcFee = results[btcPromiseIndex];
+        if (!btcFee.didWork) throw new Error(btcFee.error);
+        fee = {
+          fee: btcFee.fee,
+          supportFee: btcFee.supportFee,
+        };
+      }
+    } else {
+      if (needUsdFee && hasUsdQuote) {
+        swapPaymentQuote = paymentInfo.swapPaymentQuote;
+        usdFee = {
+          fee: paymentInfo.usdPaymentFee ?? paymentInfo.swapPaymentQuote.fee,
+          supportFee: 0,
+        };
+      }
+      if (needBtcFee && hasBtcFee) {
+        fee = {
+          fee: paymentInfo.paymentFee,
+          supportFee: paymentInfo.supportFee,
+        };
+      }
     }
   }
+
+  const canEditPayment = comingFromAccept ? false : !amountMsat;
+
+  const displayAmount =
+    enteredPaymentInfo?.fromContacts || comingFromAccept
+      ? enteredPaymentInfo.amount
+      : masterInfoObject.userBalanceDenomination != "fiat"
+        ? amountSat
+        : canEditPayment
+          ? fiatValue
+          : amountSat;
 
   return {
     data: { ...input, message: input.data.description },
     type: InputTypes.BOLT11,
     paymentNetwork: "lightning",
-    paymentFee: fee.fee,
-    supportFee: fee.supportFee,
+    paymentFee: fee.fee ?? usdFee.fee,
+    supportFee: fee.supportFee ?? usdFee.supportFee,
+    usdPaymentFee: usdFee.fee,
+    usdSupportFee: usdFee.supportFee,
     address: input.data.address,
     usingZeroAmountInvoice: !input.data.amountMsat,
-    sendAmount: !amountMsat
-      ? ""
-      : `${
-          masterInfoObject.userBalanceDenomination != "fiat"
-            ? `${Math.round(amountMsat / 1000)}`
-            : fiatValue < 0.01
-            ? ""
-            : `${fiatValue.toFixed(2)}`
-        }`,
-    canEditPayment: comingFromAccept ? false : !amountMsat,
+    swapPaymentQuote: swapPaymentQuote,
+    sendAmount: !amountMsat ? "" : `${displayAmount}`,
+    canEditPayment,
+    amountSat: amountSat,
   };
 }

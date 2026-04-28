@@ -1,7 +1,11 @@
+import { InputTypes, parseInput } from "bitcoin-address-parser";
+import { MIN_USD_BTC_LIGHTNING_SWAP, SATSPERBITCOIN } from "../../constants";
+import { getBolt11InvoiceForContact } from "../contacts";
+import { isBlitzLNURLAddress } from "../lnurl";
+import normalizeLNURLAddress from "../lnurl/normalizeLNURLAddress";
+import { dollarsToSats, getLightningPaymentQuote } from "../spark/flashnet";
 import { getLNAddressForLiquidPayment } from "./payments";
-import { SATSPERBITCOIN } from "../../constants";
 import { sparkPaymenWrapper } from "../spark/payments";
-import { InputTypes } from "bitcoin-address-parser";
 
 export default async function processLNUrlPay(input, context) {
   const {
@@ -12,76 +16,267 @@ export default async function processLNUrlPay(input, context) {
     paymentInfo,
     currentWalletMnemoinc,
     t,
+    fromPage,
+    contactInfo,
+    globalContactsInformation,
+    usablePaymentMethod,
+    bitcoinBalance,
+    dollarBalanceSat,
+    convertedSendAmount,
+    min_usd_swap_amount,
+    poolInfoRef,
   } = context;
 
-  const amountMsat = comingFromAccept
+  const [username, domain] = input.data.address?.split("@");
+  console.log(username, domain);
+
+  const nomralizedAddress = normalizeLNURLAddress(input.data.address);
+  if (
+    username?.toLowerCase() ===
+      globalContactsInformation.myProfile.uniqueName.toLowerCase() &&
+    isBlitzLNURLAddress(nomralizedAddress)
+  ) {
+    throw new Error(
+      t("wallet.sendPages.handlingAddressErrors.payingToSameAddress", {
+        addressType: "Lightning",
+      }),
+    );
+  }
+
+  const enteredAmount = enteredPaymentInfo.amount
     ? enteredPaymentInfo.amount * 1000
-    : input.data.minSendable;
+    : convertedSendAmount * 1000;
+
+  const amountMsat =
+    comingFromAccept || paymentInfo.sendAmount
+      ? enteredAmount
+      : input.data.minSendable;
+  const amountSat = Math.round(amountMsat / 1000);
+
   const fiatValue =
-    Number(amountMsat / 1000) / (SATSPERBITCOIN / (fiatStats?.value || 65000));
+    !!amountMsat && amountSat / (SATSPERBITCOIN / (fiatStats?.value || 65000));
+
+  let swapPaymentQuote = {};
   let paymentFee = 0;
   let supportFee = 0;
+  let usdPaymentFee = 0;
+  let usdSupportFee = 0;
   let invoice = "";
+  const description =
+    (fromPage === "contacts"
+      ? contactInfo?.payingContactMessage
+      : enteredPaymentInfo.description) || "";
 
-  const defaultLNURLDescription =
-    JSON.parse(input.data.metadata)?.find((item) => {
-      const [tag, value] = item;
-      if (tag === "text/plain") return true;
-    }) || [];
-  if (comingFromAccept) {
-    let numberOfTries = 0;
-    let maxRetries = 3;
-    while (!invoice && numberOfTries < maxRetries) {
-      try {
-        numberOfTries += 1;
+  let defaultLNURLDescription = [];
+  try {
+    const metadata =
+      typeof input.data.metadata === "string"
+        ? JSON.parse(input.data.metadata)
+        : input.data.metadata;
 
-        const invoiceResponse = await getLNAddressForLiquidPayment(
-          input,
-          Number(enteredPaymentInfo.amount),
-          enteredPaymentInfo.description || ""
-        );
+    if (Array.isArray(metadata)) {
+      defaultLNURLDescription =
+        metadata.find((item) => item[0] === "text/plain") ?? [];
+    }
+  } catch {
+    // malformed JSON, default stays []
+  }
 
-        if (invoiceResponse) {
-          invoice = invoiceResponse;
-          break;
+  const preEstimatedInvoiceData = enteredPaymentInfo?.lnInvoiceData ?? null;
+  const preEstimatedSwapQuote = enteredPaymentInfo?.swapQuote ?? null;
+  const preEstimatedBtcFee = enteredPaymentInfo?.lnFeeEstimate ?? null;
+
+  if (comingFromAccept || paymentInfo.sendAmount) {
+    // Use invoice pre-fetched during fee estimation to avoid a duplicate network call.
+    // The invoice is only valid for the exact amount sent from the contacts page.
+    if (preEstimatedInvoiceData?.pr && comingFromAccept) {
+      invoice = preEstimatedInvoiceData.pr;
+      if (preEstimatedInvoiceData.successAction) {
+        input.data.successAction = preEstimatedInvoiceData.successAction;
+      }
+    } else {
+      // Generate invoice first (must be sequential with retries)
+      let numberOfTries = 0;
+      let maxRetries = 3;
+      while (!invoice && numberOfTries < maxRetries) {
+        try {
+          numberOfTries += 1;
+          let invoiceResponse;
+
+          if (fromPage === "contacts" && !contactInfo?.isLNURLPayment) {
+            invoiceResponse = await getBolt11InvoiceForContact(
+              contactInfo.uniqueName,
+              Number(enteredAmount / 1000),
+              description,
+              true,
+              undefined,
+              masterInfoObject.uuid,
+            );
+          } else {
+            invoiceResponse = await getLNAddressForLiquidPayment(
+              input,
+              Number(enteredAmount / 1000),
+              description,
+            );
+          }
+
+          if (invoiceResponse.pr) {
+            invoice = invoiceResponse.pr;
+            if (invoiceResponse.successAction) {
+              input.data.successAction = invoiceResponse.successAction;
+            }
+            break;
+          }
+        } catch (err) {
+          console.log(
+            `Invoice generation attempt ${numberOfTries} failed:`,
+            err,
+          );
         }
-      } catch (err) {
-        console.log(`Invoice generation attempt ${numberOfTries} failed:`, err);
+
+        if (!invoice && numberOfTries < maxRetries) {
+          console.log(
+            `Waiting to retry invoice generation (attempt ${
+              numberOfTries + 1
+            })`,
+          );
+          await new Promise((res) => setTimeout(res, 2000));
+        }
       }
 
-      if (!invoice && numberOfTries < maxRetries) {
-        console.log(
-          `Waiting to retry invoice generation (attempt ${numberOfTries + 1})`
+      if (!invoice)
+        throw new Error(
+          t("wallet.sendPages.handlingAddressErrors.lnurlPayNoInvoiceError"),
         );
-        await new Promise((res) => setTimeout(res, 2000));
+    }
+
+    // Now that we have the invoice, determine which fee estimates are needed
+    const needUsdFee =
+      (usablePaymentMethod === "USD" ||
+        ((!usablePaymentMethod || usablePaymentMethod === "user-choice") &&
+          dollarBalanceSat >= amountSat)) &&
+      amountSat >= MIN_USD_BTC_LIGHTNING_SWAP;
+    const needBtcFee =
+      usablePaymentMethod === "BTC" ||
+      ((!usablePaymentMethod || usablePaymentMethod === "user-choice") &&
+        bitcoinBalance >= amountSat);
+
+    // Check if we have cached values (from re-decode) or pre-estimated values (from contacts fee estimation)
+    const hasUsdQuote =
+      preEstimatedSwapQuote !== null ||
+      (typeof paymentInfo.swapPaymentQuote === "object" &&
+        Object.keys(paymentInfo.swapPaymentQuote).length);
+    const hasBtcFee = !!preEstimatedBtcFee || !!paymentInfo.paymentFee;
+
+    // Build parallel operations
+    const promises = [];
+    let usdPromiseIndex = -1;
+    let btcPromiseIndex = -1;
+
+    if (needUsdFee && !hasUsdQuote) {
+      usdPromiseIndex = promises.length;
+      promises.push(
+        getLightningPaymentQuote(
+          currentWalletMnemoinc,
+          invoice,
+          USD_ASSET_ADDRESS,
+        ),
+      );
+    }
+
+    if (needBtcFee && !hasBtcFee) {
+      btcPromiseIndex = promises.length;
+      const decoded = await parseInput(invoice);
+      promises.push(
+        sparkPaymenWrapper({
+          getFee: true,
+          address: invoice,
+          amountSats: Number(enteredPaymentInfo.amount),
+          paymentType: !!decoded.data.usingSparkAddress ? "spark" : "lightning",
+          masterInfoObject,
+          mnemonic: currentWalletMnemoinc,
+          sendWebViewRequest,
+        }),
+      );
+    }
+
+    // Execute fee estimates in parallel
+    if (promises.length > 0) {
+      const results = await Promise.all(promises);
+
+      // Process USD quote result
+      if (usdPromiseIndex !== -1) {
+        const paymentQuote = results[usdPromiseIndex];
+        if (!paymentQuote.didWork && !needBtcFee)
+          throw new Error(paymentQuote.error);
+        if (paymentQuote.didWork) {
+          swapPaymentQuote = {
+            ...paymentQuote.quote,
+            bitcoinBalance,
+            dollarBalanceSat,
+          };
+          const estimatedAmmFeeSat = Math.round(
+            dollarsToSats(
+              paymentQuote.quote.estimatedAmmFee / Math.pow(10, 6),
+              poolInfoRef.currentPriceAInB,
+            ),
+          );
+          usdPaymentFee = paymentQuote.quote.fee + estimatedAmmFeeSat;
+          usdSupportFee = 0;
+        }
+      }
+
+      // Process BTC fee result
+      if (btcPromiseIndex !== -1) {
+        const fee = results[btcPromiseIndex];
+        if (!fee.didWork) throw new Error(fee.error);
+        paymentFee = fee.fee;
+        supportFee = fee.supportFee;
+      }
+    } else {
+      if (needUsdFee && hasUsdQuote) {
+        const sourceQuote =
+          preEstimatedSwapQuote || paymentInfo.swapPaymentQuote;
+        swapPaymentQuote = {
+          ...sourceQuote,
+          bitcoinBalance,
+          dollarBalanceSat,
+        };
+        usdPaymentFee = paymentInfo.usdPaymentFee ?? sourceQuote.fee;
+        usdSupportFee = 0;
+      }
+      if (needBtcFee && hasBtcFee) {
+        paymentFee = preEstimatedBtcFee || paymentInfo.paymentFee;
+        supportFee = paymentInfo.supportFee || 0;
       }
     }
 
-    if (!invoice)
-      throw new Error(
-        t("wallet.sendPages.handlingAddressErrors.lnurlPayInvoiceError")
-      );
-    if (paymentInfo.paymentFee && paymentInfo.supportFee) {
-      paymentFee = paymentInfo.paymentFee;
-      supportFee = paymentInfo.supportFee;
-    } else {
-      const fee = await sparkPaymenWrapper({
-        getFee: true,
-        address: invoice,
-        amountSats: Number(enteredPaymentInfo.amount),
-        paymentType: "lightning",
-        masterInfoObject,
-        mnemonic: currentWalletMnemoinc,
-      });
-
-      if (!fee.didWork) throw new Error(fee.error);
-      paymentFee = fee.fee;
-      supportFee = fee.supportFee;
+    // If only USD path ran, fall back paymentFee to usdPaymentFee
+    if (!paymentFee && usdPaymentFee) {
+      paymentFee = usdPaymentFee;
+      supportFee = usdSupportFee;
     }
   }
 
+  if (!input.data.maxSendable || !input.data.minSendable) {
+    throw new Error(
+      t("wallet.sendPages.handlingAddressErrors.lnurlPayInvalidFormat"),
+    );
+  }
+
+  const canEditPayment = !invoice;
+
+  const displayAmount =
+    enteredPaymentInfo?.fromContacts || comingFromAccept
+      ? enteredPaymentInfo.amount
+      : masterInfoObject.userBalanceDenomination != "fiat"
+        ? amountSat
+        : canEditPayment
+          ? fiatValue
+          : amountSat;
+
   return {
-    data: comingFromAccept
+    data: enteredAmount
       ? {
           ...input.data,
           message: enteredPaymentInfo.description || defaultLNURLDescription[1],
@@ -90,17 +285,13 @@ export default async function processLNUrlPay(input, context) {
       : input.data,
     paymentFee,
     supportFee,
+    usdPaymentFee,
+    usdSupportFee,
+    swapPaymentQuote: swapPaymentQuote,
     type: InputTypes.LNURL_PAY,
     paymentNetwork: "lightning",
-    sendAmount: comingFromAccept
-      ? `${
-          masterInfoObject.userBalanceDenomination != "fiat"
-            ? `${Math.round(amountMsat / 1000)}`
-            : fiatValue < 0.01
-            ? ""
-            : `${fiatValue.toFixed(2)}`
-        }`
-      : "",
-    canEditPayment: !comingFromAccept,
+    sendAmount: enteredAmount ? `${displayAmount}` : "",
+    canEditPayment,
+    amountSat: amountSat,
   };
 }

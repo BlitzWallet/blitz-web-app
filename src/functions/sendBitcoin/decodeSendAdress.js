@@ -12,10 +12,15 @@ import { SATSPERBITCOIN } from "../../constants";
 import processSparkAddress from "./processSparkAddress";
 import { decodeBip21Address } from "../bip21AddressFormmating";
 import { decodeLNURL } from "../lnurl/bench32Formmater";
-import { formatLightningAddress } from "../lnurl";
+import { formatLightningAddress, isBlitzLNURLAddress } from "../lnurl";
 import { handleCryptoQRAddress, isSupportedPNPQR } from "./getMerchantAddress";
 import hanndleLNURLAddress from "./handleLNURLAddress";
 import { parseInput, InputTypes } from "bitcoin-address-parser";
+import { receiveSparkLightningPayment } from "../spark";
+import { addDataToCollection, getSingleContact } from "../../../db";
+import { getCachedProfileImage } from "../cachedImage";
+import { decodeSparkInvoice } from "../spark/decodeInvoices";
+import { deriveSparkAddress } from "../gift/deriveGiftWallet";
 
 export default async function decodeSendAddress(props) {
   let {
@@ -34,12 +39,23 @@ export default async function decodeSendAddress(props) {
     parsedInvoice,
     fiatStats,
     fromPage,
-    publishMessageFunc,
     sparkInformation,
     seletctedToken,
     currentWalletMnemoinc,
     t,
-    openOverlay,
+    contactInfo,
+    globalContactsInformation,
+    accountMnemoinc,
+    usablePaymentMethod,
+    bitcoinBalance,
+    dollarBalanceSat,
+    convertedSendAmount,
+    poolInfoRef,
+    swapLimits,
+    // usd_multiplier_coefiicent,
+    min_usd_swap_amount,
+    conversionFiatStats,
+    primaryDisplay,
   } = props;
 
   try {
@@ -47,10 +63,97 @@ export default async function decodeSendAddress(props) {
     if (typeof btcAdress !== "string")
       throw new Error(t("wallet.sendPages.handlingAddressErrors.invlidFormat"));
 
+    if (btcAdress.toLowerCase().startsWith("paylink://")) {
+      const payLinkId = btcAdress.slice("paylink://".length);
+      setLoadingMessage(t("wallet.payLinks.preparingPayment"));
+
+      const result = await getPayLinkDoc(payLinkId);
+      if (!result.didWork) {
+        return goBackFunction(result.error || t("wallet.payLinks.notFound"));
+      }
+
+      const { amount, description, identityPubKey, isPaid } = result.data;
+      if (isPaid) {
+        return goBackFunction(t("wallet.payLinks.alreadyPaid"));
+      }
+
+      const lnInvoice = await receiveSparkLightningPayment({
+        amountSats: amount,
+        memo: description,
+        mnemonic: currentWalletMnemoinc,
+        includeSparkAddress: false,
+        receiverIdentityPubkey: identityPubKey,
+      });
+
+      if (!lnInvoice.didWork) {
+        return goBackFunction(
+          lnInvoice.error || t("wallet.payLinks.invoiceError"),
+        );
+      }
+
+      btcAdress = lnInvoice.response.invoice.encodedInvoice;
+      enteredPaymentInfo = {
+        ...enteredPaymentInfo,
+        fromContacts: true,
+        amount,
+        description,
+      };
+      paylinkPublishFunc = async () => {
+        await addDataToCollection(
+          { datePaid: Date.now(), isPaid: true },
+          "blitzPaylinks",
+          payLinkId,
+        );
+      };
+    }
+
+    if (
+      btcAdress.startsWith("@") ||
+      btcAdress.length <= 30 ||
+      isBlitzLNURLAddress(btcAdress)
+    ) {
+      let username = "";
+
+      if (isBlitzLNURLAddress(btcAdress)) {
+        username = btcAdress.split("@")[0].trim();
+      } else {
+        username = btcAdress.startsWith("@")
+          ? btcAdress.slice(1).trim()
+          : btcAdress.trim();
+      }
+
+      if (!username) {
+        return goBackFunction(
+          t("wallet.sendPages.handlingAddressErrors.blitzUserNotFound"),
+        );
+      }
+      const results = await getSingleContact(username);
+      const profile = results?.[0]?.contacts?.myProfile;
+      const sparkAddress = profile?.sparkAddress;
+      if (!sparkAddress && btcAdress.startsWith("@")) {
+        return goBackFunction(
+          t("wallet.sendPages.handlingAddressErrors.blitzUserNotFound"),
+        );
+      }
+      if (sparkAddress) {
+        btcAdress = sparkAddress;
+        const imageData = await getCachedProfileImage(profile.uuid).catch(
+          () => null,
+        );
+        resolvedBlitzContact = {
+          name: profile.name || profile.uniqueName || "",
+          uniqueName: profile.uniqueName || "",
+          bio: profile.bio || "",
+          uuid: profile.uuid,
+          imageData,
+        };
+      }
+    }
+
     if (isSupportedPNPQR(btcAdress)) {
       btcAdress = handleCryptoQRAddress(
         btcAdress,
-        getLNAddressForLiquidPayment
+        getLNAddressForLiquidPayment,
       );
     }
 
@@ -59,26 +162,42 @@ export default async function decodeSendAddress(props) {
       btcAdress?.toLowerCase()?.startsWith("sp1p") ||
       btcAdress?.toLowerCase()?.startsWith("spark1")
     ) {
-      if (btcAdress.toLowerCase().startsWith("spark:")) {
+      if (btcAdress.startsWith("spark:")) {
         const processedAddress = decodeBip21Address(btcAdress, "spark");
+
+        const decodeResponse = decodeSparkInvoice(processedAddress.address);
+
+        const sparkAddress = deriveSparkAddress(
+          Buffer.from(decodeResponse.identityPublicKey, "hex"),
+        );
+
         parsedInvoice = {
           type: "Spark",
           address: {
-            address: processedAddress.address,
+            address: sparkAddress.address,
             message: processedAddress.options.message,
             label: processedAddress.options.label,
             network: "Spark",
-            amount: processedAddress.options.amount * SATSPERBITCOIN,
+            expectedReceive: decodeResponse.paymentType,
+            expectedToken: decodeResponse.tokenIdentifierBech32m,
+            amount: processedAddress.options.amount,
           },
         };
       } else {
+        const decodeResponse = decodeSparkInvoice(btcAdress);
+        const sparkAddress = deriveSparkAddress(
+          Buffer.from(decodeResponse.identityPublicKey, "hex"),
+        );
+
         parsedInvoice = {
           type: "Spark",
           address: {
-            address: btcAdress,
+            address: sparkAddress.address,
             message: null,
             label: null,
             network: "Spark",
+            expectedReceive: decodeResponse.paymentType,
+            expectedToken: decodeResponse.tokenIdentifierBech32m,
             amount: null,
           },
         };
@@ -108,7 +227,7 @@ export default async function decodeSendAddress(props) {
     // if (btcAdress.toLowerCase().startsWith("lnurl")) {
     //   btcAdress = await hanndleLNURLAddress(btcAdress);
     // }
-
+    console.log(btcAdress, "bitcoin address");
     let input;
     try {
       const chosenPath = parsedInvoice
@@ -119,7 +238,7 @@ export default async function decodeSendAddress(props) {
     } catch (err) {
       console.log(err, "parse error");
       return goBackFunction(
-        t("wallet.sendPages.handlingAddressErrors.parseError")
+        t("wallet.sendPages.handlingAddressErrors.parseError"),
       );
     }
     console.log(input, "parsed input");
@@ -143,48 +262,66 @@ export default async function decodeSendAddress(props) {
         seletctedToken,
         currentWalletMnemoinc,
         t,
+        contactInfo,
+        sparkInformation,
+        globalContactsInformation,
+        accountMnemoinc,
+        usablePaymentMethod,
+        bitcoinBalance,
+        dollarBalanceSat,
+        convertedSendAmount,
+        poolInfoRef,
+        swapLimits,
+        // usd_multiplier_coefiicent,
+        min_usd_swap_amount,
       });
     } catch (err) {
       console.error(err);
       return goBackFunction(
         err.message ||
-          t("wallet.sendPages.handlingAddressErrors.paymentProcessingError")
+          t("wallet.sendPages.handlingAddressErrors.paymentProcessingError"),
       );
     }
 
     console.log(processedPaymentInfo, "proceessed info");
     if (processedPaymentInfo) {
-      if (
-        comingFromAccept &&
-        (seletctedToken?.tokenMetadata?.tokenTicker === "Bitcoin" ||
-          seletctedToken?.tokenMetadata?.tokenTicker === undefined) &&
-        sparkInformation.balance <
-          processedPaymentInfo.paymentFee +
-            processedPaymentInfo.supportFee +
-            enteredPaymentInfo.amount
-      ) {
-        openOverlay({
-          for: "error",
-          errorMessage: t(
-            "wallet.sendPages.handlingAddressErrors.tooLowSendingAmount",
-            {
-              amount: displayCorrectDenomination({
-                amount: Math.max(
-                  sparkInformation.balance -
-                    (processedPaymentInfo.paymentFee +
-                      processedPaymentInfo.supportFee),
-                  0
-                ),
-                masterInfoObject,
-                fiatStats,
-              }),
-            }
-          ),
-        });
+      // if (
+      //   comingFromAccept &&
+      //   (seletctedToken?.tokenMetadata?.tokenTicker === "Bitcoin" ||
+      //     seletctedToken?.tokenMetadata?.tokenTicker === undefined) &&
+      //   sparkInformation.balance <
+      //     processedPaymentInfo.paymentFee +
+      //       processedPaymentInfo.supportFee +
+      //       enteredPaymentInfo.amount
+      // ) {
+      //   openOverlay({
+      //     for: "error",
+      //     errorMessage: t(
+      //       "wallet.sendPages.handlingAddressErrors.tooLowSendingAmount",
+      //       {
+      //         amount: displayCorrectDenomination({
+      //           amount: Math.max(
+      //             sparkInformation.balance -
+      //               (processedPaymentInfo.paymentFee +
+      //                 processedPaymentInfo.supportFee),
+      //             0,
+      //           ),
+      //           masterInfoObject,
+      //           fiatStats,
+      //         }),
+      //       },
+      //     ),
+      //   });
 
-        if (fromPage !== "contacts") return;
-      }
-      setPaymentInfo({ ...processedPaymentInfo, decodedInput: input });
+      //   if (fromPage !== "contacts") return;
+      // }
+      setPaymentInfo({
+        ...processedPaymentInfo,
+        decodedInput: input,
+        ...(resolvedBlitzContact
+          ? { blitzContactInfo: resolvedBlitzContact }
+          : {}),
+      });
     } else {
       if (input.type === InputTypes.LNURL_AUTH) return;
 
@@ -199,14 +336,14 @@ export default async function decodeSendAddress(props) {
         return;
       }
       return goBackFunction(
-        t("wallet.sendPages.handlingAddressErrors.processInputError")
+        t("wallet.sendPages.handlingAddressErrors.processInputError"),
       );
     }
   } catch (err) {
     console.error("Decoding send address error:", err);
     goBackFunction(
       err.message ||
-        t("wallet.sendPages.handlingAddressErrors.unkonwDecodeError")
+        t("wallet.sendPages.handlingAddressErrors.unkonwDecodeError"),
     );
     return;
   }
@@ -242,7 +379,7 @@ async function processInputType(input, context) {
       return await processSparkAddress(input, context);
     default:
       throw new Error(
-        t("wallet.sendPages.handlingAddressErrors.invalidInputType")
+        t("wallet.sendPages.handlingAddressErrors.invalidInputType"),
       );
   }
 }

@@ -13,6 +13,8 @@ export default async function processBitcoinAddress(input, context) {
     fiatStats,
     paymentInfo,
     currentWalletMnemoinc,
+    bitcoinBalance,
+    t,
   } = context;
 
   const bip21AmountSat = input.data.amount * SATSPERBITCOIN;
@@ -68,6 +70,19 @@ export default async function processBitcoinAddress(input, context) {
     }
   }
 
+  const canEditPayment =
+    comingFromAccept || amountSat >= SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
+      ? false
+      : true;
+
+  const displayAmount = comingFromAccept
+    ? enteredPaymentInfo.amount
+    : masterInfoObject.userBalanceDenomination != "fiat"
+      ? Math.round(Number(amountSat))
+      : canEditPayment
+        ? fiatValue.toFixed(2)
+        : Math.round(Number(amountSat));
+
   return {
     data: newPaymentInfo,
     type: InputTypes.BITCOIN_ADDRESS,
@@ -76,18 +91,8 @@ export default async function processBitcoinAddress(input, context) {
     paymentFee: paymentFee,
     supportFee: supportFee,
     feeQuote,
-    sendAmount: !amountSat
-      ? ""
-      : `${
-          masterInfoObject.userBalanceDenomination != "fiat"
-            ? `${amountSat}`
-            : fiatValue < 0.01
-            ? ""
-            : `${fiatValue.toFixed(2)}`
-        }`,
-    canEditPayment:
-      comingFromAccept || amountSat > SMALLEST_ONCHAIN_SPARK_SEND_AMOUNT
-        ? false
-        : true,
+    sendAmount: !amountSat ? "" : `${displayAmount}`,
+    canEditPayment,
+    amountSat: Math.round(Number(amountSat)),
   };
 }
