@@ -1017,7 +1017,10 @@ export const validateWebViewResponse = (response, errorMessage) => {
     throw new Error(response.error);
   }
 
-  if (response.hasOwnProperty("didWork") && !response.didWork) {
+  if (
+    Object.prototype.hasOwnProperty.call(response, "didWork") &&
+    !response.didWork
+  ) {
     throw new Error(response.error || errorMessage || "Operation failed");
   }
 

@@ -72,7 +72,7 @@ const POSTransactionsProvider = ({ children }) => {
           totalUnpaidTxs:
             savedAccount.totalUnpaidTxs + (!tx.didPay ? tx.tipAmountSats : 0),
           totalPaidTxs:
-            savedAccount.totalPaidTxs + (!!tx.didPay ? tx.tipAmountSats : 0),
+            savedAccount.totalPaidTxs + (tx.didPay ? tx.tipAmountSats : 0),
         };
       }
 

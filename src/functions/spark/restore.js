@@ -129,7 +129,7 @@ const restoreSparkTxState = async (
       }, batch size: ${localBatchSize}`,
     );
 
-    const donationPubKey = process.env.BLITZ_SPARK_PUBLICKEY;
+    const donationPubKey = import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY;
 
     const newTxsAtFront = [];
     if (isRestoring && offset > 0) {

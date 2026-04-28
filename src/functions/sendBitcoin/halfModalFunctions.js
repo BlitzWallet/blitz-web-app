@@ -13,14 +13,34 @@ async function navigateToSendUsingClipboard() {
   const preParsingResponse = handlePreSendPageParsing(clipboardData);
 
   if (preParsingResponse.error) {
-    return { didWork: false, errorMessage: preParsingResponse.error };
+    return {
+      didWork: false,
+      errorMessage: preParsingResponse.error,
+      page: "send",
+    };
   }
 
   if (preParsingResponse.navigateToWebView) {
-    return { didWork: false, webViewURL: preParsingResponse.webViewURL };
+    return {
+      didWork: false,
+      webViewURL: preParsingResponse.webViewURL,
+      page: "send",
+    };
   }
 
-  return { didWork: true, data: preParsingResponse.btcAdress };
+  if (preParsingResponse.isExternalChain) {
+    const { method, screen, params } = resolveExternalChainNavigation(
+      preParsingResponse,
+      from,
+    );
+    return {
+      didWork: true,
+      params,
+      page: screen,
+    };
+  }
+
+  return { didWork: true, data: preParsingResponse.btcAdress, page: "send" };
 }
 
 async function getQRImage(fileInput) {
@@ -60,6 +80,17 @@ async function getQRImage(fileInput) {
             didWork: false,
             error: "errormessages.noInvoiceInImageError",
           });
+        } else if (preParsingResponse.isExternalChain) {
+          resolve({
+            isExternalChain: true,
+            address: preParsingResponse.address,
+            chainFamily: preParsingResponse.chainFamily,
+            resolvedToken: preParsingResponse.resolvedToken,
+            prefillAmount: preParsingResponse.prefillAmount,
+            unsupportedTokenAddress: preParsingResponse.unsupportedTokenAddress,
+            didWork: true,
+            error: "",
+          });
         } else {
           resolve({
             btcAdress: preParsingResponse.btcAdress,
@@ -79,4 +110,50 @@ async function getQRImage(fileInput) {
   });
 }
 
-export { navigateToSendUsingClipboard, getQRImage };
+function formatStablecoinAmount(rawAmount, decimals = 2) {
+  const value = Number(rawAmount) / Math.pow(10, 6);
+  return value.toFixed(decimals);
+}
+
+function resolveExternalChainNavigation(parsedResult, from) {
+  if (parsedResult.resolvedToken) {
+    return {
+      screen: "StablecoinSendScreen",
+      params: {
+        address: parsedResult.address,
+        chain: parsedResult.resolvedToken.chain,
+        chainLabel: parsedResult.resolvedToken.chainLabel,
+        asset: parsedResult.resolvedToken.asset,
+        ...(parsedResult.prefillAmount != null
+          ? { prefillAmount: parsedResult.prefillAmount }
+          : {}),
+      },
+    };
+  }
+
+  if (parsedResult.unsupportedTokenAddress) {
+    return {
+      screen: "SelectStablecoinParamsScreen",
+      params: {
+        address: parsedResult.address,
+        chainFamily: parsedResult.chainFamily,
+        unsupportedTokenMessage: i18next.t("errormessages.usdcUsdtTokensOnly"),
+      },
+    };
+  }
+
+  return {
+    screen: "SelectStablecoinParamsScreen",
+    params: {
+      address: parsedResult.address,
+      chainFamily: parsedResult.chainFamily,
+    },
+  };
+}
+
+export {
+  navigateToSendUsingClipboard,
+  getQRImage,
+  formatStablecoinAmount,
+  resolveExternalChainNavigation,
+};

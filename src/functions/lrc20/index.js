@@ -1,4 +1,4 @@
-import { IS_SPARK_ID } from "../../constants";
+import { IS_SPARK_ID, USDB_TOKEN_ID } from "../../constants";
 import sha256Hash from "../hash";
 import Storage from "../localStorage";
 import {

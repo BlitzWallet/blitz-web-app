@@ -11,6 +11,13 @@ import { encodeLNURL } from "../lnurl/bench32Formmater";
 import { sparkReceivePaymentWrapper } from "../spark/payments";
 import { formatBip21Address } from "../spark/handleBip21SparkAddress";
 import { createTokensInvoice } from "../spark";
+import {
+  BTC_ASSET_ADDRESS,
+  dollarsToSats,
+  USD_ASSET_ADDRESS,
+} from "../spark/swapAmountUtils";
+import { randomBytes } from "crypto";
+import { simulateSwap } from "../spark/flashnet";
 
 let invoiceTracker = [];
 
@@ -274,22 +281,20 @@ export async function initializeAddressProcess(wolletInfo) {
       invoiceTracker = [invoiceTracker.pop()];
     }
 
-    if (!isCurrentRequest(requestUUID) || shouldRetry) {
-      return;
-    }
-
-    if (hasGlobalError) {
-      setAddressState((prev) => ({
-        ...prev,
-        hasGlobalError: true,
-        isGeneratingInvoice: false,
-      }));
-    } else {
-      setAddressState((prev) => ({
-        ...prev,
-        ...stateTracker,
-        isGeneratingInvoice: false,
-      }));
+    if (isCurrentRequest(requestUUID) && !shouldRetry) {
+      if (hasGlobalError) {
+        setAddressState((prev) => ({
+          ...prev,
+          hasGlobalError: true,
+          isGeneratingInvoice: false,
+        }));
+      } else {
+        setAddressState((prev) => ({
+          ...prev,
+          ...stateTracker,
+          isGeneratingInvoice: false,
+        }));
+      }
     }
   }
 }
