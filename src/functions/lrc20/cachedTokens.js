@@ -48,9 +48,10 @@ export const migrateCachedTokens = async (mnemonic) => {
 };
 
 export const mergeTokensWithCache = (currentTokens, cachedTokens, mnemonic) => {
+  const hashedMnemoinc = sha256Hash(mnemonic);
   let merged = {};
-  const selctedCashedTokens = cachedTokens[sha256Hash(mnemonic)]
-    ? cachedTokens[sha256Hash(mnemonic)]
+  const selctedCashedTokens = cachedTokens[hashedMnemoinc]
+    ? cachedTokens[hashedMnemoinc]
     : {};
 
   // Update with current token data
@@ -61,7 +62,7 @@ export const mergeTokensWithCache = (currentTokens, cachedTokens, mnemonic) => {
     };
   }
 
-  for (const [identifier, tokensData] of currentTokens) {
+  for (const [identifier, tokensData] of Object.entries(currentTokens)) {
     merged[identifier] = {
       balance: Number(tokensData.balance),
       tokenMetadata: {
@@ -72,5 +73,5 @@ export const mergeTokensWithCache = (currentTokens, cachedTokens, mnemonic) => {
   }
   console.log(merged);
 
-  return { ...cachedTokens, [sha256Hash(mnemonic)]: merged };
+  return { ...cachedTokens, [hashedMnemoinc]: merged };
 };

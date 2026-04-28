@@ -25,7 +25,7 @@ export const LRC20Brackets = [
 export default async function calculateProgressiveBracketFee(
   amount,
   paymentType,
-  mnemonic
+  mnemonic,
 ) {
   return 0;
   let brackets;

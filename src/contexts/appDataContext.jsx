@@ -17,13 +17,10 @@ export const GlobalAppDataProvider = ({ children }) => {
 
   const [globalAppDataInformation, setGlobalAppDatasInformation] = useState({});
   const [giftCardsList, setGiftCardsList] = useState([]);
-  const [decodedChatGPT, setDecodedChatGPT] = useState([]);
-  const [decodedVPNS, setDecodedVPNS] = useState({});
-  const [decodedGiftCards, setDecodedGiftCards] = useState({});
-  const [decodedMessages, setDecodedMessages] = useState({
-    received: [],
-    sent: [],
-  });
+  const [decodedChatGPT, setDecodedChatGPT] = useState(null);
+  const [decodedMessages, setDecodedMessages] = useState(null);
+  const [decodedVPNS, setDecodedVPNS] = useState(null);
+  const [decodedGiftCards, setDecodedGiftCards] = useState(null);
 
   const toggleGlobalAppDataInformation = (newData, writeToDB) => {
     setGlobalAppDatasInformation((prev) => {
@@ -42,56 +39,86 @@ export const GlobalAppDataProvider = ({ children }) => {
     setGiftCardsList(giftCards);
   }, []);
 
-  const decryptData = async (key, defaultValue) => {
-    let data;
-    if (key === "chatGPT") {
-      data = globalAppDataInformation[key]?.conversation;
-    } else {
-      data = globalAppDataInformation[key];
+  const decryptData = (key, defaultValue) => {
+    try {
+      let data;
+      if (key === "chatGPT") {
+        data = globalAppDataInformation[key]?.conversation;
+      } else {
+        data = globalAppDataInformation[key];
+      }
+      if (!publicKey || typeof data !== "string") return defaultValue;
+
+      const decryptedString = decryptMessage(
+        contactsPrivateKey,
+        publicKey,
+        data,
+      );
+
+      if (
+        !decryptedString ||
+        typeof decryptedString !== "string" ||
+        decryptedString.trim() === ""
+      ) {
+        console.warn(`Decryption returned invalid data for key: ${key}`);
+        return defaultValue;
+      }
+
+      return JSON.parse(decryptedString);
+    } catch (error) {
+      console.error(`Error decrypting data for key "${key}":`, error.message);
+      return defaultValue;
     }
-    if (!publicKey || typeof data !== "string") return defaultValue;
-    return JSON.parse(
-      await decryptMessage(contactsPrivateKey, publicKey, data),
-    );
   };
 
   useEffect(() => {
-    async function handleChatGPT() {
-      const decryptedConversations = await decryptData("chatGPT", []);
+    if (!publicKey || !contactsPrivateKey) return;
+    try {
+      const data = decryptData("chatGPT", []);
       setDecodedChatGPT({
-        conversation: decryptedConversations,
+        conversation: data,
         credits: globalAppDataInformation?.chatGPT?.credits || 0,
       });
+    } catch (error) {
+      console.error("Error decoding ChatGPT data:", error);
+      setDecodedChatGPT({
+        conversation: [],
+        credits: 0,
+      });
     }
-    handleChatGPT();
   }, [globalAppDataInformation.chatGPT, publicKey, contactsPrivateKey]);
 
   useEffect(() => {
-    async function handleVPNs() {
-      const decodedVPNs = await decryptData("VPNplans", {});
-      setDecodedVPNS(decodedVPNs);
+    if (!publicKey || !contactsPrivateKey) return;
+    try {
+      setDecodedMessages(
+        decryptData("messagesApp", { received: [], sent: [] }),
+      );
+    } catch (error) {
+      console.error("Error decoding messages:", error);
+      setDecodedMessages({ received: [], sent: [] });
     }
-    handleVPNs();
+  }, [globalAppDataInformation.messagesApp, publicKey, contactsPrivateKey]);
+
+  useEffect(() => {
+    if (!publicKey || !contactsPrivateKey) return;
+    try {
+      setDecodedVPNS(decryptData("VPNplans", []));
+    } catch (error) {
+      console.error("Error decoding VPN plans:", error);
+      setDecodedVPNS([]);
+    }
   }, [globalAppDataInformation.VPNplans, publicKey, contactsPrivateKey]);
 
   useEffect(() => {
-    async function handleGiftCards() {
-      const decodedGiftCards = await decryptData("giftCards", {});
-      setDecodedGiftCards(decodedGiftCards);
+    if (!publicKey || !contactsPrivateKey) return;
+    try {
+      setDecodedGiftCards(decryptData("giftCards", {}));
+    } catch (error) {
+      console.error("Error decoding gift cards:", error);
+      setDecodedGiftCards({});
     }
-    handleGiftCards();
   }, [globalAppDataInformation.giftCards, publicKey, contactsPrivateKey]);
-
-  useEffect(() => {
-    async function handleMessages() {
-      const decodedMessages = await decryptData("messagesApp", {
-        received: [],
-        sent: [],
-      });
-      setDecodedMessages(decodedMessages);
-    }
-    handleMessages();
-  }, [globalAppDataInformation.messagesApp, publicKey, contactsPrivateKey]);
 
   return (
     <GlobalAppData.Provider
@@ -99,8 +126,8 @@ export const GlobalAppDataProvider = ({ children }) => {
         decodedChatGPT,
         decodedMessages,
         decodedVPNS,
-        globalAppDataInformation,
         decodedGiftCards,
+        globalAppDataInformation,
         toggleGlobalAppDataInformation,
         giftCardsList,
         toggleGiftCardsList,

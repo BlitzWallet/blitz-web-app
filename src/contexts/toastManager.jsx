@@ -1,4 +1,4 @@
-import { Clipboard, HelpCircle } from "lucide-react";
+import { ArrowUpDown, Clipboard, HelpCircle, Info } from "lucide-react";
 import React, {
   createContext,
   useContext,
@@ -251,7 +251,11 @@ const Toast = ({
         {toast.type === "clipboard" ? (
           <Clipboard color={Colors.light.text} />
         ) : toast.type === "confirmTx" ? (
-          <HelpCircle color={Colors.light.text} />
+          <Info color={Colors.light.text} />
+        ) : toast.type === "handleSwap" ? (
+          <ArrowUpDown color={Colors.light.text} />
+        ) : toast.type === "error" ? (
+          <Info color={Colors.light.text} />
         ) : (
           <ThemeText content={getIconForType()} />
         )}
@@ -279,10 +283,23 @@ const Toast = ({
                 })}
               />
             </>
+          ) : toast.type === "handleSwap" ? (
+            <>
+              <ThemeText
+                CustomNumberOfLines={1}
+                className={"toast-message"}
+                content={t("toastmessages.handleSwap.title")}
+              />
+              <ThemeText
+                CustomNumberOfLines={1}
+                className={"toast-message"}
+                content={t("toastmessages.handleSwap.desc")}
+              />
+            </>
           ) : (
             <ThemeText
               className={"toast-message"}
-              CustomNumberOfLines={1}
+              CustomNumberOfLines={2}
               textContent={t(toast.title)}
             />
           )}

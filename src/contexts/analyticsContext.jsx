@@ -1,0 +1,265 @@
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useFlashnet } from "./flashnetContext";
+import { useAppStatus } from "./appStatus";
+import { useSpark } from "./sparkContext";
+import { getMonthlyTransactions } from "../functions/spark/transactions";
+import { getDollarsFromTx, getSatsFromTx } from "../functions/analytics";
+import { convertToDecimals, dollarsToSats } from "../functions/spark/flashnet";
+import { buildCumulativeData } from "../functions/analytics/cumulativeLineChartHelpers";
+
+const AnalyticsContext = createContext(null);
+
+export function AnalyticsProvider({ children }) {
+  const { sparkInformation } = useSpark();
+  const { didGetToHomepage } = useAppStatus();
+  const { poolInfoRef } = useFlashnet();
+  const [inTxsBTC, setInTxsBTC] = useState([]);
+  const [outTxsBTC, setOutTxsBTC] = useState([]);
+  const [inTxsUSD, setInTxsUSD] = useState([]);
+  const [outTxsUSD, setOutTxsUSD] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isReloading, setIsReloading] = useState(false);
+  const hasLoadedRef = useRef(false);
+
+  const txStatusKey = useMemo(() => {
+    try {
+      return sparkInformation.transactions
+        .slice(0, 20)
+        .map((tx) => `${tx.sparkID}:${tx.paymentStatus}`)
+        .join("|");
+    } catch (err) {
+      return sparkInformation.transactions.length || 21;
+    }
+  }, [sparkInformation.transactions]);
+
+  useEffect(() => {
+    async function load() {
+      if (!sparkInformation.identityPubKey || !didGetToHomepage) return;
+      if (hasLoadedRef.current) {
+        setIsReloading(true);
+      } else {
+        setIsLoading(true);
+      }
+      try {
+        const startTime = Date.now();
+        const [incomingBTC, outgoingBTC, incomingUSD, outgoingUSD] =
+          await Promise.all([
+            getMonthlyTransactions(sparkInformation.identityPubKey, "INCOMING"),
+            getMonthlyTransactions(sparkInformation.identityPubKey, "OUTGOING"),
+            getMonthlyTransactions(
+              sparkInformation.identityPubKey,
+              "INCOMING",
+              true,
+            ),
+            getMonthlyTransactions(
+              sparkInformation.identityPubKey,
+              "OUTGOING",
+              true,
+            ),
+          ]);
+        setInTxsBTC(incomingBTC);
+        setOutTxsBTC(outgoingBTC);
+        setInTxsUSD(incomingUSD);
+        setOutTxsUSD(outgoingUSD);
+        hasLoadedRef.current = true;
+        const elapsed = Date.now() - startTime;
+        const minDuration = 500;
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.max(60, minDuration - elapsed)),
+        );
+      } catch (e) {
+        console.error("AnalyticsContext load error", e);
+      } finally {
+        setIsLoading(false);
+        setIsReloading(false);
+      }
+    }
+    load();
+  }, [sparkInformation.identityPubKey, txStatusKey, didGetToHomepage]);
+
+  const incomeTotalBTC = useMemo(() => {
+    try {
+      return inTxsBTC.reduce((sum, tx) => {
+        try {
+          return (
+            sum + getSatsFromTx(tx, poolInfoRef.currentPriceAInB, "INCOMING")
+          );
+        } catch {
+          return sum;
+        }
+      }, 0);
+    } catch (err) {
+      console.log("eror calcuating total", err);
+      return 0;
+    }
+  }, [inTxsBTC]);
+
+  const spentTotalBTC = useMemo(() => {
+    try {
+      return outTxsBTC.reduce((sum, tx) => {
+        try {
+          return (
+            sum + getSatsFromTx(tx, poolInfoRef.currentPriceAInB, "OUTGOING")
+          );
+        } catch {
+          return sum;
+        }
+      }, 0);
+    } catch (err) {
+      console.log("error calcuating spent", err);
+      return 0;
+    }
+  }, [outTxsBTC]);
+
+  const incomeTotalUSD = useMemo(() => {
+    try {
+      return convertToDecimals(
+        inTxsUSD.reduce((sum, tx) => {
+          try {
+            return (
+              sum +
+              getDollarsFromTx(tx, poolInfoRef.currentPriceAInB, "INCOMING")
+            );
+          } catch {
+            return sum;
+          }
+        }, 0),
+      );
+    } catch (err) {
+      console.log("eror calcuating total", err);
+      return 0;
+    }
+  }, [inTxsUSD]);
+
+  const spentTotalUSD = useMemo(() => {
+    try {
+      return convertToDecimals(
+        outTxsUSD.reduce((sum, tx) => {
+          try {
+            return (
+              sum +
+              getDollarsFromTx(tx, poolInfoRef.currentPriceAInB, "OUTGOING")
+            );
+          } catch {
+            return sum;
+          }
+        }, 0),
+      );
+    } catch (err) {
+      console.log("error calcuating spent", err);
+      return 0;
+    }
+  }, [outTxsUSD]);
+
+  const cumulativeIncomeDataBTC = useMemo(() => {
+    try {
+      return buildCumulativeData(
+        inTxsBTC,
+        undefined,
+        poolInfoRef.currentPriceAInB,
+        "INCOMING",
+      );
+    } catch (err) {
+      console.log("error creating cumulative income data", err);
+      return [];
+    }
+  }, [inTxsBTC]);
+
+  const cumulativeSpentDataBTC = useMemo(() => {
+    try {
+      return buildCumulativeData(
+        outTxsBTC,
+        undefined,
+        poolInfoRef.currentPriceAInB,
+        "OUTGOING",
+      );
+    } catch (err) {
+      console.log("error creating cumulative spend data", err);
+      return [];
+    }
+  }, [outTxsBTC]);
+
+  const cumulativeIncomeDataUSD = useMemo(() => {
+    try {
+      return buildCumulativeData(
+        inTxsUSD,
+        undefined,
+        poolInfoRef.currentPriceAInB,
+        "INCOMING",
+        true,
+      );
+    } catch (err) {
+      console.log("error creating cumulative income data", err);
+      return [];
+    }
+  }, [inTxsUSD]);
+
+  const cumulativeSpentDataUSD = useMemo(() => {
+    try {
+      return buildCumulativeData(
+        outTxsUSD,
+        undefined,
+        poolInfoRef.currentPriceAInB,
+        "OUTGOING",
+        true,
+      );
+    } catch (err) {
+      console.log("error creating cumulative spend data", err);
+      return [];
+    }
+  }, [outTxsUSD]);
+
+  const spentTotal = useMemo(() => {
+    try {
+      return Math.round(
+        spentTotalBTC +
+          dollarsToSats(spentTotalUSD, poolInfoRef.currentPriceAInB),
+      );
+    } catch (err) {
+      console.log("spent total error", err);
+      return 0;
+    }
+  }, [spentTotalBTC, spentTotalUSD]);
+
+  return (
+    <AnalyticsContext.Provider
+      value={{
+        spentTotal,
+        inTxsBTC,
+        outTxsBTC,
+        inTxsUSD,
+        outTxsUSD,
+        incomeTotalBTC,
+        incomeTotalUSD,
+        spentTotalBTC,
+        spentTotalUSD,
+        incomeTxCountBTC: inTxsBTC.length,
+        spentTxCountBTC: outTxsBTC.length,
+        incomeTxCountUSD: inTxsUSD.length,
+        spentTxCountUSD: outTxsUSD.length,
+        cumulativeIncomeDataBTC,
+        cumulativeSpentDataBTC,
+        cumulativeIncomeDataUSD,
+        cumulativeSpentDataUSD,
+        isLoading,
+        isReloading,
+      }}
+    >
+      {children}
+    </AnalyticsContext.Provider>
+  );
+}
+
+export function useAnalytics() {
+  const ctx = useContext(AnalyticsContext);
+  if (!ctx)
+    throw new Error("useAnalytics must be used within AnalyticsProvider");
+  return ctx;
+}

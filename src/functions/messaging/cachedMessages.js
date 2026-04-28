@@ -2,7 +2,12 @@ import { deleteDB, openDB } from "idb";
 import Storage from "../localStorage";
 import { getTwoWeeksAgoDate } from "../rotateAddressDateChecker";
 import EventEmitter from "events";
-import { addBulkUnpaidSparkContactTransactions } from "../spark/transactions";
+import {
+  addBulkUnpaidSparkContactTransactions,
+  deleteBulkSparkContactTransactions,
+  getAllSparkContactInvoices,
+  getBulkSparkTransactions,
+} from "../spark/transactions";
 import i18next from "i18next";
 
 export const CACHED_MESSAGES_KEY = "CASHED_CONTACTS_MESSAGES";
@@ -72,7 +77,7 @@ export const getCachedMessages = async () => {
     }
 
     const retrivedLocalStorageItem = Storage.getItem(
-      LOCALSTORAGE_LAST_RECEIVED_TIME_KEY
+      LOCALSTORAGE_LAST_RECEIVED_TIME_KEY,
     );
     const savedNewestTime = retrivedLocalStorageItem || 0;
     const convertedTime = newestTimestap || getTwoWeeksAgoDate();
@@ -199,18 +204,18 @@ const setCashedMessages = async ({ newMessagesList, myPubKey }) => {
     await tx.done;
     console.log(newMessagesList, "sourted timestamps");
     const sortedTimestamps = newMessagesList.sort(
-      (a, b) => b.timestamp - a.timestamp
+      (a, b) => b.timestamp - a.timestamp,
     );
     console.log(sortedTimestamps, "sourted timestamps");
     const newTimestamp = newMessagesList.sort(
-      (a, b) => b.timestamp - a.timestamp
+      (a, b) => b.timestamp - a.timestamp,
     )[0].timestamp;
 
     Storage.setItem(LOCALSTORAGE_LAST_RECEIVED_TIME_KEY, newTimestamp);
 
     contactsSQLEventEmitter.emit(
       CONTACTS_TRANSACTION_UPDATE_NAME,
-      "addedMessage"
+      "addedMessage",
     );
 
     return true;
@@ -237,7 +242,7 @@ export const deleteCachedMessages = async (contactPubKey) => {
     console.log(`Deleted all messages for contactPubKey: ${contactPubKey}`);
     contactsSQLEventEmitter.emit(
       CONTACTS_TRANSACTION_UPDATE_NAME,
-      "deleatedMessage"
+      "deleatedMessage",
     );
     return true;
   } catch (err) {
@@ -272,4 +277,133 @@ export const wipeEntireContactDatabase = async () => {
     console.error("Failed to delete DB:", err);
     return false;
   }
+};
+
+// Store active retry timers and state to prevent concurrent executions
+const activeRetryTimers = new Map();
+
+export const retryUnpaidContactTransactionsWithBackoff = async (
+  attempt = 0,
+  maxAttempts = 2,
+) => {
+  const retryKey = "contactRaceRetry";
+
+  try {
+    // Get all unpaid contact transactions
+    const unpaidTransactions = await getAllSparkContactInvoices();
+
+    if (!unpaidTransactions || unpaidTransactions.length === 0) {
+      console.log("No unpaid contact transactions to check");
+      activeRetryTimers.delete(retryKey);
+
+      return;
+    }
+
+    console.log(
+      `Checking ${
+        unpaidTransactions.length
+      } unpaid contact transactions (attempt ${attempt + 1}/${maxAttempts})`,
+    );
+
+    const sparkIDs = unpaidTransactions.map((tx) => tx.sparkID);
+    const savedTxMap = await getBulkSparkTransactions(sparkIDs);
+
+    const txsToUpdate = [];
+    const txsStillPending = [];
+    const txsToDelete = [];
+
+    // Check each unpaid transaction
+    for (const unpaidTx of unpaidTransactions) {
+      const savedTX = savedTxMap.get(unpaidTx.sparkID);
+      if (savedTX) {
+        const priorDetails = JSON.parse(savedTX.details);
+        // Transaction now exists - prepare update
+        console.log(
+          `Found transaction for unpaid contact: ${unpaidTx.sparkID}`,
+          savedTX,
+        );
+        txsToUpdate.push({
+          id: unpaidTx.sparkID,
+          paymentStatus: savedTX.paymentStatus,
+          paymentType: savedTX.paymentType,
+          accountId: savedTX.accountId,
+          details: {
+            ...priorDetails,
+            description: unpaidTx.description,
+            sendingUUID: unpaidTx.sendersPubkey,
+            isBlitzContactPayment: true,
+          },
+        });
+
+        // Delete from unpaid table since we're updating the main transaction
+        txsToDelete.push(unpaidTx.sparkID);
+      } else {
+        txsStillPending.push(unpaidTx.sparkID);
+      }
+    }
+
+    // Delete from unpaid table
+    if (txsToDelete.length > 0) {
+      console.log(txsToDelete, "transactions to delete");
+      await deleteBulkSparkContactTransactions(txsToDelete);
+    }
+
+    // Update transactions that were found
+    if (txsToUpdate.length > 0) {
+      console.log(
+        `Updating ${txsToUpdate.length} transactions with contact details`,
+      );
+      await addBulkUnpaidSparkContactTransactions(
+        txsToUpdate,
+        "contactDetailsUpdate",
+        0,
+        0,
+        true,
+      );
+    }
+
+    // If there are still pending transactions and we haven't exceeded max attempts, retry
+    if (txsStillPending.length > 0 && attempt < maxAttempts - 1) {
+      const delay = 500 * Math.pow(2, attempt); // 500ms, 1s,
+      console.log(
+        `${txsStillPending.length} transactions still pending, retrying in ${delay}ms`,
+      );
+
+      const timeoutId = setTimeout(() => {
+        retryUnpaidContactTransactionsWithBackoff(attempt + 1, maxAttempts);
+      }, delay);
+
+      activeRetryTimers.set(retryKey, timeoutId);
+    } else {
+      if (txsStillPending.length > 0) {
+        console.log(
+          `Max retry attempts reached. ${txsStillPending.length} transactions remain unpaid`,
+        );
+      } else {
+        console.log("All unpaid contact transactions resolved");
+      }
+      activeRetryTimers.delete(retryKey);
+    }
+  } catch (err) {
+    console.error("Error in retry unpaid contact transactions:", err);
+    activeRetryTimers.delete(retryKey);
+  }
+};
+
+export const startContactPaymentMatchRetrySequance = () => {
+  // Clear any existing retry timers
+  clearContactRaceRetryTimers();
+
+  // Start new retry sequence
+  console.log("Starting new exponential backoff retry sequence");
+
+  retryUnpaidContactTransactionsWithBackoff();
+};
+
+export const clearContactRaceRetryTimers = () => {
+  for (const [key, timeoutId] of activeRetryTimers) {
+    clearTimeout(timeoutId);
+    console.log(`Cleared contact retry timer: ${key}`);
+  }
+  activeRetryTimers.clear();
 };

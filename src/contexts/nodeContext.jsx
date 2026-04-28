@@ -15,38 +15,36 @@ import { useGlobalContextProvider } from "./masterInfoObject";
 import { useSpark } from "./sparkContext";
 import { useGlobalContacts } from "./globalContacts";
 import liquidToSparkSwap from "../functions/spark/liquidToSparkSwap";
+import { SATSPERBITCOIN } from "../constants";
+import { useAuth } from "./authContext";
 
 // Initiate context
 const NodeContextManager = createContext(null);
 
 const GLobalNodeContextProider = ({ children }) => {
+  const { globalContactsInformation } = useGlobalContacts();
   const { sparkInformation } = useSpark();
   const { contactsPrivateKey, publicKey, accountMnemoinc } = useKeysContext();
   const { didGetToHomepage, minMaxLiquidSwapAmounts } = useAppStatus();
-  const { globalContactsInformation } = useGlobalContacts();
   const { masterInfoObject } = useGlobalContextProvider();
-  const [nodeInformation, setNodeInformation] = useState({
-    didConnectToNode: null,
-    transactions: [],
-    userBalance: 0,
-    inboundLiquidityMsat: 0,
-    blockHeight: 0,
-    onChainBalance: 0,
-    fiatStats: {},
-    lsp: [],
-  });
+  const [pendingLiquidPayment, setPendingLiquidPayment] = useState(null);
   const [liquidNodeInformation, setLiquidNodeInformation] = useState({
     didConnectToNode: null,
     transactions: [],
     userBalance: 0,
   });
-  const [pendingLiquidPayment, setPendingLiquidPayment] = useState(null);
+  const isInitialRender = useRef(true);
+  const { authResetkey } = useAuth();
+  const selectedCurrency = masterInfoObject?.fiatCurrency;
   const [fiatStats, setFiatStats] = useState({});
+
+  const SATS_PER_DOLLAR = useMemo(() => {
+    return SATSPERBITCOIN / (fiatStats?.value ?? 0);
+  }, [fiatStats]);
+
   const toggleFiatStats = useCallback((newInfo) => {
     setFiatStats((prev) => ({ ...prev, ...newInfo }));
   }, []);
-
-  const selectedCurrency = masterInfoObject.fiatCurrency;
 
   const didRunCurrencyUpdate = useRef(null);
   const didRunLiquidConnection = useRef(null);
@@ -56,13 +54,7 @@ const GLobalNodeContextProider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (
-      !contactsPrivateKey ||
-      !publicKey ||
-      didRunCurrencyUpdate.current ||
-      !selectedCurrency ||
-      !didGetToHomepage
-    )
+    if (!contactsPrivateKey || !publicKey || didRunCurrencyUpdate.current)
       return;
     didRunCurrencyUpdate.current = true;
 
@@ -71,7 +63,7 @@ const GLobalNodeContextProider = ({ children }) => {
         selectedCurrency,
         contactsPrivateKey,
         publicKey,
-        masterInfoObject
+        masterInfoObject,
       );
       if (response.didWork && !response.usingCache) {
         toggleFiatStats(response.fiatRateResponse);
@@ -85,7 +77,8 @@ const GLobalNodeContextProider = ({ children }) => {
       !contactsPrivateKey ||
       !publicKey ||
       didRunLiquidConnection.current ||
-      !didGetToHomepage ||
+      !sparkInformation.didConnect ||
+      !sparkInformation.identityPubKey ||
       import.meta.env.MODE === "development"
     )
       return;
@@ -110,7 +103,7 @@ const GLobalNodeContextProider = ({ children }) => {
         if (liquidNodeInformation.userBalance > minMaxLiquidSwapAmounts.min) {
           setPendingLiquidPayment(true);
           await liquidToSparkSwap(
-            globalContactsInformation.myProfile.uniqueName
+            globalContactsInformation.myProfile.uniqueName,
           );
         }
       } catch (err) {
@@ -120,6 +113,7 @@ const GLobalNodeContextProider = ({ children }) => {
     if (!didGetToHomepage) return;
     if (!sparkInformation.didConnect) return;
     if (!sparkInformation.identityPubKey) return;
+    if (!masterInfoObject.enabledLiquidAutoSwap) return;
     swapLiquidToSpark();
   }, [
     didGetToHomepage,
@@ -128,27 +122,36 @@ const GLobalNodeContextProider = ({ children }) => {
     sparkInformation.didConnect,
     sparkInformation.identityPubKey,
     globalContactsInformation?.myProfile?.uniqueName,
+    masterInfoObject.enabledLiquidAutoSwap,
   ]);
+
+  useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    didRunLiquidConnection.current = false;
+  }, [authResetkey]);
 
   const contextValue = useMemo(
     () => ({
-      nodeInformation,
       liquidNodeInformation,
       toggleLiquidNodeInformation,
       toggleFiatStats,
       fiatStats,
       pendingLiquidPayment,
       setPendingLiquidPayment,
+      SATS_PER_DOLLAR,
     }),
     [
-      nodeInformation,
       liquidNodeInformation,
-      fiatStats,
-      toggleFiatStats,
       toggleLiquidNodeInformation,
+      toggleFiatStats,
+      fiatStats,
       pendingLiquidPayment,
       setPendingLiquidPayment,
-    ]
+      SATS_PER_DOLLAR,
+    ],
   );
 
   return (
@@ -162,7 +165,7 @@ function useNodeContext() {
   const context = useContext(NodeContextManager);
   if (!context) {
     throw new Error(
-      "useNodeContext must be used within a GLobalNodeContextProider"
+      "useNodeContext must be used within a GLobalNodeContextProider",
     );
   }
   return context;

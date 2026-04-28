@@ -1,5 +1,9 @@
 import formatBalanceAmount from "../formatNumber";
-import { getDataFromCollection, updateMessage } from "../../../db";
+import {
+  bulkUpdateMessages,
+  getDataFromCollection,
+  updateMessage,
+} from "../../../db";
 import { BITCOIN_SAT_TEXT, SATSPERBITCOIN } from "../../constants";
 import fetchBackend from "../../../db/handleBackend";
 import loadNewFiatData from "../saveAndUpdateFiatData";
@@ -39,7 +43,58 @@ export async function publishMessage({
       masterInfoObject,
     });
   } catch (err) {
-    console.log(err), "pubishing message to server error";
+    (console.log(err), "pubishing message to server error");
+  }
+}
+
+export async function publishBulkMessages(
+  messagePayloads,
+  privateKey,
+  globalContactsInformation,
+) {
+  try {
+    const dbMessages = messagePayloads.map((p) => ({
+      fromPubKey: p.fromPubKey,
+      toPubKey: p.toPubKey,
+      newMessage: p.data,
+      retrivedContact: p.retrivedContact,
+      privateKey: p.privateKey,
+      currentTime: p.currentTime,
+    }));
+
+    const success = await bulkUpdateMessages(dbMessages);
+    if (!success) return false;
+
+    // Push notifications are best-effort after the atomic write
+    const messages = (
+      await Promise.all(
+        messagePayloads.map(async (p) => {
+          const message = await sendPushNotification({
+            selectedContactUsername: p.selectedContact.uniqueName,
+            myProfile: p.globalContactsInformation.myProfile,
+            data: p.data,
+            privateKey: p.privateKey,
+            retrivedContact: p.retrivedContact,
+            masterInfoObject: p.masterInfoObject,
+            returnOnly: true,
+          });
+          return message || [];
+        }),
+      )
+    ).flat();
+
+    // fire and forget
+    await fetchBackend(
+      `bulkPushNoticications`,
+      { pushNotifications: messages },
+      privateKey,
+      globalContactsInformation.myProfile.uuid,
+    );
+
+    return true;
+  } catch (err) {
+    console.log(err, "publishing bulk messages to server error");
+    return false;
   }
 }
 
@@ -121,7 +176,7 @@ export async function sendPushNotification({
         sendingContactFiatCurrency,
         privateKey,
         myProfile.uuid,
-        masterInfoObject
+        masterInfoObject,
       );
       const didFindCurrency = fiatValue?.didWork;
       const fiatAmount =
@@ -142,7 +197,7 @@ export async function sendPushNotification({
             ? data.amountMsat / 1000
             : fiatAmount,
           undefined,
-          { thousandsSeperator: "space" }
+          { thousandsSeperator: "space" },
         )} ${
           sendingContactDenominationType != "fiat" || !fiatAmount
             ? BITCOIN_SAT_TEXT
@@ -156,7 +211,7 @@ export async function sendPushNotification({
             ? data.amountMsat / 1000
             : fiatAmount,
           undefined,
-          { thousandsSeperator: "space" }
+          { thousandsSeperator: "space" },
         )} ${
           sendingContactDenominationType != "fiat" || !fiatAmount
             ? BITCOIN_SAT_TEXT
@@ -175,7 +230,7 @@ export async function sendPushNotification({
       `contactsPushNotificationV${useNewNotifications ? "4" : "3"}`,
       requestData,
       privateKey,
-      myProfile.uuid
+      myProfile.uuid,
     );
     console.log(response, "contacts push notification response");
     return true;
@@ -242,7 +297,7 @@ export async function handlePaymentUpdate({
                   option: didPay
                     ? i18next.t("transactionLabelText.paidLower")
                     : i18next.t("transactionLabelText.declinedLower"),
-                }
+                },
               ),
         },
         privateKey: contactsPrivateKey,

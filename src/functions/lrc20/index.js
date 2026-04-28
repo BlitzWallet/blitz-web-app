@@ -1,10 +1,16 @@
+import { IS_SPARK_ID } from "../../constants";
 import sha256Hash from "../hash";
 import Storage from "../localStorage";
 import {
   getCachedSparkTransactions,
   getSparkTokenTransactions,
 } from "../spark";
-import { bulkUpdateSparkTransactions } from "../spark/transactions";
+import { getActiveSwapTransferIds, isSwapActive } from "../spark/flashnet";
+import {
+  bulkUpdateSparkTransactions,
+  deleteSparkContactTransaction,
+  getAllSparkContactInvoices,
+} from "../spark/transactions";
 
 import { convertToBech32m } from "./bech32";
 import tokenBufferAmountToDecimal from "./bufferToDecimal";
@@ -12,88 +18,210 @@ import { getCachedTokens } from "./cachedTokens";
 import { Buffer } from "buffer";
 
 const MINUTE_BUFFER = 1000 * 60;
+let isRunning = false;
 export async function getLRC20Transactions({
   ownerPublicKeys,
   sparkAddress,
   isInitialRun,
   mnemonic,
 }) {
-  const storedDate = Storage.getItem("lastRunLRC20Tokens") || 0;
-  const [savedTxs, cachedTokens, tokenTxs] = await Promise.all([
-    getCachedSparkTransactions(null, ownerPublicKeys[0]),
-    getCachedTokens(),
-    getSparkTokenTransactions({ ownerPublicKeys, mnemonic }),
-  ]);
+  try {
+    if (isRunning) throw new Error("process is already running");
+    isRunning = true;
 
-  if (!tokenTxs?.tokenTransactionsWithStatus) return;
-  const tokenTransactions = tokenTxs.tokenTransactionsWithStatus;
+    const savedTxs = await getCachedSparkTransactions(null, ownerPublicKeys[0]);
 
-  const savedIds = new Set(savedTxs?.map((tx) => tx.sparkID) || []);
+    // Find last saved token transaction (any status, including failed flashnet pairs)
+    let lastSavedTransactionId = null;
+    if (savedTxs) {
+      for (const tx of savedTxs) {
+        if (
+          tx.paymentType !== "spark" ||
+          IS_SPARK_ID.test(tx.sparkID) ||
+          tx.sparkID.length < 40
+        ) {
+          continue;
+        }
 
-  let timeCutoff =
-    storedDate && isInitialRun ? storedDate - 1000 * 60 * 60 * 24 : storedDate;
-
-  let newTxs = [];
-
-  for (const tokenTx of tokenTransactions) {
-    const tokenReceivedDate = new Date(
-      tokenTx.tokenTransaction.clientCreatedTimestamp
-    );
-    const tokenOutput = tokenTx.tokenTransaction.tokenOutputs[0];
-    const tokenIdentifier = tokenOutput?.tokenIdentifier;
-
-    const tokenIdentifierHex = Buffer.from(tokenIdentifier).toString("hex");
-
-    if (!tokenIdentifier) continue;
-    const tokenbech32m = convertToBech32m(tokenIdentifierHex);
-
-    if (!cachedTokens[sha256Hash(mnemonic)]?.[tokenbech32m]) {
-      console.log("NO TOKEN DATA FOUND");
-      continue;
+        lastSavedTransactionId = tx.sparkID;
+        break;
+      }
     }
 
-    if (tokenReceivedDate < timeCutoff - MINUTE_BUFFER) continue;
+    const tokenTxs = await getSparkTokenTransactions({
+      ownerPublicKeys,
+      mnemonic,
+      isInitialRun,
+      lastSavedTransactionId,
+    });
 
-    const tokenOutputs = tokenTx.tokenTransaction.tokenOutputs;
+    if (!tokenTxs?.tokenTransactionsWithStatus) return;
+    const tokenTransactions = tokenTxs.tokenTransactionsWithStatus;
 
-    const ownerPublicKey = Buffer.from(
-      tokenOutputs[0]?.ownerPublicKey
-    ).toString("hex");
-    const amount = Number(
-      tokenBufferAmountToDecimal(tokenOutputs[0]?.tokenAmount)
-    );
-    const didSend = ownerPublicKey !== ownerPublicKeys[0];
+    const newTxs = [];
+    const ownerPubKey = ownerPublicKeys[0];
+    const isSwapInProgress = isSwapActive();
+    const activeSwaps = getActiveSwapTransferIds();
+    const unpaidContactInvoices = await getAllSparkContactInvoices();
 
-    if (
-      savedIds.has(Buffer.from(tokenTx.tokenTransactionHash).toString("hex"))
-    ) {
-      console.log("Transaction already saved");
-      continue;
+    // Build savedIds set for all saved LRC20 token txs (any status) to avoid reprocessing
+    const savedIds = new Set();
+    if (savedTxs) {
+      for (const tx of savedTxs) {
+        if (tx.paymentType !== "spark" || IS_SPARK_ID.test(tx.sparkID)) {
+          continue;
+        }
+
+        savedIds.add(tx.sparkID);
+      }
+    }
+    for (const tokenTx of tokenTransactions) {
+      const tokenOutput = tokenTx.tokenTransaction.tokenOutputs[0];
+      const tokenIdentifier = tokenOutput?.tokenIdentifier;
+
+      if (!tokenIdentifier) continue;
+
+      // Convert token identifier to hex
+      const tokenIdentifierHex = Buffer.from(
+        Object.values(tokenIdentifier),
+      ).toString("hex");
+      const tokenbech32m = convertToBech32m(tokenIdentifierHex);
+
+      // Get transaction hash
+      const txHash = Buffer.from(
+        Object.values(tokenTx.tokenTransactionHash),
+      ).toString("hex");
+
+      // Skip if already saved
+      if (savedIds.has(txHash)) continue;
+
+      const tokenOutputs = tokenTx.tokenTransaction.tokenOutputs;
+
+      const ownerPublicKey = Buffer.from(
+        Object.values(tokenOutputs[0]?.ownerPublicKey),
+      ).toString("hex");
+      const amount = Number(
+        tokenBufferAmountToDecimal(tokenOutputs[0]?.tokenAmount),
+      );
+      const didSend = ownerPublicKey !== ownerPubKey;
+
+      if (
+        tokenbech32m === USDB_TOKEN_ID &&
+        !didSend &&
+        isSwapInProgress &&
+        activeSwaps.has(txHash)
+      ) {
+        // if we have an incoming USD payment and there is a swap in progress and the tx id is the id of the swap in progress then block it so it does not interfeare with tx list
+        console.log(
+          `[LRC20] Blocking USDB transaction - ${txHash} swap in progress`,
+        );
+        continue;
+      }
+
+      const foundInvoice = unpaidContactInvoices?.find(
+        (savedTx) => savedTx.sparkID === txHash,
+      );
+
+      if (foundInvoice?.sparkID) {
+        deleteSparkContactTransaction(foundInvoice.sparkID);
+      }
+
+      const tx = {
+        id: txHash,
+        paymentStatus: "completed",
+        paymentType: "spark",
+        accountId: ownerPubKey,
+        details: {
+          sendingUUID: foundInvoice?.sendersPubkey,
+          fee: 0,
+          totalFee: didSend ? 10 : 0,
+          supportFee: didSend ? 10 : 0,
+          amount: amount,
+          address: sparkAddress,
+          time: new Date(
+            tokenTx.tokenTransaction.clientCreatedTimestamp,
+          ).getTime(),
+          direction: didSend ? "OUTGOING" : "INCOMING",
+          description: foundInvoice?.description || "",
+          isLRC20Payment: true,
+          LRC20Token: tokenbech32m,
+        },
+      };
+
+      newTxs.push(tx);
     }
 
-    const tx = {
-      id: Buffer.from(tokenTx.tokenTransactionHash).toString("hex"),
-      paymentStatus: "completed",
-      paymentType: "spark",
-      accountId: ownerPublicKeys[0],
-      details: {
-        fee: 0,
-        amount: amount,
-        address: sparkAddress,
-        time: new Date(
-          tokenTx.tokenTransaction.clientCreatedTimestamp
-        ).getTime(),
-        direction: didSend ? "OUTGOING" : "INCOMING",
-        description: "",
-        isLRC20Payment: true,
-        LRC20Token: tokenbech32m,
-      },
-    };
+    const processedTxs = markFlashnetTransfersAsFailed(newTxs);
 
-    newTxs.push(tx);
+    // using restore flag on initial run since we know the balance updated, otherwise we need to recheck the balance. On any new txs the fullUpdate reloads the wallet balance
+    await bulkUpdateSparkTransactions(
+      processedTxs,
+      isInitialRun ? "lrc20Payments" : "fullUpdate-tokens",
+    );
+  } catch (err) {
+    console.log("error running lrc20 update", err);
+  } finally {
+    isRunning = false;
+  }
+}
+
+// We do not want to show failed flashnet swaps on homepage
+function markFlashnetTransfersAsFailed(transactions, timeWindowMs = 5000) {
+  if (transactions.length < 2) return transactions;
+
+  const flashnetIndices = new Set();
+
+  // Group transactions by amount AND token for efficient lookup
+  const byAmountAndToken = new Map();
+
+  for (let i = 0; i < transactions.length; i++) {
+    const tx = transactions[i];
+    const key = `${tx.details.amount}-${tx.details.LRC20Token}`;
+
+    if (!byAmountAndToken.has(key)) {
+      byAmountAndToken.set(key, []);
+    }
+    byAmountAndToken.get(key).push({ tx, index: i });
   }
 
-  Storage.setItem("lastRunLRC20Tokens", Date.now());
+  // Check each amount+token group for flashnet patterns
+  for (const group of byAmountAndToken.values()) {
+    if (group.length < 2) continue;
 
-  await bulkUpdateSparkTransactions(newTxs, "fullUpdate");
+    // Check all pairs in this amount+token group
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const tx1 = group[i].tx;
+        const tx2 = group[j].tx;
+
+        const timeDiff = Math.abs(tx1.details.time - tx2.details.time);
+        if (timeDiff > timeWindowMs) continue;
+
+        const oppositeDirs =
+          (tx1.details.direction === "INCOMING" &&
+            tx2.details.direction === "OUTGOING") ||
+          (tx1.details.direction === "OUTGOING" &&
+            tx2.details.direction === "INCOMING");
+
+        // If same amount, same token, opposite directions, and within time window = flashnet
+        if (oppositeDirs) {
+          flashnetIndices.add(group[i].index);
+          flashnetIndices.add(group[j].index);
+        }
+      }
+    }
+  }
+
+  // Only create new array if we found flashnet transactions
+  if (flashnetIndices.size === 0) return transactions;
+
+  return transactions.map((tx, index) => {
+    if (flashnetIndices.has(index)) {
+      return {
+        ...tx,
+        paymentStatus: "failed",
+      };
+    }
+    return tx;
+  });
 }

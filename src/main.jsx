@@ -51,6 +51,8 @@ import { UserBalanceProvider } from "./contexts/userBalanceContext.jsx";
 import { GiftProvider } from "./contexts/giftContext.jsx";
 import { PoolProvider } from "./contexts/poolContext.jsx";
 import { SavingsProvider } from "./contexts/savingsContext.jsx";
+import { POSTransactionsProvider } from "./contexts/pos.jsx";
+import { AnalyticsProvider } from "./contexts/analyticsContext.jsx";
 
 function RouteRenderer({ route, animationType, setValue }) {
   const Component = route.component;
@@ -92,141 +94,152 @@ function Root() {
     <NavigationStackProvider>
       <AuthProvider navigate={navigate}>
         <ToastProvider>
-          <ThemeContextProvider>
-            <AppStatusProvider>
-              <GlobalRescanLiquidSwaps>
-                <KeysContextProvider>
-                  <GlobalContactsList>
-                    <GlobalContextProvider>
-                      <ActiveCustodyAccountProvider>
-                        <SparkWalletProvider navigate={navigate}>
-                          <GLobalNodeContextProider>
-                            <BitcoinPriceProvider>
-                              <GlobalAppDataProvider>
-                                <LiquidEventProvider>
-                                  <ImageCacheProvider>
-                                    <GlobalServerTimeProvider>
-                                      <OverlayProvider>
-                                        <GiftProvider>
-                                          <PoolProvider>
-                                            <FlashnetProvider>
-                                              <UserBalanceProvider>
-                                                <SavingsProvider>
-                                                  {showSplash && (
-                                                    <SplashScreen
-                                                      onDone={() =>
-                                                        setShowSplash(false)
-                                                      }
-                                                    />
-                                                  )}
-                                                  <HandleLNURLPayments />
-                                                  <Suspense
-                                                    fallback={
-                                                      <div
-                                                        style={{
-                                                          display: "none",
-                                                        }}
-                                                      />
-                                                    }
-                                                  >
-                                                    <AuthGate />
-                                                  </Suspense>
-                                                  <ToastContainer />
-                                                  <SparkNavigationListener />
-                                                  <AnimatePresence mode="wait">
-                                                    <Suspense
-                                                      fallback={
-                                                        <SafeAreaComponent>
+          <OverlayProvider>
+            <ThemeContextProvider>
+              <AppStatusProvider>
+                <GlobalRescanLiquidSwaps>
+                  <KeysContextProvider>
+                    <GlobalContactsList>
+                      <GlobalContextProvider>
+                        <ActiveCustodyAccountProvider>
+                          <SparkWalletProvider navigate={navigate}>
+                            <GLobalNodeContextProider>
+                              <BitcoinPriceProvider>
+                                <GlobalAppDataProvider>
+                                  <POSTransactionsProvider>
+                                    <LiquidEventProvider>
+                                      <ImageCacheProvider>
+                                        <GlobalServerTimeProvider>
+                                          <GiftProvider>
+                                            <PoolProvider>
+                                              <FlashnetProvider>
+                                                <UserBalanceProvider>
+                                                  <SavingsProvider>
+                                                    <AnalyticsProvider>
+                                                      {showSplash && (
+                                                        <SplashScreen
+                                                          onDone={() =>
+                                                            setShowSplash(false)
+                                                          }
+                                                        />
+                                                      )}
+                                                      <HandleLNURLPayments />
+                                                      <Suspense
+                                                        fallback={
                                                           <div
                                                             style={{
-                                                              flex: 1,
-                                                              display: "flex",
-                                                              width: "100%",
-                                                              height: "100%",
-                                                              alignItems:
-                                                                "center",
-                                                              justifyContent:
-                                                                "center",
+                                                              display: "none",
                                                             }}
-                                                          >
-                                                            <FullLoadingScreen />
-                                                          </div>
-                                                        </SafeAreaComponent>
-                                                      }
-                                                    >
-                                                      <Routes
-                                                        location={
-                                                          background || location
+                                                          />
                                                         }
                                                       >
-                                                        {Object.entries(
-                                                          routeGroups,
-                                                        ).map(
-                                                          ([
-                                                            animationType,
-                                                            routes,
-                                                          ]) =>
-                                                            routes.map(
-                                                              (route) => (
-                                                                <Route
-                                                                  key={
-                                                                    route.path
-                                                                  }
-                                                                  path={
-                                                                    route.path
-                                                                  }
-                                                                  element={
-                                                                    <RouteRenderer
-                                                                      route={
-                                                                        route
+                                                        <AuthGate />
+                                                      </Suspense>
+                                                      <ToastContainer />
+                                                      <SparkNavigationListener />
+                                                      <AnimatePresence mode="wait">
+                                                        <Suspense
+                                                          fallback={
+                                                            <SafeAreaComponent>
+                                                              <div
+                                                                style={{
+                                                                  flex: 1,
+                                                                  display:
+                                                                    "flex",
+                                                                  width: "100%",
+                                                                  height:
+                                                                    "100%",
+                                                                  alignItems:
+                                                                    "center",
+                                                                  justifyContent:
+                                                                    "center",
+                                                                }}
+                                                              >
+                                                                <FullLoadingScreen />
+                                                              </div>
+                                                            </SafeAreaComponent>
+                                                          }
+                                                        >
+                                                          <Routes
+                                                            location={
+                                                              background ||
+                                                              location
+                                                            }
+                                                          >
+                                                            {Object.entries(
+                                                              routeGroups,
+                                                            ).map(
+                                                              ([
+                                                                animationType,
+                                                                routes,
+                                                              ]) =>
+                                                                routes.map(
+                                                                  (route) => (
+                                                                    <Route
+                                                                      key={
+                                                                        route.path
                                                                       }
-                                                                      animationType={
-                                                                        animationType
+                                                                      path={
+                                                                        route.path
                                                                       }
-                                                                      setValue={
-                                                                        setValue
+                                                                      element={
+                                                                        <RouteRenderer
+                                                                          route={
+                                                                            route
+                                                                          }
+                                                                          animationType={
+                                                                            animationType
+                                                                          }
+                                                                          setValue={
+                                                                            setValue
+                                                                          }
+                                                                        />
                                                                       }
                                                                     />
-                                                                  }
-                                                                />
-                                                              ),
-                                                            ),
-                                                        )}
-                                                      </Routes>
-                                                      <Suspense fallback={null}>
-                                                        <OverlayHost />
-                                                      </Suspense>
-                                                    </Suspense>
-                                                  </AnimatePresence>
-                                                  {shouldShowBottomTabs && (
-                                                    <Suspense fallback={null}>
-                                                      <BottomTabs
-                                                        value={value}
-                                                        setValue={setValue}
-                                                        Link={Link}
-                                                      />
-                                                    </Suspense>
-                                                  )}
-                                                </SavingsProvider>
-                                              </UserBalanceProvider>
-                                            </FlashnetProvider>
-                                          </PoolProvider>
-                                        </GiftProvider>
-                                      </OverlayProvider>
-                                    </GlobalServerTimeProvider>
-                                  </ImageCacheProvider>
-                                </LiquidEventProvider>
-                              </GlobalAppDataProvider>
-                            </BitcoinPriceProvider>
-                          </GLobalNodeContextProider>
-                        </SparkWalletProvider>
-                      </ActiveCustodyAccountProvider>
-                    </GlobalContextProvider>
-                  </GlobalContactsList>
-                </KeysContextProvider>
-              </GlobalRescanLiquidSwaps>
-            </AppStatusProvider>
-          </ThemeContextProvider>
+                                                                  ),
+                                                                ),
+                                                            )}
+                                                          </Routes>
+                                                          <Suspense
+                                                            fallback={null}
+                                                          >
+                                                            <OverlayHost />
+                                                          </Suspense>
+                                                        </Suspense>
+                                                      </AnimatePresence>
+                                                      {shouldShowBottomTabs && (
+                                                        <Suspense
+                                                          fallback={null}
+                                                        >
+                                                          <BottomTabs
+                                                            value={value}
+                                                            setValue={setValue}
+                                                            Link={Link}
+                                                          />
+                                                        </Suspense>
+                                                      )}
+                                                    </AnalyticsProvider>
+                                                  </SavingsProvider>
+                                                </UserBalanceProvider>
+                                              </FlashnetProvider>
+                                            </PoolProvider>
+                                          </GiftProvider>
+                                        </GlobalServerTimeProvider>
+                                      </ImageCacheProvider>
+                                    </LiquidEventProvider>
+                                  </POSTransactionsProvider>
+                                </GlobalAppDataProvider>
+                              </BitcoinPriceProvider>
+                            </GLobalNodeContextProider>
+                          </SparkWalletProvider>
+                        </ActiveCustodyAccountProvider>
+                      </GlobalContextProvider>
+                    </GlobalContactsList>
+                  </KeysContextProvider>
+                </GlobalRescanLiquidSwaps>
+              </AppStatusProvider>
+            </ThemeContextProvider>
+          </OverlayProvider>
         </ToastProvider>
       </AuthProvider>
     </NavigationStackProvider>

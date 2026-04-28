@@ -136,6 +136,47 @@ export const updateGiftLocal = async (uuid, updatedFields) => {
   }
 };
 
+export const bulkDeleteGiftsLocal = async (uuids) => {
+  try {
+    if (!uuids || uuids.length === 0) return false;
+
+    const db = await getDB();
+    const tx = db.transaction(GIFTS_TABLE_NAME, "readwrite");
+    await Promise.all([...uuids.map((uuid) => tx.store.delete(uuid)), tx.done]);
+
+    console.log(`Deleted ${uuids.length} gift(s)`);
+    return true;
+  } catch (err) {
+    console.error("bulkDeleteGiftsLocal error:", err);
+    return false;
+  }
+};
+
+export const bulkSaveGiftsLocal = async (gifts) => {
+  try {
+    if (!gifts || gifts.length === 0) return false;
+
+    const db = await getDB();
+    const now = Date.now();
+    const tx = db.transaction(GIFTS_TABLE_NAME, "readwrite");
+    await Promise.all([
+      ...gifts.map((gift) =>
+        tx.store.put({
+          ...gift,
+          lastUpdated: gift.lastUpdated || now,
+        }),
+      ),
+      tx.done,
+    ]);
+
+    console.log(`Saved ${gifts.length} gift(s)`);
+    return true;
+  } catch (err) {
+    console.error("bulkSaveGiftsLocal error:", err);
+    return false;
+  }
+};
+
 export const deleteGiftsTable = async () => {
   try {
     await deleteDB(CACHED_GIFTS);

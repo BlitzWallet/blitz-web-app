@@ -24,6 +24,9 @@ const keys = [
   "enabledBTKNTokens",
   "defaultSpendToken",
   "thousandsSeperator",
+  "enabledLiquidAutoSwap",
+  "pinnedAccounts",
+  "monthlyBudget",
 ];
 
 const defaultValues = {
@@ -58,6 +61,9 @@ const defaultValues = {
   enabledBTKNTokens: null,
   defaultSpendToken: "Bitcoin",
   thousandsSeperator: "space",
+  enabledLiquidAutoSwap: true,
+  pinnedAccounts: [],
+  monthlyBudget: null,
 };
 
 export const fetchLocalStorageItems = async () => {
@@ -101,6 +107,10 @@ export const fetchLocalStorageItems = async () => {
     enabledBTKNTokens: parsedResults[17] ?? defaultValues.enabledBTKNTokens,
     defaultSpendToken: parsedResults[18] ?? defaultValues.defaultSpendToken,
     thousandsSeperator: parsedResults[19] ?? defaultValues.thousandsSeperator,
+    enabledLiquidAutoSwap:
+      parsedResults[20] ?? defaultValues.enabledLiquidAutoSwap,
+    pinnedAccounts: parsedResults[21] ?? defaultValues.pinnedAccounts,
+    monthlyBudget: parsedResults[22] ?? defaultValues.monthlyBudget,
   };
 };
 

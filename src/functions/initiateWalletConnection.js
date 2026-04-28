@@ -3,13 +3,11 @@ import {
   getSparkAddress,
   getSparkBalance,
   getSparkIdentityPubKey,
-  getSparkTransactions,
   initializeSparkWallet,
   setPrivacyEnabled,
 } from "./spark";
-import { getAccountBalanceSnapshot } from "./spark/balanceSnapshots";
-import handleBalanceCache from "./spark/handleBalanceCache";
 import { cleanStalePendingSparkLightningTransactions } from "./spark/transactions";
+import { getAccountBalanceSnapshot } from "./spark/balanceSnapshots";
 
 export async function initWallet({
   setSparkInformation,
@@ -20,8 +18,6 @@ export async function initWallet({
   identityPubKey,
 }) {
   try {
-    console.log("HOME RENDER BREEZ EVENT FIRST LOAD");
-
     const didConnectToSpark = await initializeSparkWallet(mnemonic);
 
     if (didConnectToSpark.isConnected) {
@@ -51,15 +47,13 @@ export async function initWallet({
     }
     return { didWork: true };
   } catch (err) {
-    console.log(err, "error initializing function");
+    console.log("initialize spark wallet error main", err);
     return { didWork: false, error: err.message };
   }
 }
 
-async function initializeSparkSession({
+export async function initializeSparkSession({
   setSparkInformation,
-  // globalContactsInformation,
-  // toggleGlobalContactsInformation,
   mnemonic,
   hasRestoreCompleted,
   identityPubKey: cachedIdentityPubKey,
@@ -103,7 +97,7 @@ async function initializeSparkSession({
       throw new Error("Unable to initialize spark from history");
 
     // Fire and forget — non-blocking
-    setPrivacyEnabled(mnemonic);
+    setPrivacyEnabled(mnemonic, freshIdentityPubKey);
 
     const identityPubKey = freshIdentityPubKey;
 

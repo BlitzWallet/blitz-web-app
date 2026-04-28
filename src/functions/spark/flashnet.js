@@ -30,21 +30,37 @@ import { bulkUpdateSparkTransactions } from "./transactions";
 import { decode } from "bolt11";
 
 // ============================================
-// CONSTANTS
+// CONSTANTS & PURE UTILITIES
 // ============================================
+import {
+  BTC_ASSET_ADDRESS,
+  USD_ASSET_ADDRESS,
+  FLASHNET_POOL_IDENTITY_KEY,
+  DEFAULT_SLIPPAGE_BPS,
+  SEND_AMOUNT_INCREASE_BUFFER,
+  DEFAULT_MAX_SLIPPAGE_BPS,
+  INTEGRATOR_FEE,
+  INTEGRATOR_FEE_BPS,
+  satsToDollars,
+  dollarsToSats,
+  calculateFlashnetAmountIn,
+  convertToDecimals,
+} from "./swapAmountUtils";
 
-export const BTC_ASSET_ADDRESS =
-  "020202020202020202020202020202020202020202020202020202020202020202";
-export const USD_ASSET_ADDRESS =
-  "3206c93b24a4d18ea19d0a9a213204af2c7e74a6d16c7535cc5d33eca4ad1eca";
-
-export const FLASHNET_POOL_IDENTITY_KEY =
-  "02894808873b896e21d29856a6d7bb346fb13c019739adb9bf0b6a8b7e28da53da";
-
-export const DEFAULT_SLIPPAGE_BPS = 100; // 1%
-export const SEND_AMOUNT_INCREASE_BUFFER = 1.01; // 1%
-export const DEFAULT_MAX_SLIPPAGE_BPS = 300; // 3%
-export const INTEGRATOR_FEE = 0.01; // 1%
+export {
+  BTC_ASSET_ADDRESS,
+  USD_ASSET_ADDRESS,
+  FLASHNET_POOL_IDENTITY_KEY,
+  DEFAULT_SLIPPAGE_BPS,
+  SEND_AMOUNT_INCREASE_BUFFER,
+  DEFAULT_MAX_SLIPPAGE_BPS,
+  INTEGRATOR_FEE,
+  INTEGRATOR_FEE_BPS,
+  satsToDollars,
+  dollarsToSats,
+  calculateFlashnetAmountIn,
+  convertToDecimals,
+};
 
 // ============================================
 // HELPER FUNCTIONS
@@ -77,14 +93,15 @@ const formatError = (error, operation) => {
     parsedError = error;
   }
 
-  const match = parsedError?.match(FLASHNET_ERROR_CODE_REGEX);
+  const match = parsedError.match(FLASHNET_ERROR_CODE_REGEX);
   const errorCode = match?.[0] ?? null;
 
   if (errorCode) {
     const metadata = getErrorMetadata(errorCode);
+
     return {
       operation,
-      errorCode,
+      errorCode: errorCode,
       category: metadata.category,
       message: metadata.userMessage,
       userMessage: i18next.t(`flashnetUserMessages.${errorCode}`, {
@@ -93,6 +110,9 @@ const formatError = (error, operation) => {
       actionHint: metadata.actionHint,
       isRetryable: metadata.isRetryable,
       recovery: metadata.recovery,
+      transferIds: metadata.transferIds,
+      clawbackAttempted: metadata.wasClawbackAttempted?.() || false,
+      fundsRecovered: metadata.wereAllTransfersRecovered?.() || false,
     };
   }
 
@@ -100,16 +120,6 @@ const formatError = (error, operation) => {
     operation,
     message: error?.message || String(error),
   };
-};
-
-const getRefundTxidFromErrormessage = (message) => {
-  try {
-    const match = message?.match(FLASHNET_REFUND_REGEX);
-    if (match) return match[1];
-  } catch (err) {
-    console.log("error getting txid from error message", err);
-  }
-  return undefined;
 };
 
 export const calculateMinOutput = (expectedOutput, slippageBps) => {
@@ -248,7 +258,7 @@ export const simulateSwap = async (
     assetInAddress,
     assetOutAddress,
     amountIn,
-    integratorFeeRateBps = 100,
+    integratorFeeRateBps = INTEGRATOR_FEE_BPS,
   },
 ) => {
   try {
@@ -286,7 +296,7 @@ export const executeSwap = async (
     amountIn,
     minAmountOut,
     maxSlippageBps = DEFAULT_SLIPPAGE_BPS,
-    integratorFeeRateBps = 100,
+    integratorFeeRateBps = INTEGRATOR_FEE_BPS,
   },
 ) => {
   try {
@@ -306,16 +316,7 @@ export const executeSwap = async (
         maxSlippageBps,
       );
     }
-    console.log({
-      poolId,
-      assetInAddress,
-      assetOutAddress,
-      amountIn: amountIn.toString(),
-      minAmountOut: calculatedMinOut.toString(),
-      maxSlippageBps,
-      integratorFeeRateBps,
-      integratorPublicKey: import.meta.env.VITE_BLITZ_SPARK_PUBLICKEY,
-    });
+
     const swap = await client.executeSwap({
       poolId,
       assetInAddress,
@@ -444,7 +445,7 @@ export const getLightningPaymentQuote = async (
   mnemonic,
   invoice,
   tokenAddress,
-  integratorFeeRateBps = 100,
+  integratorFeeRateBps = INTEGRATOR_FEE_BPS,
   maxSlippageBps = DEFAULT_MAX_SLIPPAGE_BPS,
 ) => {
   try {
@@ -490,7 +491,7 @@ export const payLightningWithToken = async (
     maxLightningFeeSats = null,
     rollbackOnFailure = true,
     useExistingBtcBalance = false,
-    integratorFeeRateBps = 100,
+    integratorFeeRateBps = INTEGRATOR_FEE_BPS,
   },
 ) => {
   try {
@@ -524,7 +525,13 @@ export const payLightningWithToken = async (
       return {
         didWork: false,
         error: result.error,
-        result: { success: false, error: result.error },
+        result: {
+          success: false,
+          error: result.error,
+          poolId: result.poolId,
+          tokenAmountSpent: result.tokenAmountSpent,
+          btcAmountReceived: result.btcAmountReceived,
+        },
       };
     }
   } catch (error) {
@@ -796,39 +803,6 @@ export const retryPendingSwapConfirmations = async (mnemoinc, sparkInfoRef) => {
 // UTILITY FUNCTIONS
 // ============================================
 
-export function satsToDollars(sats, currentPriceAinB) {
-  try {
-    const DOLLAR_DECIMALS = 1_000_000;
-    const numSats = typeof sats === "bigint" ? Number(sats) : Number(sats || 0);
-    const numPrice =
-      typeof currentPriceAinB === "bigint"
-        ? Number(currentPriceAinB)
-        : Number(currentPriceAinB || 0);
-    if (isNaN(numSats) || isNaN(numPrice) || numPrice === 0) return 0;
-    return (numSats * numPrice) / DOLLAR_DECIMALS;
-  } catch (error) {
-    console.error("Error in satsToDollars:", error);
-    return 0;
-  }
-}
-
-export function dollarsToSats(dollars, currentPriceAinB) {
-  try {
-    const DOLLAR_DECIMALS = 1_000_000;
-    const numDollars =
-      typeof dollars === "bigint" ? Number(dollars) : Number(dollars || 0);
-    const numPrice =
-      typeof currentPriceAinB === "bigint"
-        ? Number(currentPriceAinB)
-        : Number(currentPriceAinB || 0);
-    if (isNaN(numDollars) || isNaN(numPrice) || numPrice === 0) return 0;
-    return (numDollars * DOLLAR_DECIMALS) / numPrice;
-  } catch (error) {
-    console.error("Error in dollarsToSats:", error);
-    return 0;
-  }
-}
-
 export function currentPriceAinBToPriceDollars(currentPriceAInB) {
   try {
     const numPrice =
@@ -845,11 +819,15 @@ export function currentPriceAinBToPriceDollars(currentPriceAInB) {
 
 export const handleFlashnetError = (error) => {
   if (!isFlashnetErrorCode(error.errorCode)) {
-    return { isFlashnetError: false, message: error.message };
+    return {
+      isFlashnetError: false,
+      message: error.message,
+    };
   }
-
   const flashnetError = new FlashnetError(error.error, {
-    response: { ...error },
+    response: {
+      ...error,
+    },
   });
 
   const errorInfo = {
@@ -865,27 +843,21 @@ export const handleFlashnetError = (error) => {
     recovery: flashnetError.recovery,
   };
 
+  // Check for specific error types
   if (flashnetError.isSlippageError()) {
     errorInfo.type = "slippage";
-    errorInfo.userMessage = i18next.t(
-      "screens.inAccount.swapsPage.slippageError",
-    );
+    errorInfo.userMessage = "screens.inAccount.swapsPage.slippageError";
   } else if (flashnetError.isInsufficientLiquidityError()) {
     errorInfo.type = "insufficient_liquidity";
-    errorInfo.userMessage = i18next.t(
-      "screens.inAccount.swapsPage.noLiquidity",
-    );
+    errorInfo.userMessage = "screens.inAccount.swapsPage.noLiquidity";
   } else if (flashnetError.isAuthError()) {
     errorInfo.type = "authentication";
-    errorInfo.userMessage = i18next.t(
-      "screens.inAccount.swapsPage.authenticationError",
-    );
+    errorInfo.userMessage = "screens.inAccount.swapsPage.authenticationError";
   } else if (flashnetError.isPoolNotFoundError()) {
     errorInfo.type = "pool_not_found";
-    errorInfo.userMessage = i18next.t(
-      "screens.inAccount.swapsPage.noPoolError",
-    );
+    errorInfo.userMessage = "screens.inAccount.swapsPage.noPoolError";
   }
+  errorInfo.userMessage = i18next.t(errorInfo.userMessage);
 
   return errorInfo;
 };

@@ -24,14 +24,14 @@ export default async function giftCardPurchaseAmountTracker({
       } else {
         const totalPurchaseAmount = Math.round(
           ((dailyPurchaseAmount.amount + sendingAmountSat) / SATSPERBITCOIN) *
-            USDBTCValue.value
+            USDBTCValue.value,
         );
 
         if (totalPurchaseAmount > 9000)
           throw new Error(
             i18next.t(
-              "apps.giftCards.expandedGiftCardPage.dailyPurchaseAmountError"
-            )
+              "apps.giftCards.expandedGiftCardPage.dailyPurchaseAmountError",
+            ),
           );
 
         if (!testOnly) {

@@ -342,6 +342,50 @@ export async function updateMessage({
   }
 }
 
+export async function bulkUpdateMessages(messages) {
+  try {
+    const batch = writeBatch(db);
+    const messagesRef = collection(db, "contactMessages");
+    const timestamp = new Date().getTime();
+
+    for (const {
+      fromPubKey,
+      toPubKey,
+      newMessage,
+      retrivedContact,
+      privateKey,
+      currentTime,
+    } of messages) {
+      const useEncription = retrivedContact.isUsingEncriptedMessaging;
+      let message = {
+        fromPubKey,
+        toPubKey,
+        message: newMessage,
+        timestamp,
+        serverTimestamp: currentTime,
+        isGiftCard: !!newMessage?.giftCardInfo,
+      };
+
+      if (useEncription) {
+        const msgStr =
+          typeof message.message === "string"
+            ? message.message
+            : JSON.stringify(message.message);
+        message.message = encryptMessage(privateKey, toPubKey, msgStr);
+      }
+
+      batch.set(doc(messagesRef), message);
+    }
+
+    await batch.commit();
+    console.log("Bulk messages committed:", messages.length);
+    return true;
+  } catch (err) {
+    console.error("Error bulk updating messages:", err);
+    return false;
+  }
+}
+
 export async function syncDatabasePayment(myPubKey, privateKey) {
   try {
     const cachedConversations = await getCachedMessages();
@@ -475,6 +519,41 @@ export async function addGiftToDatabase(dataObject) {
     return true;
   } catch (e) {
     console.error("Error adding gift to database: ", e);
+    return false;
+  }
+}
+
+export async function bulkDeleteGiftsFromDatabase(uuids) {
+  try {
+    const db = getFirestore();
+    const batch = writeBatch(db);
+    uuids.forEach((uuid) => {
+      const giftRef = doc(db, "blitzGifts", uuid);
+      batch.delete(giftRef);
+    });
+    await batch.commit();
+    console.log(`Bulk deleted ${uuids.length} gifts from database`);
+    return true;
+  } catch (e) {
+    console.error("Error bulk deleting gifts from database:", e);
+    return false;
+  }
+}
+
+export async function bulkAddGiftsToDatabase(gifts) {
+  try {
+    const db = getFirestore();
+    const batch = writeBatch(db);
+    gifts.forEach((gift) => {
+      const giftRef = doc(db, "blitzGifts", gift.uuid);
+      const { claimURL, ...giftWithoutClaimUrl } = gift;
+      batch.set(giftRef, giftWithoutClaimUrl, { merge: false });
+    });
+    await batch.commit();
+    console.log(`Bulk saved ${gifts.length} gifts to database`);
+    return true;
+  } catch (e) {
+    console.error("Error bulk adding gifts to database:", e);
     return false;
   }
 }

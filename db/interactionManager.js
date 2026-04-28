@@ -9,7 +9,7 @@ const PRESET_LOCAL_DATA = {
   userFaceIDPereferance: false,
   fiatCurrenciesList: [],
   failedTransactions: [],
-  satDisplay: "word",
+  satDisplay: "symbol",
   enabledEcash: false,
   hideUnknownContacts: false,
   useTrampoline: true,
@@ -38,6 +38,9 @@ const PRESET_LOCAL_DATA = {
   enabledBTKNTokens: null,
   defaultSpendToken: "bitcoin",
   thousandsSeperator: "space",
+  enabledLiquidAutoSwap: true,
+  pinnedAccounts: [],
+  monthlyBudget: null,
 };
 
 async function sendDataToDB(newObject, uuid) {
@@ -54,7 +57,7 @@ async function sendDataToDB(newObject, uuid) {
 
     if (Object.keys(localStorageData).length > 0) {
       Object.entries(localStorageData).map(([key, value]) =>
-        Storage.setItem(key, value)
+        Storage.setItem(key, value),
       );
     }
 

@@ -1,5 +1,5 @@
-import { MAX_DERIVED_ACCOUNTS } from '../../constants';
-import { deriveSparkGiftMnemonic } from '../gift/deriveGiftWallet';
+import { MAX_DERIVED_ACCOUNTS } from "../../constants";
+import { deriveSparkGiftMnemonic } from "../gift/deriveGiftWallet";
 
 /**
  * Derive account mnemonic from main seed using Spark derivation scheme
@@ -9,9 +9,8 @@ import { deriveSparkGiftMnemonic } from '../gift/deriveGiftWallet';
  * @returns {Promise<string>} Derived mnemonic
  */
 export async function deriveAccountMnemonic(mainSeed, derivationIndex) {
-  // CRITICAL: Validate derivation index is in valid range
   if (
-    typeof derivationIndex !== 'number' ||
+    typeof derivationIndex !== "number" ||
     derivationIndex < 0 ||
     derivationIndex >= MAX_DERIVED_ACCOUNTS
   ) {
@@ -22,14 +21,14 @@ export async function deriveAccountMnemonic(mainSeed, derivationIndex) {
     );
   }
 
-  if (!mainSeed || typeof mainSeed !== 'string') {
-    throw new Error('Main seed must be a non-empty string');
+  if (!mainSeed || typeof mainSeed !== "string") {
+    throw new Error("Main seed must be a non-empty string");
   }
 
   // Reuse existing Spark derivation (same path as gifts, different index range)
   const result = await deriveSparkGiftMnemonic(mainSeed, derivationIndex);
   if (!result.success) {
-    throw new Error(result.error || 'Failed to derive account');
+    throw new Error(result.error || "Failed to derive account");
   }
   return result.derivedMnemonic;
 }
@@ -42,7 +41,7 @@ export async function deriveAccountMnemonic(mainSeed, derivationIndex) {
 export function isAccountDerived(account) {
   return (
     account &&
-    typeof account === 'object' &&
+    typeof account === "object" &&
     account.derivationIndex !== undefined &&
     account.derivationIndex !== null
   );
@@ -56,7 +55,7 @@ export function isAccountDerived(account) {
 export function isAccountImported(account) {
   return (
     account &&
-    typeof account === 'object' &&
+    typeof account === "object" &&
     account.mnemoinc !== undefined &&
     account.mnemoinc !== null &&
     account.derivationIndex === undefined
@@ -77,9 +76,9 @@ export function getRestorableIndices(
     const maxIndex = nextAccountDerivationIndex || 3;
     const existingIndices = new Set(
       custodyAccounts
-        .filter(acc => acc.accountType === 'derived')
-        .map(acc => acc.derivationIndex)
-        .filter(idx => typeof idx === 'number'),
+        .filter((acc) => acc.accountType === "derived")
+        .map((acc) => acc.derivationIndex)
+        .filter((idx) => typeof idx === "number"),
     );
 
     const restorable = [];
