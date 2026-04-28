@@ -208,7 +208,7 @@ export default function ExploreUsers() {
           <ThemeText
             textContent={`${formatBalanceAmount(max, false, masterInfoObject)} of ${formatBalanceAmount(
               BLITZ_GOAL_USER_COUNT,
-            )} (${(((max / BLITZ_GOAL_USER_COUNT) * 100).toFixed(4), false, masterInfoObject)}%)`}
+            )} (${((max / BLITZ_GOAL_USER_COUNT) * 100).toFixed(4)}%)`}
           />
         </div>
         <div
@@ -235,11 +235,10 @@ export default function ExploreUsers() {
               totalYesterday,
               false,
               masterInfoObject,
-            )} of ${formatBalanceAmount(BLITZ_GOAL_USER_COUNT)} (${
-              (((totalYesterday / BLITZ_GOAL_USER_COUNT) * 100).toFixed(4),
-              false,
-              masterInfoObject)
-            }%)`}
+            )} of ${formatBalanceAmount(BLITZ_GOAL_USER_COUNT)} (${(
+              (totalYesterday / BLITZ_GOAL_USER_COUNT) *
+              100
+            ).toFixed(4)}%)`}
           />
         </div>
       </div>
