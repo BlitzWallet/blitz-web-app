@@ -19,6 +19,8 @@ export const Colors = {
     walletHomeLightModeOffset: "#E4E4E4",
     walletHomeDarkModeOffset: "#002146",
     walletHomeLightsOutOffset: "#0d0d0d",
+    bitcoinOrange: "#FFAC30",
+    dollarGreen: "#60D263",
   },
   light: {
     blue: "#0375F6",

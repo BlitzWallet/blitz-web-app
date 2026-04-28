@@ -23,7 +23,7 @@ const IS_SPARK_REQUEST_ID =
 const IS_BITCOIN_REQUEST_ID = /^SparkCoopExitRequest:[0-9a-fA-F\-]+$/;
 
 const GIFT_DEEPLINK_REGEX =
-  /^(?:blitz-wallet:\/\/gift\/|https:\/\/(?:blitz-wallet\.com|blitzwalletapp\.com|blitzwallet\.app)\/gift\/)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}(#[A-Za-z0-9_-]+)?$/;
+  /^(?:blitz-wallet:\/\/gift\/|https:\/\/(?:blitz-wallet\.com|blitzwalletapp\.com|blitzwallet\.app)\/gift\/)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}(?:[#\/][A-Za-z0-9_-]+)?$/;
 
 const CONTACT_UNIVERSAL_LINK_REGEX =
   /^https?:\/\/(blitzwalletapp\.com|blitzwallet\.app|blitz-wallet\.com)\/u\/[A-Za-z0-9_-]+\/?$/;
@@ -134,6 +134,13 @@ const USDB_TOKEN_ID =
   "btkn1xgrvjwey5ngcagvap2dzzvsy4uk8ua9x69k82dwvt5e7ef9drm9qztux87";
 const DEFAULT_GOAL_EMOJI = "🎯";
 
+const MAX_GIFT_QUANTITY = 20;
+const GIFTS_QUANTITY_PRESETS = [1, 5, 10, 15, 20];
+
+const OVER_BUDGET_LIMIT = 1;
+const NEAR_BUDGET_LIMIT = 0.75;
+const MIN_USD_BTC_LIGHTNING_SWAP = 1000;
+
 export {
   //   COLORS,
   //   FONT,
@@ -229,4 +236,9 @@ export {
   PAYLINK_DEEPLINK_REGEX,
   BASIC_ACCOUNT_NAME_REGEX,
   DEFAULT_GOAL_EMOJI,
+  MAX_GIFT_QUANTITY,
+  GIFTS_QUANTITY_PRESETS,
+  OVER_BUDGET_LIMIT,
+  NEAR_BUDGET_LIMIT,
+  MIN_USD_BTC_LIGHTNING_SWAP,
 };
