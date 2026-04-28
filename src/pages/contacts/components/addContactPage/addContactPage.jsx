@@ -28,8 +28,16 @@ export default function AddContactPage({ selectedContact }) {
 
       {!!lnurl && (
         <div className="info-container">
-          <ThemeText className="info-label" textContent={"LNURL Address"} />
-          <ThemeText className="info-value" textContent={lnurl} />
+          <ThemeText
+            textStyles={{ margin: 0 }}
+            className="info-label"
+            textContent={"LNURL Address"}
+          />
+          <ThemeText
+            textStyles={{ margin: 0 }}
+            className="info-value"
+            textContent={lnurl}
+          />
         </div>
       )}
 

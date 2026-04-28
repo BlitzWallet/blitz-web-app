@@ -55,11 +55,15 @@ export default function ExpandedContactsPage({
   const [selectedContact] = useMemo(
     () =>
       decodedAddedContacts.filter((contact) => contact?.uuid === selectedUUID),
-    [decodedAddedContacts, selectedUUID]
+    [decodedAddedContacts, selectedUUID],
   );
-  console.log(selectedContact);
   const imageData = cache[selectedContact.uuid];
   const contactTransactions = contactsMessags[selectedUUID]?.messages || [];
+  const isLNURLContact =
+    selectedContact.isLNURL && selectedContact.receiveAddress?.includes("@");
+  const hasSecondaryLine = selectedContact.uniqueName || isLNURLContact;
+
+  console.log(selectedContact, "testing", isLNURLContact);
 
   useEffect(() => {
     //listening for messages when you're on the contact
@@ -96,7 +100,6 @@ export default function ExpandedContactsPage({
     updateSeenTransactions();
   }, [contactTransactions]);
 
-  console.log(contactTransactions);
   const handleShare = () => {
     if (selectedContact?.isLNURL || !selectedContact?.uniqueName) return;
 
@@ -162,7 +165,7 @@ export default function ExpandedContactsPage({
             textAlign: "center",
             opacity: 0.6,
             marginTop: 10,
-            marginBottom: selectedContact?.uniqueName ? 5 : 25,
+            marginBottom: hasSecondaryLine ? 5 : 25,
           }}
           textContent={selectedContact.name || t("constants.annonName")}
         />
@@ -177,6 +180,16 @@ export default function ExpandedContactsPage({
             textContent={`@${selectedContact.uniqueName}`}
           />
         )}
+        {isLNURLContact && (
+          <ThemeText
+            textStyles={{
+              textAlign: "center",
+              margin: 0,
+              marginBottom: 20,
+            }}
+            textContent={`@${selectedContact.receiveAddress.split("@")[1]}`}
+          />
+        )}
 
         <div
           className="button-global-container"
@@ -184,8 +197,8 @@ export default function ExpandedContactsPage({
             marginBottom: selectedContact?.bio
               ? 10
               : contactTransactions.length
-              ? 30
-              : 0,
+                ? 30
+                : 0,
           }}
         >
           <CustomSendAndRequsetBTN
@@ -225,7 +238,7 @@ export default function ExpandedContactsPage({
                 openOverlay({
                   for: "error",
                   errorMessage: t(
-                    "contacts.expandedContactPage.requestLNURLError"
+                    "contacts.expandedContactPage.requestLNURLError",
                   ),
                 });
                 return;
@@ -283,7 +296,6 @@ export default function ExpandedContactsPage({
       </>
     ),
     [
-      theme,
       darkModeType,
       selectedContact?.name,
       selectedContact?.uniqueName,
@@ -294,7 +306,8 @@ export default function ExpandedContactsPage({
       isConnectedToTheInternet,
       hideProfileImage,
       contactTransactions.length,
-    ]
+      hasSecondaryLine,
+    ],
   );
 
   if (hideProfileImage) {
@@ -406,7 +419,7 @@ export default function ExpandedContactsPage({
           <ListHeaderComponent />
           <ThemeText
             textStyles={{
-              marginTop: 20,
+              margin: "20px auto 0",
               textAlign: "center",
               width: INSET_WINDOW_WIDTH,
             }}
