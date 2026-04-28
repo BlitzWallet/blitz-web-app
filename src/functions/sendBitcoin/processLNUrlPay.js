@@ -195,7 +195,6 @@ export default async function processLNUrlPay(input, context) {
           paymentType: !!decoded.data.usingSparkAddress ? "spark" : "lightning",
           masterInfoObject,
           mnemonic: currentWalletMnemoinc,
-          sendWebViewRequest,
         }),
       );
     }
