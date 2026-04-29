@@ -173,6 +173,10 @@ export default function SelectLRC20Token({
                     customLabel=""
                     useMillionDenomination={true}
                     neverHideBalance={true}
+                    containerStyles={{ justifyContent: "flex-start" }}
+                    styles={{
+                      fontSize: "0.85rem",
+                    }}
                   />
                 </div>
               </button>
