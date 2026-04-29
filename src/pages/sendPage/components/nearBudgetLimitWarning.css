@@ -1,0 +1,45 @@
+.budget-warning-sheet {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.budget-warning-icon {
+  margin-bottom: 16px;
+}
+
+.budget-warning-title {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.budget-warning-body {
+  font-size: 0.98rem;
+  line-height: 1.45;
+  opacity: 0.7;
+  margin: 0 0 24px;
+}
+
+.budget-warning-amount {
+  width: 100%;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: auto;
+  box-sizing: border-box;
+}
+
+.budget-warning-label {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin: 0 0 4px;
+}
+
+.budget-warning-continue {
+  align-self: stretch;
+}
