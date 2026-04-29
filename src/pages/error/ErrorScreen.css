@@ -77,9 +77,6 @@
   border-radius: 0 0 20px 20px;
 }
 
-.error-ok-btn:hover {
-  background: rgba(3, 117, 246, 0.06);
-}
 .error-ok-btn:active {
   opacity: 0.5;
 }

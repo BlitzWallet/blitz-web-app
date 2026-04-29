@@ -10,7 +10,7 @@ export default function ErrorScreen({ overlay, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [visible, setVisible] = useState(true);
-  const { theme } = useThemeContext();
+  const { theme, darkModeType } = useThemeContext();
   const { backgroundOffset, backgroundColor } = useThemeColors();
   const { t } = useTranslation();
 
