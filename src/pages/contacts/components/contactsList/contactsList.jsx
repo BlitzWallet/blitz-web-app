@@ -33,6 +33,7 @@ export default function ChooseContactListPage() {
         selectedContact: contact,
         paymentType: "send",
         imageData,
+        fromPage: "halfModal",
       },
     });
   }, []);

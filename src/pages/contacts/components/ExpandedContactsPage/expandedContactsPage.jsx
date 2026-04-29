@@ -211,13 +211,26 @@ export default function ExpandedContactsPage({
                 });
                 return;
               }
-              navigate("/sendAndRequestPage", {
-                state: {
-                  selectedContact: selectedContact,
-                  paymentType: "send",
-                  imageData,
-                },
-              });
+              if (selectedContact?.isLNURL) {
+                navigate("/sendAndRequestPage", {
+                  state: {
+                    selectedContact: selectedContact,
+                    paymentType: "send",
+                    imageData,
+                    endReceiveType: "BTC",
+                  },
+                });
+              } else {
+                openOverlay({
+                  for: "halfModal",
+                  contentType: "SelectPaymentType",
+                  params: {
+                    paymentType: "send",
+                    selectedContact: selectedContact,
+                    imageData,
+                  },
+                });
+              }
             }}
             arrowColor={
               theme
@@ -250,10 +263,12 @@ export default function ExpandedContactsPage({
                 });
                 return;
               }
-              navigate("/sendAndRequestPage", {
-                state: {
-                  selectedContact: selectedContact,
+              openOverlay({
+                for: "halfModal",
+                contentType: "SelectPaymentType",
+                params: {
                   paymentType: "request",
+                  selectedContact: selectedContact,
                   imageData,
                 },
               });
