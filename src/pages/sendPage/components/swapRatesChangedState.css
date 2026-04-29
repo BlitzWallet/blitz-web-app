@@ -1,0 +1,23 @@
+.swap-rates-state {
+  width: 100%;
+  max-width: 420px;
+  margin: 12px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.swap-rates-state-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.swap-rates-state-body {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  opacity: 0.65;
+  margin: 0;
+}
