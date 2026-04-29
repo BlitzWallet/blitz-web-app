@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./ErrorScreen.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { Colors } from "../../constants/theme";
-import CustomButton from "../../components/customButton/customButton";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
-import ThemeText from "../../components/themeText/themeText";
+import { useTranslation } from "react-i18next";
 
 export default function ErrorScreen({ overlay, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [visible, setVisible] = useState(true); // controls animation
-  const { theme, darkModeType } = useThemeContext();
+  const [visible, setVisible] = useState(true);
+  const { theme } = useThemeContext();
   const { backgroundOffset, backgroundColor } = useThemeColors();
+  const { t } = useTranslation();
 
   const errorMessage =
     overlay.errorMessage ||
@@ -47,50 +46,43 @@ export default function ErrorScreen({ overlay, onClose }) {
     <AnimatePresence onExitComplete={handleExitComplete}>
       {visible && (
         <motion.div
-          onClick={(e) => handleOkClick(e)}
+          onClick={handleOkClick}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: Colors.constants.halfModalBackground,
-            zIndex: 2000,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+          transition={{ duration: 0.25 }}
+          className="error-backdrop"
         >
-          <div
-            style={{
-              backgroundColor: theme ? backgroundOffset : Colors.dark.text,
-            }}
-            className="error-content"
+          <motion.div
             onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 8 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            className={`error-card error-card--light`}
           >
-            <div className="error-content-scroll">
-              <ThemeText
-                className={"error-message"}
-                textContent={errorMessage}
-              />
+            {/* Message */}
+            <div className="error-message-wrap">
+              <p className="error-message">{errorMessage}</p>
             </div>
 
-            <div style={{ alignSelf: "center" }} onClick={handleOkClick}>
-              <CustomButton
-                buttonStyles={{
-                  backgroundColor: theme ? backgroundColor : Colors.light.blue,
-                }}
-                textStyles={{
-                  color: theme ? Colors.dark.text : Colors.dark.text,
-                }}
-                textContent={"OK"}
-              />
-            </div>
-          </div>
+            {/* Divider */}
+            <div className="error-divider" />
+
+            {/* OK Button */}
+            <button
+              className="error-ok-btn"
+              onClick={handleOkClick}
+              style={{
+                color:
+                  theme && darkModeType
+                    ? Colors.light.text
+                    : Colors.constants.blue,
+              }}
+            >
+              {t("constants.back")}
+            </button>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

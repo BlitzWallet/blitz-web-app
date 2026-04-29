@@ -1,22 +1,85 @@
-.error-content {
-  height: max-content;
-  max-height: 95%;
-  background-color: white;
-  padding: 10px;
-  border-radius: 8px;
-  width: 95%;
-  max-width: 300px;
+/* ── Backdrop ── */
+.error-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Card ── */
+.error-card {
+  width: min(320px, 90vw);
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  overflow: hidden;
 }
-.error-content-scroll {
-  overflow-y: scroll;
+
+.error-card--light {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+}
+
+/* ── Message ── */
+.error-message-wrap {
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 0 24px;
+  margin-top: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  /* Fade edges when overflowing */
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 }
 
 .error-message {
-  text-align: center;
-  margin-bottom: 20px;
-  margin-top: 10px;
   font-size: 16px;
-  line-break: anywhere;
+  font-weight: 400;
+  line-height: 1.55;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* ── Divider ── */
+.error-divider {
+  width: 100%;
+  height: 0.5px;
+  margin-top: 4px;
+}
+
+.error-card--light .error-divider {
+  background: rgba(0, 0, 0, 0.1);
+}
+.error-card--dark .error-divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── OK button ── */
+.error-ok-btn {
+  all: unset;
+  cursor: pointer;
+  width: 100%;
+  padding: 16px 0;
+  text-align: center;
+  font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
+  border-radius: 0 0 20px 20px;
+}
+
+.error-ok-btn:hover {
+  background: rgba(3, 117, 246, 0.06);
+}
+.error-ok-btn:active {
+  opacity: 0.5;
 }
