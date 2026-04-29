@@ -87,6 +87,7 @@ export default function ChooseLRC20TokenContainer({
           </div>
           {uiState !== "CONTACT_REQUEST" && (
             <ThemeText
+              textStyles={{ color: Colors.light.text }}
               className="choose-token-balance"
               textContent={String(balance)}
             />
