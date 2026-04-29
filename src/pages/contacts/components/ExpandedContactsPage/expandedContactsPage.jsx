@@ -57,11 +57,11 @@ export default function ExpandedContactsPage({
       decodedAddedContacts.filter((contact) => contact?.uuid === selectedUUID),
     [decodedAddedContacts, selectedUUID],
   );
-  const imageData = cache[selectedContact.uuid];
+  const imageData = cache[selectedContact?.uuid];
   const contactTransactions = contactsMessags[selectedUUID]?.messages || [];
   const isLNURLContact =
-    selectedContact.isLNURL && selectedContact.receiveAddress?.includes("@");
-  const hasSecondaryLine = selectedContact.uniqueName || isLNURLContact;
+    selectedContact?.isLNURL && selectedContact.receiveAddress?.includes("@");
+  const hasSecondaryLine = selectedContact?.uniqueName || isLNURLContact;
 
   console.log(selectedContact, "testing", isLNURLContact);
 
@@ -93,7 +93,7 @@ export default function ExpandedContactsPage({
 
       queueSetCashedMessages({
         newMessagesList,
-        myPubKey: globalContactsInformation.myProfile.uuid,
+        myPubKey: globalContactsInformation.myProfile?.uuid,
       });
     }
 
@@ -167,10 +167,10 @@ export default function ExpandedContactsPage({
             marginTop: 10,
             marginBottom: hasSecondaryLine ? 5 : 25,
           }}
-          textContent={selectedContact.name || t("constants.annonName")}
+          textContent={selectedContact?.name || t("constants.annonName")}
         />
 
-        {selectedContact.uniqueName && (
+        {selectedContact?.uniqueName && (
           <ThemeText
             textStyles={{
               textAlign: "center",
@@ -245,9 +245,9 @@ export default function ExpandedContactsPage({
 
           <CustomSendAndRequsetBTN
             btnType={"receive"}
-            activeOpacity={selectedContact.isLNURL ? 1 : undefined}
+            activeOpacity={selectedContact?.isLNURL ? 1 : undefined}
             btnFunction={() => {
-              if (selectedContact.isLNURL) {
+              if (selectedContact?.isLNURL) {
                 openOverlay({
                   for: "error",
                   errorMessage: t(
