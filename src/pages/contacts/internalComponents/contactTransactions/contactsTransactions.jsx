@@ -65,7 +65,7 @@ function ConfirmedOrSentTransaction({
           timeDifferenceMinutes,
           timeDifferenceHours,
           timeDifferenceDays,
-          timeDifferenceYears
+          timeDifferenceYears,
         )}
         isFromProfile={false}
         t={t}
@@ -131,7 +131,7 @@ function ConfirmedOrSentTransaction({
             timeDifferenceMinutes,
             timeDifferenceHours,
             timeDifferenceDays,
-            timeDifferenceYears
+            timeDifferenceYears,
           )}
         />
       </div>
@@ -142,8 +142,8 @@ function ConfirmedOrSentTransaction({
           masterInfoObject.userBalanceDenomination === "hidden"
             ? ""
             : isOutgoingPayment
-            ? "-"
-            : "+"
+              ? "-"
+              : "+"
         }
         containerStyles={{
           marginBottom: "auto",
@@ -155,6 +155,8 @@ function ConfirmedOrSentTransaction({
               ? textColor
               : Colors.constants.cancelRed
             : textColor,
+          marginTop: 0,
+          marginBottom: 0,
         }}
         balance={txParsed.amountMsat / 1000}
         useMillionDenomination={true}
@@ -259,7 +261,7 @@ export default function ContactsTransactionItem(props) {
       navigate,
       masterInfoObject,
       globalContactsInformation,
-    ]
+    ],
   );
 
   const acceptPayRequest = useCallback(
@@ -274,7 +276,7 @@ export default function ContactsTransactionItem(props) {
         "contacts.internalComponents.contactsTransactions.acceptProfileMessage",
         {
           name: selectedContact.name || selectedContact.uniqueName,
-        }
+        },
       );
       const payingContactMessage = t(
         "contacts.internalComponents.contactsTransactions.acceptPayingContactMessage",
@@ -282,7 +284,7 @@ export default function ContactsTransactionItem(props) {
           name:
             globalContactsInformation.myProfile.name ||
             globalContactsInformation.myProfile.uniqueName,
-        }
+        },
       );
 
       const {
@@ -347,7 +349,7 @@ export default function ContactsTransactionItem(props) {
       imageData,
       selectedContact,
       getServerTime,
-    ]
+    ],
   );
 
   const handleDescriptionClick = () => {
@@ -400,7 +402,7 @@ export default function ContactsTransactionItem(props) {
                     fiatStats,
                     useMillionDenomination: true,
                   }),
-                }
+                },
               )}
             />
             <ThemeText
@@ -413,7 +415,7 @@ export default function ContactsTransactionItem(props) {
                 timeDifferenceMinutes,
                 timeDifferenceHours,
                 timeDifferenceDays,
-                timeDifferenceYears
+                timeDifferenceYears,
               )}
             />
 
@@ -449,7 +451,7 @@ export default function ContactsTransactionItem(props) {
                 opacity: 1,
               }}
               textContent={t(
-                "contacts.internalComponents.contactsTransactions.send"
+                "contacts.internalComponents.contactsTransactions.send",
               )}
             />
 
