@@ -1,0 +1,56 @@
+.choose-token-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.choose-token-selector {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  cursor: pointer;
+}
+
+.choose-token-selector:hover {
+  opacity: 0.9;
+}
+
+.choose-token-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.choose-token-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.choose-token-copy {
+  flex: 1;
+  min-width: 0;
+  margin-left: 15px;
+  text-align: left;
+}
+
+.choose-token-title {
+  color: var(--lmt);
+  font-size: 1rem;
+}
+
+.choose-token-balance {
+  color: var(--lmt);
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
