@@ -1,0 +1,31 @@
+.send-max-container {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 16px 0 8px;
+}
+
+.send-max-pill {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  transition: opacity 0.15s ease;
+}
+
+.send-max-pill:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.send-max-pill:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.send-max-pill.compact {
+  min-width: 68px;
+}
