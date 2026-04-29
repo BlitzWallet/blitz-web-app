@@ -4,11 +4,10 @@ import "./style.css";
 import numberConverter from "../../functions/numberConverter";
 import { SATSPERBITCOIN } from "../../constants";
 import useThemeColors from "../../hooks/useThemeColors";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Dot } from "lucide-react";
 
 function getKeyboardKeys(showDot) {
   return KEYBOARD_KEYS.map((key) => {
-    if (key === "C" && showDot) return ".";
     return key;
   });
 }
@@ -21,12 +20,22 @@ export default function CustomNumberKeyboard({
   showDot,
   usingForBalance,
   fiatStats,
+  customFunction,
 }) {
   const { textColor } = useThemeColors();
-  // const {theme,darkModeType}=usethemec
   const addPin = useCallback(
     (id) => {
-      console.log(id);
+      if (customFunction) {
+        if (id === "back") {
+          customFunction(null);
+        } else if (id === "C") {
+          setAmountValue("");
+        } else {
+          customFunction(String(id));
+        }
+        return;
+      }
+
       if (id === "back") {
         setAmountValue((prev) => {
           return frompage === "sendingPage"
@@ -34,7 +43,6 @@ export default function CustomNumberKeyboard({
                 1000
             : String(prev).slice(0, String(prev).length - 1);
         });
-        // } else setAmountValue(0);
       } else if (id === "C") {
         setAmountValue("");
       } else {
@@ -43,10 +51,8 @@ export default function CustomNumberKeyboard({
 
           if (frompage === "sendingPage") {
             newNumber = (String(prev / 1000) + id) * 1000;
-          } else if (prev?.includes(".") && id === ".")
-            newNumber = prev; //making sure only one decimal is in number
+          } else if (prev?.includes(".") && id === ".") newNumber = prev;
           else if (prev?.includes(".") && prev.split(".")[1].length > 1) {
-            //controling length to max 2 digits after decimal
             newNumber = prev;
           } else {
             newNumber = String(prev) + id;
@@ -62,12 +68,9 @@ export default function CustomNumberKeyboard({
               newNumber,
               showDot || showDot === undefined ? "fiat" : "sats",
               undefined,
-              fiatStats
+              fiatStats,
             );
-            console.log(fiatStats?.value);
-            console.log(convertedValue, "CONVERTED VAL");
             const numberLength = integerPartLength(convertedValue);
-            console.log(numberLength, "NUMBER LENGTH");
             if (convertedValue > 25_000_000) return prev;
           }
 
@@ -75,7 +78,14 @@ export default function CustomNumberKeyboard({
         });
       }
     },
-    [frompage, setAmountValue, showDot, usingForBalance, fiatStats]
+    [
+      customFunction,
+      frompage,
+      setAmountValue,
+      showDot,
+      usingForBalance,
+      fiatStats,
+    ],
   );
 
   return (
@@ -88,7 +98,13 @@ export default function CustomNumberKeyboard({
             className={`keyboard-key ${keyClassName}`}
             onClick={() => addPin(num)}
           >
-            {num === "back" ? <ChevronLeft size={20} /> : num}
+            {num === "back" ? (
+              <ChevronLeft color={textColor} size={20} />
+            ) : num === "C" && showDot ? (
+              <Dot color={textColor} size={20} />
+            ) : (
+              num
+            )}
           </button>
         ))}
       </div>
