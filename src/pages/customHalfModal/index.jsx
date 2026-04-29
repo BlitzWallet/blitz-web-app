@@ -9,6 +9,11 @@ import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
 import EditLNURLContactOnReceivePage from "./components/editLNURLOnReceive";
 import LRC20TokenInformation from "../../functions/lrc20/lrc20TokenDataHalfModal";
 import AddContactsModal from "../contacts/components/addContactsHalfModal/addContactsHalfModal";
+import SelectPaymentType from "../contacts/internalComponents/selectPaymentType/SelectPaymentType";
+import SelectContactRequestCurrency from "../contacts/internalComponents/selectContactRequsetCurrency/SelectContactRequestCurrency";
+import NearBudgetLimitWarning from "../sendPage/components/NearBudgetLimitWarning";
+import SelectPaymentMethod from "../sendPage/components/selectPaymentMethod";
+import SelectLRC20Token from "../sendPage/components/selectLRC20Token";
 
 export default function CustomHalfModal({
   onClose,
@@ -96,6 +101,52 @@ export default function CustomHalfModal({
             params={params}
           />
         );
+      case "SelectPaymentType":
+        return (
+          <SelectPaymentType
+            theme={theme}
+            darkModeType={darkModeType}
+            params={params}
+            onClose={handleClose}
+            openOverlay={openOverlay}
+          />
+        );
+      case "SelectContactRequestCurrency":
+        return (
+          <SelectContactRequestCurrency
+            theme={theme}
+            darkModeType={darkModeType}
+            params={params}
+            onClose={handleClose}
+          />
+        );
+      case "SelectPaymentMethod":
+        return (
+          <SelectPaymentMethod
+            theme={theme}
+            darkModeType={darkModeType}
+            params={params}
+            onClose={handleClose}
+          />
+        );
+      case "SelectLRC20Token":
+        return (
+          <SelectLRC20Token
+            sparkInformation={params?.sparkInformation}
+            goBackFunction={handleClose}
+            setSelectedToken={(token) => {
+              if (params?.onSelect) params.onSelect(token);
+              handleClose();
+            }}
+          />
+        );
+      case "nearBudgetLimitWarning":
+        return (
+          <NearBudgetLimitWarning
+            sendingAmount={params?.sendingAmount}
+            handleBackPressFunction={handleClose}
+          />
+        );
       case "confirmSMS":
         return <div>Confirm SMS: {params?.message}</div>;
       default:
@@ -147,7 +198,7 @@ export default function CustomHalfModal({
               bottom: 0,
               left: 0,
               right: 0,
-              height: contentHeight ? contentHeight : `${slideHeight * 100}vh`,
+              height: contentHeight ? contentHeight : `${slideHeight}`,
               background: theme ? backgroundOffset : "white",
               borderTopLeftRadius: "20px",
               borderTopRightRadius: "20px",
@@ -161,7 +212,6 @@ export default function CustomHalfModal({
                 width: "40px",
                 height: "5px",
                 borderRadius: "3px",
-
                 margin: "10px auto",
               }}
             />

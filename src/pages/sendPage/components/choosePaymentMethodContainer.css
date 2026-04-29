@@ -1,0 +1,85 @@
+.payment-method-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Card */
+.selector-container {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: white;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.selector-container:hover {
+  opacity: 0.85;
+}
+
+.selector-container.disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+/* Icon */
+.icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Variant backgrounds */
+.btc-bg {
+  background-color: #f7931a;
+}
+
+.usd-bg {
+  background-color: #4caf50;
+}
+
+.icon-image {
+  width: 20px;
+  height: 20px;
+}
+
+/* Text */
+.text-container {
+  flex: 1;
+  margin-left: 15px;
+}
+
+.balance-title {
+  color: var(--lmt);
+  font-size: 14px;
+}
+
+.amount-text {
+  color: var(--lmt);
+  opacity: 0.7;
+  font-size: 16px;
+}
+
+.amount-text.hidden-balance {
+  font-family: monospace;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* Chevron */
+.chevron {
+  font-size: 18px;
+  color: #4da6ff;
+}
+
+.choose-token-container .choose-token-balance {
+  margin-top: 0;
+  margin-bottom: 0;
+}

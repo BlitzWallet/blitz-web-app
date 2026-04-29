@@ -15,13 +15,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 16px 16px;
+  box-sizing: border-box;
+  justify-content: center;
+}
+.sendContainer .sendingAssetTitle {
+  opacity: 0.5;
+  text-align: center;
+  margin: 0;
+}
+.sendContainer .buttonContainer {
+  width: 90%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+.sendContainer .choseMethodContainer {
+  width: 90%;
+  max-width: 300px;
+  margin: 0 auto 10px;
 }
 
 .sendContainer .paymentInfoContainer .balanceContainer {
   width: 100%;
   overflow-x: scroll;
   font-weight: 400;
-  margin-top: auto;
   margin-bottom: 0;
   text-align: center;
   text-wrap-mode: nowrap;
@@ -34,7 +53,7 @@
   margin-top: 0;
   margin-bottom: 30px;
 }
-.sendContainer .paymentInfoContainer button {
+.sendContainer .paymentInfoContainer > .customButton {
   width: 100%;
   margin-top: auto;
 }
@@ -67,7 +86,7 @@
   margin: 0;
 }
 .sendContainer .customTextInputContinaerStyles {
-  margin-top: auto;
+  margin-top: 0;
 }
 .sendContainer .custon-keyboard-styles {
   width: 100%;
