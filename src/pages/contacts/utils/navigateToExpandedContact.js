@@ -38,7 +38,7 @@ export function useNavigateToContact() {
           toggleGlobalContactsInformation(
             {
               myProfile: { ...globalContactsInformation.myProfile },
-              addedContacts: encriptMessage(
+              addedContacts: await encryptMessage(
                 contactsPrivateKey,
                 publicKey,
                 JSON.stringify(newAddedContacts),

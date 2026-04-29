@@ -1,6 +1,7 @@
 import handlePreSendPageParsing from "./handlePreSendPageParsing";
 import getDataFromClipboard from "../getDataFromClipboard";
 import QrScanner from "qr-scanner";
+import i18next from "i18next";
 
 async function navigateToSendUsingClipboard() {
   const response = await getDataFromClipboard();
@@ -29,10 +30,8 @@ async function navigateToSendUsingClipboard() {
   }
 
   if (preParsingResponse.isExternalChain) {
-    const { method, screen, params } = resolveExternalChainNavigation(
-      preParsingResponse,
-      from,
-    );
+    const { method, screen, params } =
+      resolveExternalChainNavigation(preParsingResponse);
     return {
       didWork: true,
       params,
@@ -115,7 +114,7 @@ function formatStablecoinAmount(rawAmount, decimals = 2) {
   return value.toFixed(decimals);
 }
 
-function resolveExternalChainNavigation(parsedResult, from) {
+function resolveExternalChainNavigation(parsedResult) {
   if (parsedResult.resolvedToken) {
     return {
       screen: "StablecoinSendScreen",

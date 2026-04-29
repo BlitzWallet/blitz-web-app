@@ -108,7 +108,7 @@ export default async function processBolt11Invoice(input, context) {
           getFee: true,
           address: input.data.address,
           amountSats: amountSat,
-          paymentType: !!input.data.usingSparkAddress ? "spark" : "lightning",
+          paymentType: input.data.usingSparkAddress ? "spark" : "lightning",
           masterInfoObject,
           mnemonic: currentWalletMnemoinc,
         }),

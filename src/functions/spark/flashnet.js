@@ -997,3 +997,24 @@ export const getCurrentPrice = async (mnemonic, poolId) => {
     return { didWork: false, error: error.message };
   }
 };
+
+/**
+ * Get refund txid from error message
+ * @param {string} error - The error to check
+ * @returns {txid|undefined} transaction id
+ */
+
+const getRefundTxidFromErrormessage = (message) => {
+  try {
+    const match = message.match(FLASHNET_REFUND_REGEX);
+
+    if (match) {
+      const transferID = match[1]; // first capture group
+      return transferID;
+    } else {
+      console.log("No transfer ID found");
+    }
+  } catch (err) {
+    console.log("error getting txid from error message", err);
+  }
+};

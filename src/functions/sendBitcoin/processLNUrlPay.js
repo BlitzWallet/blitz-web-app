@@ -3,7 +3,11 @@ import { MIN_USD_BTC_LIGHTNING_SWAP, SATSPERBITCOIN } from "../../constants";
 import { getBolt11InvoiceForContact } from "../contacts";
 import { isBlitzLNURLAddress } from "../lnurl";
 import normalizeLNURLAddress from "../lnurl/normalizeLNURLAddress";
-import { dollarsToSats, getLightningPaymentQuote } from "../spark/flashnet";
+import {
+  dollarsToSats,
+  getLightningPaymentQuote,
+  USD_ASSET_ADDRESS,
+} from "../spark/flashnet";
 import { getLNAddressForLiquidPayment } from "./payments";
 import { sparkPaymenWrapper } from "../spark/payments";
 
@@ -27,8 +31,7 @@ export default async function processLNUrlPay(input, context) {
     poolInfoRef,
   } = context;
 
-  const [username, domain] = input.data.address?.split("@");
-  console.log(username, domain);
+  const [username, domain] = input?.data?.address?.split("@") || [];
 
   const nomralizedAddress = normalizeLNURLAddress(input.data.address);
   if (
@@ -192,7 +195,7 @@ export default async function processLNUrlPay(input, context) {
           getFee: true,
           address: invoice,
           amountSats: Number(enteredPaymentInfo.amount),
-          paymentType: !!decoded.data.usingSparkAddress ? "spark" : "lightning",
+          paymentType: decoded.data.usingSparkAddress ? "spark" : "lightning",
           masterInfoObject,
           mnemonic: currentWalletMnemoinc,
         }),

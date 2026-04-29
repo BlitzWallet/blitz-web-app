@@ -22,7 +22,7 @@ import {
 } from "../lrc20/cachedTokens";
 import Storage from "../localStorage";
 import { FlashnetClient } from "@flashnet/sdk";
-import { DEFAULT_PAYMENT_EXPIRY_SEC } from "../../constants";
+import { DEFAULT_PAYMENT_EXPIRY_SEC, USDB_TOKEN_ID } from "../../constants";
 
 export let sparkWallet = {};
 export let flashnetClients = {};
@@ -570,8 +570,6 @@ export const querySparkHodlLightningPayments = async ({
   mnemonic,
 }) => {
   try {
-    const runtime = await selectSparkRuntime(mnemonic);
-
     const wallet = await getWallet(mnemonic);
     const response = await await wallet.queryHTLC({
       paymentHashes,
