@@ -5,6 +5,7 @@ import { Colors } from "../../constants/theme";
 import { useThemeContext } from "../../contexts/themeContext";
 import useThemeColors from "../../hooks/useThemeColors";
 import { useTranslation } from "react-i18next";
+import "./ErrorScreen.css";
 
 export default function ErrorScreen({ overlay, onClose }) {
   const navigate = useNavigate();
