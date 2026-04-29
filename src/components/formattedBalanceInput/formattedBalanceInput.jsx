@@ -21,6 +21,8 @@ export default function FormattedBalanceInput({
   activeOpacity = 0.2,
   maxWidth = 0.95,
   customCurrencyCode = "",
+  forceCurrency = false,
+  maxDecimals = 2,
 }) {
   const containerRef = useRef(null);
   const amountRef = useRef(null);
@@ -30,18 +32,22 @@ export default function FormattedBalanceInput({
   const { textColor } = useThemeColors();
   const { fiatStats } = useNodeContext();
 
-  const currencyText = fiatStats.coin || "USD";
-  const showSymbol = masterInfoObject.satDisplay !== "word";
+  const currencyText = forceCurrency || masterInfoObject.fiatCurrency || "USD";
+  const showSymbol = masterInfoObject.satDisplay != "word";
+
+  const currencyInfo = useMemo(
+    () =>
+      formatCurrency({
+        amount: 0,
+        code: currencyText,
+      }),
+    [currencyText],
+  );
 
   const formattedAmount = formatBalanceAmount(
     amountValue,
     false,
-    masterInfoObject
-  );
-
-  const currencyInfo = useMemo(
-    () => formatCurrency({ amount: 0, code: currencyText }),
-    [currencyText]
+    masterInfoObject,
   );
 
   const isSymbolInFront = currencyInfo[3];
@@ -64,6 +70,47 @@ export default function FormattedBalanceInput({
     padding: 12,
     displayText,
   });
+
+  if (customCurrencyCode) {
+    return (
+      <div
+        ref={containerRef}
+        onClick={containerFunction}
+        className="formatted-balance-input-container"
+        style={{
+          opacity: !amountValue ? HIDDEN_OPACITY : 1,
+          maxWidth: `${maxWidth * 100}%`,
+          ...customTextInputContainerStyles,
+        }}
+      >
+        <ThemeText
+          ref={amountRef}
+          textStyles={{
+            fontSize,
+            color: textColor,
+            whiteSpace: "nowrap",
+            marginRight: 5,
+            ...customTextInputStyles,
+          }}
+          textContent={formatBalanceAmount(
+            amountValue,
+            false,
+            masterInfoObject,
+            maxDecimals,
+          )}
+        />
+        <ThemeText
+          ref={labelRef}
+          textStyles={{ fontSize, color: textColor }}
+          textContent={
+            customCurrencyCode.length > 4
+              ? customCurrencyCode.toUpperCase()?.slice(0, 3) + ".."
+              : customCurrencyCode.toUpperCase()
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div
