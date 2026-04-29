@@ -31,6 +31,8 @@ import {
   sendPushNotification,
 } from "../../../../functions/messaging/publishMessage";
 import { useOverlay } from "../../../../contexts/overlayContext";
+import ThemeIcon from "../../../../components/themeIcon";
+import formatBalanceAmount from "../../../../functions/formatNumber";
 
 function ConfirmedOrSentTransaction({
   txParsed,
@@ -39,8 +41,8 @@ function ConfirmedOrSentTransaction({
   timeDifferenceHours,
   timeDifferenceDays,
   timeDifferenceYears,
-  props,
   navigate,
+  isPendingRequest,
 }) {
   const { t } = useTranslation();
   const { theme, darkModeType } = useThemeContext();
@@ -49,9 +51,62 @@ function ConfirmedOrSentTransaction({
 
   const didDeclinePayment = txParsed.isRedeemed != null && !txParsed.isRedeemed;
 
-  const isOutgoingPayment =
-    (txParsed.didSend && !txParsed.isRequest) ||
-    (txParsed.isRequest && txParsed.isRedeemed && !txParsed.didSend);
+  const isOutgoingPayment = useMemo(
+    () =>
+      (txParsed.didSend && !txParsed.isRequest) ||
+      (txParsed.isRequest && txParsed.isRedeemed && !txParsed.didSend),
+    [txParsed.didSend, txParsed.isRequest, txParsed.isRedeemed],
+  );
+
+  const timeDisplay = useMemo(
+    () =>
+      getTimeDisplay(
+        timeDifferenceMinutes,
+        timeDifferenceHours,
+        timeDifferenceDays,
+        timeDifferenceYears,
+      ),
+    [
+      timeDifferenceMinutes,
+      timeDifferenceHours,
+      timeDifferenceDays,
+      timeDifferenceYears,
+    ],
+  );
+
+  const transactionContent = useMemo(
+    () =>
+      getTransactionContent({
+        paymentDescription,
+        didDeclinePayment,
+        txParsed,
+        t,
+      }),
+    [paymentDescription, didDeclinePayment, txParsed, t],
+  );
+
+  const textColorValue = useMemo(
+    () =>
+      didDeclinePayment
+        ? theme && darkModeType
+          ? textColor
+          : Colors.constants.cancelRed
+        : textColor,
+    [didDeclinePayment, theme, darkModeType, textColor],
+  );
+
+  const balanceValue = useMemo(
+    () =>
+      txParsed?.paymentDenomination === "USD"
+        ? parseFloat(txParsed.amountDollars || 0)
+        : txParsed.amountMsat / 1000,
+    [
+      txParsed?.paymentDenomination,
+      txParsed?.amountDollars,
+      txParsed?.amountMsat,
+      masterInfoObject,
+    ],
+  );
 
   if (txParsed.giftCardInfo) {
     return (
@@ -61,12 +116,7 @@ function ConfirmedOrSentTransaction({
         theme={theme}
         darkModeType={darkModeType}
         backgroundOffset={backgroundOffset}
-        timeDifference={getTimeDisplay(
-          timeDifferenceMinutes,
-          timeDifferenceHours,
-          timeDifferenceDays,
-          timeDifferenceYears,
-        )}
+        timeDifference={timeDisplay}
         isFromProfile={false}
         t={t}
         navigate={navigate}
@@ -77,62 +127,40 @@ function ConfirmedOrSentTransaction({
 
   return (
     <div className="transaction-container centered">
-      {didDeclinePayment ? (
-        <CircleX
-          color={
-            theme && darkModeType
+      <ThemeIcon
+        colorOverride={
+          didDeclinePayment
+            ? theme && darkModeType
               ? Colors.dark.text
               : Colors.constants.cancelRed
-          }
-        />
-      ) : isOutgoingPayment ? (
-        <ArrowUp
-          color={
-            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
-          }
-        />
-      ) : (
-        <ArrowDown
-          color={
-            theme && darkModeType ? Colors.dark.text : Colors.constants.blue
-          }
-        />
-      )}
-
+            : undefined
+        }
+        iconName={
+          didDeclinePayment
+            ? "CircleX"
+            : isPendingRequest
+              ? "Clock"
+              : isOutgoingPayment
+                ? "ArrowUp"
+                : "ArrowDown"
+        }
+      />
       <div className="transaction-content">
         <ThemeText
           CustomEllipsizeMode={"tail"}
           CustomNumberOfLines={1}
           textStyles={{
-            color: didDeclinePayment
-              ? theme && darkModeType
-                ? textColor
-                : Colors.constants.cancelRed
-              : textColor,
+            color: textColorValue,
             marginRight: 15,
           }}
-          textContent={getTransactionContent({
-            paymentDescription,
-            didDeclinePayment,
-            txParsed,
-            t,
-          })}
+          textContent={transactionContent}
         />
         <ThemeText
           textStyles={{
-            color: didDeclinePayment
-              ? theme && darkModeType
-                ? textColor
-                : Colors.constants.cancelRed
-              : textColor,
+            color: textColorValue,
           }}
           className={"time-label"}
-          textContent={getTimeDisplay(
-            timeDifferenceMinutes,
-            timeDifferenceHours,
-            timeDifferenceDays,
-            timeDifferenceYears,
-          )}
+          textContent={timeDisplay}
         />
       </div>
 
@@ -150,20 +178,21 @@ function ConfirmedOrSentTransaction({
         }}
         styles={{
           fontWeight: 400,
-          color: didDeclinePayment
-            ? theme && darkModeType
-              ? textColor
-              : Colors.constants.cancelRed
-            : textColor,
+          color: textColorValue,
           marginTop: 0,
           marginBottom: 0,
         }}
-        balance={txParsed.amountMsat / 1000}
+        balance={balanceValue}
         useMillionDenomination={true}
+        useBalance={txParsed?.paymentDenomination === "USD"}
+        useCustomLabel={txParsed?.paymentDenomination === "USD"}
+        customLabel={txParsed?.paymentDenomination === "USD" ? "USDB" : null}
       />
     </div>
   );
 }
+
+ConfirmedOrSentTransaction.displayName = "ConfirmedOrSentTransaction";
 
 export default function ContactsTransactionItem(props) {
   const { selectedContact, transaction, myProfile, currentTime, imageData } =
@@ -185,10 +214,7 @@ export default function ContactsTransactionItem(props) {
 
   // Memoized calculations
   const timeCalculations = useMemo(() => {
-    const endDate = currentTime;
-    const startDate = transaction.timestamp;
-
-    const timeDifferenceMs = Math.abs(endDate - startDate);
+    const timeDifferenceMs = Math.abs(currentTime - transaction.timestamp);
 
     return {
       timeDifferenceMinutes: timeDifferenceMs / (1000 * 60),
@@ -196,42 +222,146 @@ export default function ContactsTransactionItem(props) {
       timeDifferenceDays: timeDifferenceMs / (1000 * 60 * 60 * 24),
       timeDifferenceYears: timeDifferenceMs / (1000 * 60 * 60 * 24 * 365),
     };
-  }, [currentTime, transaction.serverTimestamp, transaction.timestamp]);
-
-  const {
-    timeDifferenceMinutes,
-    timeDifferenceHours,
-    timeDifferenceDays,
-    timeDifferenceYears,
-  } = timeCalculations;
+  }, [currentTime, transaction.timestamp]);
 
   const txParsed = transaction.message;
   const paymentDescription = txParsed?.description || "";
 
+  const isCompletedTransaction = useMemo(
+    () =>
+      txParsed?.didSend ||
+      !txParsed?.isRequest ||
+      (txParsed?.isRequest && txParsed.isRedeemed != null),
+    [txParsed?.didSend, txParsed?.isRequest, txParsed?.isRedeemed],
+  );
+
+  const isPendingRequest = txParsed?.isRequest && txParsed.isRedeemed === null;
+
+  const requestAmount = useMemo(() => {
+    if (txParsed?.paymentDenomination === "USD") {
+      return displayCorrectDenomination({
+        amount: formatBalanceAmount(
+          txParsed?.amountDollars,
+          false,
+          masterInfoObject,
+        ),
+        masterInfoObject: {
+          ...masterInfoObject,
+          userBalanceDenomination: "fiat",
+        },
+        fiatStats,
+        forceCurrency: "USD",
+        convertAmount: false,
+      });
+    } else {
+      return displayCorrectDenomination({
+        amount: txParsed?.amountMsat / 1000,
+        masterInfoObject,
+        fiatStats,
+        useMillionDenomination: true,
+      });
+    }
+  }, [txParsed?.amountMsat, masterInfoObject, fiatStats]);
+
+  const timeDisplay = useMemo(
+    () =>
+      getTimeDisplay(
+        timeCalculations.timeDifferenceMinutes,
+        timeCalculations.timeDifferenceHours,
+        timeCalculations.timeDifferenceDays,
+        timeCalculations.timeDifferenceYears,
+      ),
+    [timeCalculations],
+  );
+
   const updatePaymentStatus = useCallback(
     async (transaction, usingOnPage, didPay, txid) => {
       try {
-        usingOnPage &&
+        if (usingOnPage) {
           setIsLoading((prev) => ({
             ...prev,
             [didPay ? "sendBTN" : "declineBTN"]: true,
           }));
-        const currentTime = getServerTime();
-        const response = await handlePaymentUpdate({
-          transaction,
-          didPay,
-          txid,
-          globalContactsInformation,
-          selectedContact,
-          currentTime,
-          contactsPrivateKey,
-          publicKey,
-          masterInfoObject,
-        });
+        }
 
-        if (!response && usingOnPage) {
-          openOverlay({
-            for: "error",
+        const newMessage = {
+          ...transaction.message,
+          isRedeemed: didPay,
+          txid,
+          name:
+            globalContactsInformation.myProfile.name ||
+            globalContactsInformation.myProfile.uniqueName,
+        };
+
+        if (newMessage.senderProfileSnapshot) {
+          newMessage.senderProfileSnapshot.uniqueName =
+            globalContactsInformation.myProfile.uniqueName;
+        }
+        delete newMessage.didSend;
+        delete newMessage.wasSeen;
+
+        const retrivedContact = await getDataFromCollection(
+          "blitzWalletUsers",
+          selectedContact.uuid,
+        );
+
+        if (!retrivedContact) {
+          throw new Error(t("errormessages.userDataFetchError"));
+        }
+
+        const currentTime = getServerTime();
+
+        const useNewNotifications = !!retrivedContact.isUsingNewNotifications;
+
+        const notificationData = {
+          isUpdate: true,
+          [useNewNotifications ? "option" : "message"]: useNewNotifications
+            ? didPay
+              ? "paid"
+              : "declined"
+            : t(
+                "contacts.internalComponents.contactsTransactions.pushNotificationUpdateMessage",
+                {
+                  name: myProfile.name || myProfile.uniqueName,
+                  option: didPay
+                    ? t("transactionLabelText.paidLower")
+                    : t("transactionLabelText.declinedLower"),
+                },
+              ),
+        };
+
+        const updateMessageParams = retrivedContact.isUsingEncriptedMessaging
+          ? {
+              newMessage,
+              fromPubKey: publicKey,
+              toPubKey: selectedContact.uuid,
+              retrivedContact,
+              privateKey: contactsPrivateKey,
+              currentTime,
+            }
+          : {
+              newMessage,
+              fromPubKey: transaction.fromPubKey,
+              toPubKey: transaction.toPubKey,
+              retrivedContact,
+              privateKey: contactsPrivateKey,
+              currentTime,
+            };
+
+        const [didPublishNotification, didUpdateMessage] = await Promise.all([
+          sendPushNotification({
+            selectedContactUsername: selectedContact.uniqueName,
+            myProfile,
+            data: notificationData,
+            privateKey: contactsPrivateKey,
+            retrivedContact,
+            masterInfoObject,
+          }),
+          updateMessage(updateMessageParams),
+        ]);
+
+        if (!didUpdateMessage && usingOnPage) {
+          navigate.navigate("ErrorScreen", {
             errorMessage: t("errormessages.updateContactMessageError"),
           });
         }
@@ -261,6 +391,7 @@ export default function ContactsTransactionItem(props) {
       navigate,
       masterInfoObject,
       globalContactsInformation,
+      t,
     ],
   );
 
@@ -319,13 +450,17 @@ export default function ContactsTransactionItem(props) {
           btcAddress: receiveAddress,
           comingFromAccept: true,
           enteredPaymentInfo: {
+            fromContacts: true,
+            payingContactsRequest: true,
             amount: sendingAmount,
             description: myProfileMessage,
+            inputCurrency: transaction.message.paymentDenomination || "BTC",
+            endReceiveType: transaction.message.paymentDenomination || "BTC",
           },
           contactInfo: {
             imageData,
             name: selectedContact.name || selectedContact.uniqueName,
-            payingContactMessage: formattedPayingContactMessage,
+            payingContactMessage: formattedPayingContactMessage, //handles remote tx description
             uniqueName: retrivedContact?.contacts?.myProfile?.uniqueName,
             uuid: retrivedContact?.uuid,
           },
@@ -363,12 +498,7 @@ export default function ContactsTransactionItem(props) {
     });
   };
 
-  if (txParsed === undefined) return null;
-
-  const isCompletedTransaction =
-    txParsed.didSend ||
-    !txParsed.isRequest ||
-    (txParsed.isRequest && txParsed.isRedeemed != null);
+  if (!txParsed) return null;
 
   return (
     <div className="transaction-item-button" key={props.id}>
@@ -376,32 +506,21 @@ export default function ContactsTransactionItem(props) {
         <ConfirmedOrSentTransaction
           txParsed={txParsed}
           paymentDescription={paymentDescription}
-          timeDifferenceMinutes={timeDifferenceMinutes}
-          timeDifferenceHours={timeDifferenceHours}
-          timeDifferenceDays={timeDifferenceDays}
-          timeDifferenceYears={timeDifferenceYears}
+          {...timeCalculations}
           navigate={navigate}
-          props={props}
+          masterInfoObject={masterInfoObject}
+          isPendingRequest={isPendingRequest}
         />
       ) : (
         <div className="transaction-container">
-          <ArrowUp
-            color={
-              theme && darkModeType ? Colors.dark.text : Colors.constants.blue
-            }
-          />
+          <ThemeIcon iconName={isPendingRequest ? "Clock" : "ArrowDown"} />
 
           <div className="transaction-content">
             <ThemeText
               textContent={t(
                 "contacts.internalComponents.contactsTransactions.requestTitle",
                 {
-                  amount: displayCorrectDenomination({
-                    amount: txParsed.amountMsat / 1000,
-                    masterInfoObject,
-                    fiatStats,
-                    useMillionDenomination: true,
-                  }),
+                  amount: requestAmount,
                 },
               )}
             />
@@ -411,12 +530,7 @@ export default function ContactsTransactionItem(props) {
                 marginBottom: paymentDescription ? 0 : 15,
               }}
               className={"time-label"}
-              textContent={getTimeDisplay(
-                timeDifferenceMinutes,
-                timeDifferenceHours,
-                timeDifferenceDays,
-                timeDifferenceYears,
-              )}
+              textContent={timeDisplay}
             />
 
             {paymentDescription && (
