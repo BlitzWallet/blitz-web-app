@@ -13,6 +13,7 @@ import {
   HIDDEN_BALANCE_TEXT,
   TOKEN_TICKER_MAX_LENGTH,
 } from "../../constants";
+import truncateToTwoDecimals from "../../functions/truncateNumber";
 
 export default function FormattedSatText({
   balance = 0,
@@ -69,7 +70,8 @@ export default function FormattedSatText({
       localBalanceDenomination,
       fiatStats,
       useMillionDenomination,
-      masterInfoObject,
+      masterInfoObject.thousandsSeperator,
+      masterInfoObject.userSelectedLanguage,
     ],
   );
 
@@ -157,10 +159,16 @@ export default function FormattedSatText({
   else if (useCustomLabel) {
     children = [
       frontText && renderText(frontText),
-      renderText(formatBalanceAmount(balance, useMillionDenomination)),
       renderText(
-        ` ${customLabel?.toUpperCase()?.slice(0, TOKEN_TICKER_MAX_LENGTH)}`,
-        { marginLeft: 5 },
+        `${
+          isSymbolInFront && showSymbol ? currencySymbol : ""
+        }${formatBalanceAmount(
+          truncateToTwoDecimals(balance),
+          true,
+          masterInfoObject,
+        )}${!isSymbolInFront && showSymbol ? currencySymbol : ""}${
+          !showSymbol ? " " + currencyText : ""
+        }`,
       ),
       backText && renderText(backText, { marginLeft: 5 }),
     ];
