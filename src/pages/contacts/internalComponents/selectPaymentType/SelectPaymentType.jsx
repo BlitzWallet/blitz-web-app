@@ -19,14 +19,16 @@ export default function SelectPaymentType({
   const { paymentType, selectedContact, imageData } = params || {};
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { backgroundOffset } = useThemeColors();
+  const { backgroundOffset, backgroundColor } = useThemeColors();
 
   const [selectedOption, setSelectedOption] = useState("BTC");
 
-  const btcCircleBg = theme && darkModeType ? backgroundOffset : "#F7931A";
-  const usdCircleBg = theme && darkModeType ? backgroundOffset : "#2ECC71";
+  const btcCircleBg =
+    theme && darkModeType ? backgroundColor : Colors.constants.bitcoinOrange;
+  const usdCircleBg =
+    theme && darkModeType ? backgroundColor : Colors.constants.dollarGreen;
   const giftCircleBg =
-    theme && darkModeType ? backgroundOffset : Colors.constants.blue;
+    theme && darkModeType ? backgroundColor : Colors.constants.blue;
 
   function handleNext() {
     onClose();
