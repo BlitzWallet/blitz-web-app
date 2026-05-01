@@ -1,0 +1,26 @@
+.add-description-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px 16px 16px;
+  box-sizing: border-box;
+}
+
+.add-description-modal h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 15px;
+}
+
+.add-description-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}

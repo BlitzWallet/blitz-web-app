@@ -5,22 +5,22 @@ import {
   lightningReceiveIcon,
   rootstockLogo,
   sparkAsteriskWhite,
-} from "../../constants/icons";
-import ThemeText from "../../components/themeText/themeText";
+} from "../../../../constants/icons";
+import ThemeText from "../../../../components/themeText/themeText";
 import { useTranslation } from "react-i18next";
-import { useThemeContext } from "../../contexts/themeContext";
-import useThemeColors from "../../hooks/useThemeColors";
+import { useThemeContext } from "../../../../contexts/themeContext";
+import useThemeColors from "../../../../hooks/useThemeColors";
 import "./style.css";
-import { useGlobalContextProvider } from "../../contexts/masterInfoObject";
-import { useAppStatus } from "../../contexts/appStatus";
-import { useActiveCustodyAccount } from "../../contexts/activeAccount";
-import { useKeysContext } from "../../contexts/keysContext";
+import { useGlobalContextProvider } from "../../../../contexts/masterInfoObject";
+import { useAppStatus } from "../../../../contexts/appStatus";
+import { useActiveCustodyAccount } from "../../../../contexts/activeAccount";
+import { useKeysContext } from "../../../../contexts/keysContext";
 import { useNavigate } from "react-router-dom";
-import displayCorrectDenomination from "../../functions/displayCorrectDenomination";
-import { useNodeContext } from "../../contexts/nodeContext";
-import { useOverlay } from "../../contexts/overlayContext";
+import displayCorrectDenomination from "../../../../functions/displayCorrectDenomination";
+import { useNodeContext } from "../../../../contexts/nodeContext";
+import { useOverlay } from "../../../../contexts/overlayContext";
 import { ArrowDown } from "lucide-react";
-import { Colors } from "../../constants/theme";
+import { Colors } from "../../../../constants/theme";
 
 const MAIN_PAYMENTS = [
   ["Lightning", "Instant"],
@@ -47,15 +47,12 @@ export default function SwitchReceiveOption({ params }) {
   const isLRC20Enabled = masterInfoObject?.lrc20Settings?.isEnabled;
 
   const didWarnLiquid = params?.didWarnLiquid;
-  const didWarnSpark = params?.didWarnSpark;
   const didWarnRootstock = params?.didWarnRootstock;
 
   useEffect(() => {
-    if (!didWarnSpark && !didWarnLiquid && !didWarnRootstock) return;
-    handleGoBack(
-      didWarnLiquid ? "Liquid" : didWarnSpark ? "Spark" : "Rootstock"
-    );
-  }, [didWarnSpark, didWarnLiquid, didWarnRootstock]);
+    if (!didWarnLiquid && !didWarnRootstock) return;
+    handleGoBack(didWarnLiquid ? "Liquid" : "Rootstock");
+  }, [didWarnLiquid, didWarnRootstock]);
 
   const handleGoBack = (selectedOption) => {
     onClose();
@@ -76,26 +73,7 @@ export default function SwitchReceiveOption({ params }) {
   };
 
   const handleClick = (selectedOption) => {
-    if (selectedOption === "Spark" && !isLRC20Enabled) {
-      openOverlay({
-        for: "informationPopup",
-        textContent: t(
-          "wallet.receivePages.switchReceiveOptionPage.sparkWarningMessage"
-        ),
-        buttonText: t("constants.understandText"),
-        customNavigation: () => {
-          console.log("runninghere");
-          openOverlay({
-            for: "halfModal",
-            contentType: "switchReceiveOptions",
-            params: {
-              didWarnSpark: true,
-            },
-          });
-        },
-      });
-      return;
-    } else if (selectedOption === "Liquid") {
+    if (selectedOption === "Liquid") {
       openOverlay({
         for: "informationPopup",
         textContent:
@@ -113,7 +91,7 @@ export default function SwitchReceiveOption({ params }) {
                   "wallet.receivePages.switchReceiveOptionPage.notUsingMainAccountWarning",
                   {
                     swapType: "Liquid",
-                  }
+                  },
                 )
               : ""
           }`,
@@ -182,12 +160,12 @@ export default function SwitchReceiveOption({ params }) {
               name === "Lightning"
                 ? lightningReceiveIcon
                 : name === "Bitcoin"
-                ? bitcoinReceiveIcon
-                : name === "Spark"
-                ? sparkAsteriskWhite
-                : name === "Liquid"
-                ? blockstreamLiquid
-                : rootstockLogo
+                  ? bitcoinReceiveIcon
+                  : name === "Spark"
+                    ? sparkAsteriskWhite
+                    : name === "Liquid"
+                      ? blockstreamLiquid
+                      : rootstockLogo
             }
             alt={name}
           />
@@ -198,12 +176,12 @@ export default function SwitchReceiveOption({ params }) {
               name === "Lightning"
                 ? "Lightning Network"
                 : name === "Bitcoin"
-                ? "On-Chain"
-                : name === "Liquid"
-                ? "Liquid Network"
-                : name === "Spark"
-                ? "Spark"
-                : "Rootstock"
+                  ? "On-Chain"
+                  : name === "Liquid"
+                    ? "Liquid Network"
+                    : name === "Spark"
+                      ? "Spark"
+                      : "Rootstock"
             }
           />
           <ThemeText
@@ -212,18 +190,27 @@ export default function SwitchReceiveOption({ params }) {
               name === "Lightning"
                 ? t("constants.instant")
                 : name === "Bitcoin"
-                ? t("wallet.receivePages.switchReceiveOptionPage.tenMinutes", {
-                    numMins: 10,
-                  })
-                : name === "Liquid"
-                ? t("wallet.receivePages.switchReceiveOptionPage.oneMinute", {
-                    numMins: 1,
-                  })
-                : name === "Spark"
-                ? t("constants.instant")
-                : t("wallet.receivePages.switchReceiveOptionPage.tenMinutes", {
-                    numMins: 3,
-                  })
+                  ? t(
+                      "wallet.receivePages.switchReceiveOptionPage.tenMinutes",
+                      {
+                        numMins: 10,
+                      },
+                    )
+                  : name === "Liquid"
+                    ? t(
+                        "wallet.receivePages.switchReceiveOptionPage.oneMinute",
+                        {
+                          numMins: 1,
+                        },
+                      )
+                    : name === "Spark"
+                      ? t("constants.instant")
+                      : t(
+                          "wallet.receivePages.switchReceiveOptionPage.tenMinutes",
+                          {
+                            numMins: 3,
+                          },
+                        )
             }
           />
         </div>
@@ -248,7 +235,7 @@ export default function SwitchReceiveOption({ params }) {
               action: isExpanded
                 ? t("constants.lessLower")
                 : t("constants.moreLower"),
-            }
+            },
           )}
         />
         <ArrowDown

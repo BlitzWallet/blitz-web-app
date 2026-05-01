@@ -5,7 +5,6 @@ import useThemeColors from "../../hooks/useThemeColors";
 import { useThemeContext } from "../../contexts/themeContext";
 import "./Modal.css";
 import ManualEnterSendAddress from "../wallet/components/sendOptions/manualEnter";
-import SwitchReceiveOption from "../switchReceiveOption/switchReceiveOption";
 import EditLNURLContactOnReceivePage from "./components/editLNURLOnReceive";
 import LRC20TokenInformation from "../../functions/lrc20/lrc20TokenDataHalfModal";
 import AddContactsModal from "../contacts/components/addContactsHalfModal/addContactsHalfModal";
@@ -14,6 +13,8 @@ import SelectContactRequestCurrency from "../contacts/internalComponents/selectC
 import NearBudgetLimitWarning from "../sendPage/components/NearBudgetLimitWarning";
 import SelectPaymentMethod from "../sendPage/components/selectPaymentMethod";
 import SelectLRC20Token from "../sendPage/components/selectLRC20Token";
+import SwitchReceiveOption from "../receiveQRPage/components/switchReceiveOption/switchReceiveOption";
+import AddDescriptionHalfModal from "../receiveQRPage/components/addDescriptionHalfModal/addDescriptionHalfModal";
 
 export default function CustomHalfModal({
   onClose,
@@ -146,6 +147,10 @@ export default function CustomHalfModal({
             sendingAmount={params?.sendingAmount}
             handleBackPressFunction={handleClose}
           />
+        );
+      case "editReceiveDescription":
+        return (
+          <AddDescriptionHalfModal params={params} onClose={handleClose} />
         );
       case "confirmSMS":
         return <div>Confirm SMS: {params?.message}</div>;

@@ -37,7 +37,8 @@ const pages = {
   Login: lazy(() => import("./pages/login/login.jsx")),
   WalletHome: lazy(() => import("./pages/wallet/wallet.jsx")),
   EditReceivePaymentInformation: lazy(
-    () => import("./pages/receiveAmount/receiveAmount.jsx"),
+    () =>
+      import("./pages/receiveQRPage/components/receiveAmount/receiveAmount.jsx"),
   ),
   ReceiveQRPage: lazy(() => import("./pages/receiveQRPage/receiveQRPage.jsx")),
   TechnicalDetailsPage: lazy(
@@ -45,7 +46,8 @@ const pages = {
   ),
   Camera: lazy(() => import("./pages/camera/camera.jsx")),
   SwitchReceiveOption: lazy(
-    () => import("./pages/switchReceiveOption/switchReceiveOption.jsx"),
+    () =>
+      import("./pages/receiveQRPage/components/switchReceiveOption/switchReceiveOption.jsx"),
   ),
   ExpandedTxPage: lazy(
     () => import("./pages/expandedTxPage/expandedTxPage.jsx"),

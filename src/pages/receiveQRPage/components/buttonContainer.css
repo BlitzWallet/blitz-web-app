@@ -1,21 +1,18 @@
 .receiveButtonContainer {
-  width: 95%;
-  max-width: 275px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 10px;
-  row-gap: 10px;
-  margin-top: 30px;
-  margin-bottom: 20px;
-}
-.receiveButtonContainer .customButton {
-  max-width: unset;
+  max-width: 300px;
+  width: 100%;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.receiveButtonContainer > :nth-child(3) {
-  grid-column: span 2;
-  justify-self: center;
-  width: max-content;
-  background-color: transparent;
-  border: 1px solid #121212;
+.switchNetworkButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  text-decoration: underline;
+  padding: 12px 0;
+  text-align: center;
 }

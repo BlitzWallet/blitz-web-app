@@ -32,19 +32,11 @@
 .sat-value.dimmed {
   opacity: 0.5;
 }
-
-.description-input-container {
-  max-width: 300px;
-  width: 100%;
-  display: flex;
-  margin: 0 auto 0;
-}
-
-.description-input {
-  width: 100%;
-  padding: 10px;
-  border: unset;
-  border-radius: 8px;
+.receive-warning-text {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0 16px 8px;
 }
 
 .custom-number-keyboard-container {
